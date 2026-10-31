@@ -101,7 +101,9 @@ final class OceanScene {
             d = min(d, max(length(float2(x + 10.0, z + 3.0)) - 2.2, 0.0));
             d = min(d, max(length(float2(x - 7.0, z + 8.0)) - 2.8, 0.0));
             d = min(d, max(length(float2(x - 8.5, z + 19.0)) - 2.0, 0.0));
-            d = min(d, max(length(float2((x + 13.0) / 3.0, (z - 7.0) / 3.9)) - 1.0, 0.0) * 3.0);
+            d = min(d, max(length(float2((x + 9.5) / 3.9, (z - 10.5) / 3.3)) - 1.0, 0.0) * 3.3);
+            d = min(d, max(length(float2((x + 3.0) / 7.1, (z - 14.2) / 2.3)) - 1.0, 0.0) * 2.3);
+            d = min(d, max(length(float2((x - 5.5) / 5.6, (z - 14.4) / 2.1)) - 1.0, 0.0) * 2.1);
             d = min(d, max(length(float2((x - 12.6) / 2.8, (z - 1.5) / 3.7)) - 1.0, 0.0) * 2.8);
             d += 0.35 * sin(x * 1.3 + z * 0.9 + t * 0.4) * sin(z * 1.1 - x * 0.4);
             // sRGB → 线性：A6EBDD / 8FE3D6 / 5CC8D0 / 4AA6D8
@@ -245,8 +247,8 @@ final class OceanScene {
         let tn = SCNNode(geometry: text)
         let (minB, maxB) = tn.boundingBox
         tn.pivot = SCNMatrix4MakeTranslation((minB.x + maxB.x) / 2, (minB.y + maxB.y) / 2, 0)
-        tn.scale = SCNVector3(0.6, 0.6, 0.6)
-        tn.position = SCNVector3(-5.2, 3.88, 8.58)
+        tn.scale = SCNVector3(0.78, 0.78, 0.78)
+        tn.position = SCNVector3(-5.2, 4.86, 8.98)
         scene.rootNode.addChildNode(tn)
         // 黑板上的“今日渔获”
         let chalk = SCNText(string: "今日渔获", extrusionDepth: 0.01)

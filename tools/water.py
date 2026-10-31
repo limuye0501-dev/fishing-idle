@@ -7,7 +7,7 @@ def dist(x,z):
     d=sdbox(x,z,-10.5,11.3,4.8,13.0)
     d=np.minimum(d,sdbox(x,z,7.7,10.3,-0.3,4.8))
     for rx,rz,r in ROCKS: d=np.minimum(d,np.maximum(np.hypot(x-rx,z-rz)-r,0))
-    for bx,bz,ax,az in ((-13.0,7.0,3.0,3.9),(12.6,1.5,2.8,3.7)):
+    for bx,bz,ax,az in ((-9.5,10.5,3.9,3.3),(-3.0,14.2,7.1,2.3),(5.5,14.4,5.6,2.1),(12.6,1.5,2.8,3.7)):
         e=np.hypot((x-bx)/ax,(z-bz)/az); d=np.minimum(d,np.maximum(e-1,0)*min(ax,az))
     return d
 def color(x,z,t=0.0):

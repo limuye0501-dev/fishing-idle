@@ -19,6 +19,7 @@ for x in range(-10,11,1):
         add(m="nature_path_stone",p=[x+(0.5 if z==11.2 else 0),0.68,z],s=[1.05,1,1.6],tint=[0.85,0.8,0.72],tex="stone")
 add(k="box",size=[22,1.4,3.6],c=[0.55,0.52,0.48],p=[0,0,11.2])
 # 鱼市场小屋
+M0=len(N)
 H=[-5.2,0.68,7.3]
 add(k="box",size=[3.6,2.4,2.6],c=[0.98,0.93,0.82],p=[H[0],H[1]+1.2,H[2]])
 for dx in (-1.8,1.8):
@@ -43,6 +44,13 @@ for (dx,dz) in ((-2.6,2.6),(-1.6,3.0),(2.4,2.4)):
         add(m="nature_plant_bushLarge",p=[H[0]+dx+ex,H[1]+0.42,H[2]+dz+ez],s=1.6,tint=[0.8,1.1,0.6])
 add(m="survival_box_large",p=[H[0]-1.0,H[1]+0.8,H[2]+1.75],s=2.0,ry=90,tex="wood")
 add(m="nature_flower_redA",p=[H[0]-1.0,H[1]+1.05,H[2]+1.75],s=2.5)
+# 整体放大鱼市场（以 H 为基点）
+MS=1.3
+for n in N[M0:]:
+    n["p"]=[H[i]+(n["p"][i]-H[i])*MS for i in range(3)]
+    s=n.get("s",1); n["s"]=[v*MS for v in s] if isinstance(s,list) else s*MS
+# 码头上站着的小熊船长
+add(prefab="bear",p=[2.2,0.68,7.0],ry=27,s=1.7)
 # 码头杂物
 add(m="pirate_barrel",p=[9.4,0.68,0.8],s=0.75)
 add(m="pirate_crate",p=[8.5,0.68,2.6],s=0.9,ry=10)
@@ -66,16 +74,18 @@ rock("pirate_rocks_a",-9,-12,1.0,30)
 rock("pirate_rocks_c",-10,-3,0.85,0)
 rock("pirate_rocks_c",7,-8,1.1,200,True)
 rock("pirate_rocks_b",8.5,-19,0.7,90)
-# 沙滩：码头两侧的柔和沙丘，缓坡入水
-SAND=[0.98,0.90,0.72]
-for (x,z,rx,rz) in ((-13.0,7.0,3.4,4.4),(12.6,1.5,3.2,4.2)):
-    add(k="sphere",size=[1.0],c=SAND,p=[x,-0.55,z],s=[rx,1.2,rz])
-    add(k="sphere",size=[1.0],c=[1.0,0.93,0.78],p=[x,-0.45,z],s=[rx*0.8,1.18,rz*0.8])
-# 椰子树（Kenney Pirate Kit，CC0）
-for (m,x,z,ry,sc) in (("pirate_palm_detailed_bend",-11.6,5.0,60,0.75),("pirate_palm_detailed_straight",-13.4,8.0,0,0.7),
-                      ("pirate_palm_detailed_bend",12.2,0.0,220,0.7),("pirate_palm_detailed_straight",13.2,3.2,0,0.65),
-                      ("pirate_palm_detailed_bend",-7.6,10.6,120,0.55)):
-    add(m=m,p=[x,0.45 if abs(x)>10 else 0.68,z],ry=ry,s=sc)
+# 沙滩：码头前方/左前方的柔和沙滩，缓坡入水
+SAND=[0.98,0.90,0.72]; SAND2=[1.0,0.94,0.80]
+for (x,z,rx,rz) in ((-9.5,10.5,4.2,3.6),(-3.0,14.2,7.5,2.6),(5.5,14.4,6.0,2.4),(12.6,1.5,3.2,4.2)):
+    add(k="sphere",size=[1.0],c=SAND,p=[x,-0.6,z],s=[rx,1.25,rz])
+    add(k="sphere",size=[1.0],c=SAND2,p=[x,-0.5,z],s=[rx*0.8,1.22,rz*0.75])
+for (m,x,z,ry,sc) in (("pirate_palm_detailed_bend",-10.8,9.6,70,1.1),("pirate_palm_detailed_straight",-12.0,12.0,0,1.0),
+                      ("pirate_palm_detailed_bend",-5.5,14.6,150,0.95),("pirate_palm_detailed_bend",12.2,0.0,220,1.0),
+                      ("pirate_palm_detailed_straight",13.2,3.2,0,0.95),("pirate_palm_detailed_straight",4.0,14.8,0,0.85)):
+    add(m=m,p=[x,0.5,z],ry=ry,s=sc)
+for (x,z) in ((-8.6,11.8),(-1.0,14.6),(7.5,14.4),(-11.5,9.0)):
+    add(m="nature_plant_bushLarge",p=[x,0.5,z],s=4.5)
+    add(m="nature_flower_yellowA",p=[x+0.5,0.5,z+0.4],s=5)
 # 浮标
 for i,(x,z) in enumerate([(-5.5,-1.0),(4.5,-9.0),(-4,-16)]):
     add(m="watercraft_buoy_flag" if i%2 else "watercraft_buoy",p=[x,0,z],s=0.6,bob=1)
