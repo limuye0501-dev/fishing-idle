@@ -103,9 +103,19 @@ struct SkyPalette: Equatable {
                 art.draw(in: rect); cg.restoreGState()
             } else { art.draw(in: rect) }
             if let t = tint { cg.setFillColor(t.cgColor); cg.fill(CGRect(x: 0, y: 0, width: size.width, height: hy + 2)) }
+            // v5.1：黄昏低悬太阳 + 光晕
+            if self.art == "dusk" {
+                let c = CGPoint(x: size.width * 0.30, y: hy - size.width * 0.07)
+                let glow = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                                      colors: [UIColor(red: 1, green: 0.93, blue: 0.70, alpha: 0.95).cgColor, UIColor(red: 1, green: 0.62, blue: 0.45, alpha: 0.45).cgColor, UIColor(red: 1, green: 0.55, blue: 0.55, alpha: 0).cgColor] as CFArray, locations: [0, 0.3, 1])!
+                cg.drawRadialGradient(glow, startCenter: c, startRadius: 0, endCenter: c, endRadius: size.width * 0.45, options: [])
+                let sr = size.width * 0.055
+                cg.setFillColor(UIColor(red: 1, green: 0.97, blue: 0.86, alpha: 1).cgColor)
+                cg.fillEllipse(in: CGRect(x: c.x - sr, y: c.y - sr, width: sr * 2, height: sr * 2))
+            }
             // 地平线柔和过渡到雾色
             let fade = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: [horizon.withAlphaComponent(0).cgColor, horizon.cgColor] as CFArray, locations: [0, 1])!
-            cg.drawLinearGradient(fade, start: CGPoint(x: 0, y: hy - size.height * 0.03), end: CGPoint(x: 0, y: hy), options: [.drawsAfterEndLocation])
+            cg.drawLinearGradient(fade, start: CGPoint(x: 0, y: hy - size.height * 0.006), end: CGPoint(x: 0, y: hy), options: [.drawsAfterEndLocation])
         }
     }
 

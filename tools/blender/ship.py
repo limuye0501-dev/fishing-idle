@@ -13,6 +13,7 @@ C = dict(
 M = {k: mat(k, v, rough=0.55) for k, v in C.items()}
 M['brass'] = mat('brassM', C['brass'], rough=0.3, metal=0.7)
 from texmats import textured, NB, finish_paint
+F = dict(M)   # 纯色材质：网/旗/雷达等动态部件不烘焙，USD 需导出纯色
 M.update(textured(C))   # v5：手绘风程序化材质
 
 SX, BX, BEAM = -4.3, 4.7, 1.65
@@ -270,29 +271,29 @@ wm = mat("Windows", C['glass'], rough=0.08)
 wn = join(windows, "Windows"); wn.data.materials.clear(); wn.data.materials.append(wm)
 lan = sphere("Lantern", 0.12, (HX + 0.95, -1.2, hz + 1.22), mat("LanternM", C['coral'], rough=0.35, emit=(0.5, 0.15, 0.05)), scale=(1, 1, 1.25))
 # 雷达
-rad = join([box("r1", (0.12, 0.95, 0.07), (0, 0, 0), M['white'], bev=0.02), cyl("r2", 0.05, 0.1, (0, 0, -0.06), M['charcoal'])], "Radar")
+rad = join([box("r1", (0.12, 0.95, 0.07), (0, 0, 0), F['white'], bev=0.02), cyl("r2", 0.05, 0.1, (0, 0, -0.06), F['charcoal'])], "Radar")
 rad.location = (HX - 0.3, 0, hz + 2.4)
 # 旗
 bm = bmesh.new(); bmesh.ops.create_grid(bm, x_segments=8, y_segments=4, size=0.5)
 for v in bm.verts: v.co = Vector((v.co.x * 0.55 - 0.28, 0.06 * math.sin(v.co.x * 6), v.co.y * 0.3))
-fl = mesh_obj("Flag", bm, M['teal']); fl.location = (MX - 0.0, 0, MT - 0.1)
+fl = mesh_obj("Flag", bm, F['teal']); fl.location = (MX - 0.0, 0, MT - 0.1)
 # 网：锥形线框网 + 网兜 + 鱼 + 浮子
 ng = []
 bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=False, segments=20, radius1=0.78, radius2=0.14, depth=1.7)
 bmesh.ops.subdivide_edges(bm, edges=[e for e in bm.edges if abs(e.verts[0].co.z - e.verts[1].co.z) > 0.1], cuts=7)
-cone = mesh_obj("netc", bm, M['rope']); cone.location = (0, 0, -1.45)
+cone = mesh_obj("netc", bm, F['rope']); cone.location = (0, 0, -1.45)
 wf = cone.modifiers.new("wf", "WIREFRAME"); wf.thickness = 0.022; ng.append(cone)
 bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=20, v_segments=10, radius=0.78)
 for v in bm.verts: v.co.z *= 0.6
-bag = mesh_obj("bag", bm, M['rope']); bag.location = (0, 0, -2.25)
+bag = mesh_obj("bag", bm, F['rope']); bag.location = (0, 0, -2.25)
 wf = bag.modifiers.new("wf", "WIREFRAME"); wf.thickness = 0.022; ng.append(bag)
 fishM = [mat("fish1", (0.72, 0.82, 0.90), rough=0.25, metal=0.3), mat("fish2", (0.98, 0.62, 0.45), rough=0.3)]
 for k in range(7):
     ng.append(sphere("fish", 0.13, ((k % 3) * 0.22 - 0.22, (k % 2) * 0.25 - 0.12, -2.3 - (k // 3) * 0.13), fishM[k % 2], scale=(1.7, 0.6, 0.75)))
 for k in range(8):
     a = 2 * math.pi * k / 8
-    ng.append(sphere("float", 0.075, (0.78 * math.cos(a), 0.78 * math.sin(a), -2.25), M['orange']))
-ng.append(cyl("netrope", 0.015, 0.6, (0, 0, -0.3), M['woodDark']))
+    ng.append(sphere("float", 0.075, (0.78 * math.cos(a), 0.78 * math.sin(a), -2.25), F['orange']))
+ng.append(cyl("netrope", 0.015, 0.6, (0, 0, -0.3), F['woodDark']))
 net = join(ng, "Net"); net.location = boomTip
 
 out = sys.argv[sys.argv.index("--") + 1] if "--" in sys.argv else "/tmp/shipout"

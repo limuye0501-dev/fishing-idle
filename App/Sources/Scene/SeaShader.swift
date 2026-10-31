@@ -44,6 +44,10 @@ float r = length(lp / float2(1.6, 1.0));
 float depthT = smoothstep(2.0, 26.0, r);
 float3 col = mix(shallowColor, deepColor, depthT);
 col *= 1.0 + hgt * 0.16 * nearF;
+// v5.1：近景更深更饱和（屏幕下方渐暗）
+float fg = 1.0 - smoothstep(6.0, 22.0, camDist);
+col = mix(col, col * float3(0.62, 0.86, 0.95), fg * 0.55);
+float lum = dot(col, float3(0.3, 0.59, 0.11)); col = mix(float3(lum), col, 1.0 + 0.35 * fg);
 col = mix(col, col * float3(0.80, 0.95, 1.0), smoothstep(0.2, 0.9, -hgt) * 0.35 * nearF);
 
 // —— 柔和焦散（近处更明显）——
@@ -55,7 +59,7 @@ col += float3(0.85, 1.0, 0.95) * caus * causticAmt * (1.0 - smoothstep(4.0, 30.0
 // —— 柔和菲涅尔：掠射角处映出天空色 ——
 float3 V = normalize(-_surface.position);
 float fres = pow(1.0 - clamp(dot(V, _surface.normal), 0.0, 1.0), 4.0);
-col = mix(col, skyColor, clamp(fres * 0.45 + smoothstep(40.0, 200.0, camDist) * 0.55, 0.0, 0.75));
+col = mix(col, skyColor, clamp(fres * 0.45 * (1.0 - fg * 0.7) + smoothstep(40.0, 200.0, camDist) * 0.55, 0.0, 0.75));
 
 // —— 太阳金色波光带（宽高光 + 圆形闪点）——
 float3 Vw = normalize((scn_frame.inverseViewTransform * float4(V, 0.0)).xyz);
@@ -69,32 +73,41 @@ float h = fract(sin(dot(cell, float2(12.9898, 78.233))) * 43758.5453);
 float2 fr = fract(cp) - 0.5 - (float2(fract(h * 7.31), fract(h * 3.17)) - 0.5) * 0.5;
 float dotm = 1.0 - smoothstep(0.06, 0.16, length(fr * float2(1.0, 1.8)));
 float tw = smoothstep(0.55, 1.0, sin(t * (1.5 + h * 2.5) + h * 40.0));
-float path = smoothstep(0.70, 0.99, rd);
+float3 sunCol = mix(float3(1.0, 0.80, 0.45), float3(1.0, 0.97, 0.90), nightAmt);
+// 风格化金色波光带：方位角接近太阳方向的海面，被波纹打碎
+float3 camW = (scn_frame.inverseViewTransform * float4(0.0, 0.0, 0.0, 1.0)).xyz;
+float2 dirH = normalize(wp4.xz - camW.xz);
+float2 sunH = normalize(sunDirW.xz + float2(1e-4, 0.0));
+float ad = 1.0 - dot(dirH, sunH);
+float pathW = mix(0.010, 0.0025, smoothstep(10.0, 120.0, camDist));
+float band = exp(-ad / pathW) * smoothstep(8.0, 40.0, camDist);
+float path = max(smoothstep(0.70, 0.99, rd), band);
+float brk = smoothstep(0.15, 0.9, sin(p.y * 5.0 + g.x * 14.0 + t * 1.5) * 0.5 + 0.5 + hgt * 0.4);
+col = mix(col, sunCol * 1.15, clamp(band * (0.35 + 0.65 * brk), 0.0, 1.0) * 0.85 * sparkleAmt);
 float spark = step(0.55, h) * tw * dotm * path * sparkleAmt;
-float3 sunCol = mix(float3(1.0, 0.82, 0.50), float3(1.0, 0.97, 0.90), nightAmt);
 col += sunCol * (spec + spark * 1.4) * mix(1.0, 0.6, nightAmt);
 
 // —— 白色浪尖（风浪碎沫）——
-float crestN = sin(p.x * 2.3 + p.y * 1.7 + t * 1.1) * sin(p.y * 3.1 - p.x * 1.3 - t * 0.8);
-float crest = smoothstep(0.62, 0.85, hgt + crestN * 0.25) * smoothstep(0.3, 0.9, crestN * 0.5 + 0.5);
+float crestN = sin(p.x * 5.3 + p.y * 3.7 + t * 1.1) * sin(p.y * 6.1 - p.x * 2.9 - t * 0.8);
+float crest = smoothstep(0.55, 0.70, hgt) * smoothstep(0.80, 0.95, crestN);
 crest *= nearF * sparkleAmt;
 
 // —— 船体四周泡沫环（紧贴吃水线）——
 float ell = length(lp / float2(4.75, 1.72));
 float nz = sin(lp.x * 3.1 + t * 1.3) * sin(lp.y * 4.7 - t * 1.1) * 0.5 + sin(lp.x * 7.0 - t * 2.0) * 0.25;
-float foam = (1.0 - smoothstep(1.0, 1.25, ell + nz * 0.07)) * smoothstep(0.82, 0.98, ell + nz * 0.04);
+float foam = (1.0 - smoothstep(1.0, 1.40, ell + nz * 0.07)) * smoothstep(0.78, 0.97, ell + nz * 0.04);
 // —— 船首浪：从船头向两侧后方张开的 V ——
 float bx = 4.6 - lp.x;
 float bowSpread = 1.0 + bx * 0.36;
-float bowLine = (1.0 - smoothstep(0.0, 0.30 + bx * 0.03, abs(abs(lp.y) - bowSpread))) * smoothstep(-0.3, 0.6, bx) * (1.0 - smoothstep(3.0, 11.0, bx));
+float bowLine = (1.0 - smoothstep(0.0, 0.30 + bx * 0.03, abs(abs(lp.y) - bowSpread))) * smoothstep(-0.3, 0.6, bx) * (1.0 - smoothstep(5.0, 16.0, bx));
 float bowFoam = (1.0 - smoothstep(0.0, 1.2, length(float2(lp.x - 4.6, lp.y * 1.6)))) * 0.9;
 // —— 尾浪：船尾之后呈 V 形扩散，逐渐淡出 ——
 float back = -lp.x - 4.2;
 float spread = 0.9 + back * 0.30;
 float wakeCore = (1.0 - smoothstep(spread * 0.30, spread * 0.9, abs(lp.y))) * smoothstep(-0.5, 1.0, back) * (1.0 - smoothstep(4.0, 26.0, back));
-float wakeEdge = (1.0 - smoothstep(0.0, 0.45, abs(abs(lp.y) - spread))) * smoothstep(0.0, 1.5, back) * (1.0 - smoothstep(8.0, 34.0, back));
+float wakeEdge = (1.0 - smoothstep(0.0, 0.7, abs(abs(lp.y) - spread))) * smoothstep(0.0, 1.5, back) * (1.0 - smoothstep(8.0, 34.0, back));
 float streaks = 0.55 + 0.45 * sin(lp.y * 9.0 + sin(back * 1.3 - t * 2.0) * 1.5) * sin(back * 2.2 - t * 3.0);
-float wake = clamp((wakeCore * 0.7 * streaks + wakeEdge * 0.85 * (0.7 + 0.3 * nz) + bowLine * 0.8 * (0.75 + 0.25 * nz) + bowFoam) * wakeOn, 0.0, 1.0);
+float wake = clamp((wakeCore * 0.9 * streaks + wakeEdge * 1.1 * (0.7 + 0.3 * nz) + bowLine * 1.2 * (0.75 + 0.25 * nz) + bowFoam) * wakeOn, 0.0, 1.0);
 float fm = clamp(foam * (0.8 + 0.2 * nz) + wake + crest * 0.8, 0.0, 1.0);
 col = mix(col, foamColor, fm * 0.92);
 
