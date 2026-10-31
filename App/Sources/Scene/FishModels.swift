@@ -11,15 +11,18 @@ enum FishModels {
 #pragma arguments
 float swimAmp;
 float swimSpeed;
+float fishCX;
+float fishHalf;
 #pragma body
-float x = _geometry.position.x;
+float x = (_geometry.position.x - fishCX) / fishHalf;
 float k = clamp((1.0 - x) * 0.5, 0.0, 1.0);
 float ph = scn_frame.time * swimSpeed - x * 2.6;
-_geometry.position.z += sin(ph) * swimAmp * k * k;
-_geometry.position.y += sin(scn_frame.time * swimSpeed * 0.5) * swimAmp * 0.15;
+_geometry.position.z += sin(ph) * swimAmp * k * k * fishHalf;
+_geometry.position.y += sin(scn_frame.time * swimSpeed * 0.5) * swimAmp * 0.15 * fishHalf;
 """
 
     static func prototype(_ id: String) -> SCNNode? {
+        // 返回长度为 2、居中的鱼
         if let c = cache[id] { return c }
         let url = Bundle.main.url(forResource: "Fish_\(id)", withExtension: "usdz", subdirectory: "Fish")
             ?? Bundle.main.url(forResource: "Fish_\(id)", withExtension: "usdz")
@@ -27,6 +30,9 @@ _geometry.position.y += sin(scn_frame.time * swimSpeed * 0.5) * swimAmp * 0.15;
         let holder = SCNNode()
         for c in s.rootNode.childNodes { holder.addChildNode(c) }
         let flat = holder.flattenedClone()
+        let (lo, hi) = flat.boundingBox
+        let half = max(Float(hi.x - lo.x) / 2, 0.0001)
+        let cx = Float(hi.x + lo.x) / 2
         let amp: Float = stiff.contains(where: { id.contains($0) }) ? 0.02 : 0.16
         for m in flat.geometry?.materials ?? [] {
             m.lightingModel = .physicallyBased
@@ -36,9 +42,15 @@ _geometry.position.y += sin(scn_frame.time * swimSpeed * 0.5) * swimAmp * 0.15;
             m.shaderModifiers = [.geometry: swim]
             m.setValue(NSNumber(value: amp), forKey: "swimAmp")
             m.setValue(NSNumber(value: 5.0), forKey: "swimSpeed")
+            m.setValue(NSNumber(value: cx), forKey: "fishCX")
+            m.setValue(NSNumber(value: half), forKey: "fishHalf")
         }
-        cache[id] = flat
-        return flat
+        let wrap = SCNNode(); wrap.addChildNode(flat)
+        let sc = 1 / half
+        flat.scale = SCNVector3(sc, sc, sc)
+        flat.position = SCNVector3(-cx * sc, -Float(hi.y + lo.y) / 2 * sc, -Float(hi.z + lo.z) / 2 * sc)
+        cache[id] = wrap
+        return wrap
     }
 
     /// 返回可独立放置的鱼节点（共享几何）

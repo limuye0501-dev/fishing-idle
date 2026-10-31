@@ -90,14 +90,14 @@ final class ShipScene: NSObject {
         c.exposureOffset = 0.0
         c.whitePoint = 1.0
         c.minimumExposure = -1; c.maximumExposure = 1
-        c.contrast = -0.12
+        c.contrast = 0.06
         c.saturation = 1.04
-        c.bloomIntensity = 0.55
+        c.bloomIntensity = 0.35
         c.bloomThreshold = 0.95
         c.bloomBlurRadius = 14
         c.vignettingIntensity = 0.45
         c.vignettingPower = 0.9
-        if let lut = UIImage(named: "GradeLUT.png") { c.colorGrading.contents = lut; c.colorGrading.intensity = 1 }
+        if let lut = UIImage(named: "GradeLUT.png") { c.colorGrading.contents = lut; c.colorGrading.intensity = 0.6 }
         c.wantsDepthOfField = true
         c.focusDistance = 13.2
         c.fStop = 4.5

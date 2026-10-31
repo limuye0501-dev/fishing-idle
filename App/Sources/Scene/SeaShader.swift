@@ -51,7 +51,7 @@ col += float3(1.0, 0.98, 0.9) * caus * causticAmt * (1.0 - smoothstep(4.0, 26.0,
 // —— 柔和菲涅尔：掠射角处映出天空色 ——
 float3 V = normalize(-_surface.position);
 float fres = pow(1.0 - clamp(dot(V, _surface.normal), 0.0, 1.0), 3.0);
-col = mix(col, skyColor, clamp(fres * 0.85 + smoothstep(25.0, 140.0, camDist) * 0.35, 0.0, 0.9));
+col = mix(col, skyColor, clamp(fres * 0.6 + smoothstep(30.0, 160.0, camDist) * 0.45, 0.0, 0.7));
 
 // —— 太阳闪光（细碎、柔和）——
 float3 Vw = normalize((scn_frame.inverseViewTransform * float4(V, 0.0)).xyz);
@@ -78,13 +78,11 @@ float fm = clamp(foam * (0.75 + 0.25 * nz) + wake, 0.0, 1.0);
 col = mix(col, foamColor, fm * 0.85);
 
 col *= mix(1.0, 0.55, nightAmt);
-_surface.diffuse = float4(col * 0.35, 1.0);
-_surface.emission = float4(col * 0.58, 1.0);
-_surface.roughness = 0.18;
+_surface.diffuse = float4(col, 1.0);
 """
 
     static func apply(to m: SCNMaterial) {
-        m.lightingModel = .physicallyBased
+        m.lightingModel = .constant
         m.shaderModifiers = [.surface: surface]
         m.metalness.contents = 0.0
         m.roughness.contents = 0.18
