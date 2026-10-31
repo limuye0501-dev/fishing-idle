@@ -97,7 +97,7 @@ struct ContentView: View {
         .sheet(isPresented: $game.showSettings) { SettingsView(store: game.storeManager).environmentObject(game) }
         .overlay(alignment: .center) {
             if let t = game.toast {
-                Text(t).font(.headline).padding().background(.black.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
+                Text(LocalizedStringKey(t)).font(.headline).padding().background(.black.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
                     .foregroundStyle(.white)
                     .task { try? await Task.sleep(for: .seconds(1.2)); game.toast = nil }
             }

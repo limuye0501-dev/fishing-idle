@@ -42,9 +42,16 @@ jobs:
           xcrun simctl bootstatus "$UDID" -b
           APP=$(find build/Build/Products -name "FishingIdle.app" -path "*iphonesimulator*" | head -1)
           xcrun simctl install "$UDID" "$APP"
-          xcrun simctl launch "$UDID" com.example.fishingidle
-          sleep 15
+          # App Store 截图风格的状态栏
+          xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3 || true
           mkdir -p screens
+          # 首次启动：新手引导
+          xcrun simctl launch "$UDID" com.example.fishingidle
+          sleep 12
+          xcrun simctl io "$UDID" screenshot screens/onboarding.png
+          xcrun simctl terminate "$UDID" com.example.fishingidle || true
+          xcrun simctl launch "$UDID" com.example.fishingidle -skipOnboarding
+          sleep 15
           xcrun simctl io "$UDID" screenshot screens/launch.png
           sleep 20
           xcrun simctl io "$UDID" screenshot screens/after35s.png
@@ -56,6 +63,18 @@ jobs:
             sleep 12
             xcrun simctl io "$UDID" screenshot screens/demo-tab$TAB.png
           done
+          # 设置页、离线收益卡片
+          for EXTRA in settings offline; do
+            xcrun simctl terminate "$UDID" com.example.fishingidle || true
+            xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab 0 -$EXTRA
+            sleep 12
+            xcrun simctl io "$UDID" screenshot screens/demo-$EXTRA.png
+          done
+          # 英文界面
+          xcrun simctl terminate "$UDID" com.example.fishingidle || true
+          xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab 0 -AppleLanguages "(en)" -AppleLocale en_US
+          sleep 12
+          xcrun simctl io "$UDID" screenshot screens/demo-en.png
           # 小百科：已解锁与未解锁条目
           for FISH in sardine coelacanth; do
             xcrun simctl terminate "$UDID" com.example.fishingidle || true

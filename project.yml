@@ -26,6 +26,8 @@ targets:
       properties:
         CFBundleDisplayName: 船长别回来
         CFBundleDevelopmentRegion: zh-Hans
+        CFBundleLocalizations: [zh-Hans, en]
+        CFBundleAllowMixedLocalizations: true
         UILaunchScreen:
           UIColorName: LaunchBackground
           UIImageName: LaunchLogo

@@ -1,0 +1,1396 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "version": "1.0",
+  "strings": {
+    "船长": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captains"
+          }
+        }
+      }
+    },
+    "渔具": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gear"
+          }
+        }
+      }
+    },
+    "海图": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sea Map"
+          }
+        }
+      }
+    },
+    "图鉴": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex"
+          }
+        }
+      }
+    },
+    "鱼缸": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aquarium"
+          }
+        }
+      }
+    },
+    "日志": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log"
+          }
+        }
+      }
+    },
+    "收起 ▼": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide ▼"
+          }
+        }
+      }
+    },
+    "港口管理 ▲": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Harbor ▲"
+          }
+        }
+      }
+    },
+    "免费版": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free"
+          }
+        }
+      }
+    },
+    "🔓 完整版": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🔓 Full Version"
+          }
+        }
+      }
+    },
+    "出海中": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sailing out"
+          }
+        }
+      }
+    },
+    "捕鱼中": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fishing"
+          }
+        }
+      }
+    },
+    "返航中": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Returning"
+          }
+        }
+      }
+    },
+    "卸货中": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unloading"
+          }
+        }
+      }
+    },
+    "经验": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "XP"
+          }
+        }
+      }
+    },
+    "换渔具": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change gear"
+          }
+        }
+      }
+    },
+    "可捕：": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Catches: "
+          }
+        }
+      }
+    },
+    "装备": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equip"
+          }
+        }
+      }
+    },
+    "使用中": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In use"
+          }
+        }
+      }
+    },
+    "已满级": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max level"
+          }
+        }
+      }
+    },
+    "已解锁": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlocked"
+          }
+        }
+      }
+    },
+    "不在季": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Out of season"
+          }
+        }
+      }
+    },
+    "当季可捕": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In season"
+          }
+        }
+      }
+    },
+    "四季": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All year"
+          }
+        }
+      }
+    },
+    "季可捕：": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Season: "
+          }
+        }
+      }
+    },
+    "现实渔季": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Real-world seasons"
+          }
+        }
+      }
+    },
+    "⚠️ 当季此渔具钓不到鱼": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠️ Nothing to catch with this gear this season"
+          }
+        }
+      }
+    },
+    "金币不足": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not enough coins"
+          }
+        }
+      }
+    },
+    "宝石不足": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not enough gems"
+          }
+        }
+      }
+    },
+    "船长已满员": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crew is full"
+          }
+        }
+      }
+    },
+    "海域未解锁": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sea is locked"
+          }
+        }
+      }
+    },
+    "解锁完整版后可用": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available in the Full Version"
+          }
+        }
+      }
+    },
+    "还没有这件渔具": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You don't own this gear yet"
+          }
+        }
+      }
+    },
+    "鱼缸满了，先升级或放生": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aquarium is full — upgrade or release a fish"
+          }
+        }
+      }
+    },
+    "这条已经在鱼缸里了": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already in the aquarium"
+          }
+        }
+      }
+    },
+    "操作失败": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong"
+          }
+        }
+      }
+    },
+    "购买未完成": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase not completed"
+          }
+        }
+      }
+    },
+    "已恢复购买": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchases restored"
+          }
+        }
+      }
+    },
+    "没有找到可恢复的购买": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No purchases to restore"
+          }
+        }
+      }
+    },
+    "已解锁完整版，谢谢支持！": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full Version unlocked — thank you!"
+          }
+        }
+      }
+    },
+    "收下": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collect"
+          }
+        }
+      }
+    },
+    "关闭": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "放生": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release"
+          }
+        }
+      }
+    },
+    "已入缸": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In aquarium"
+          }
+        }
+      }
+    },
+    "无": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        }
+      }
+    },
+    "未知鱼种": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown species"
+          }
+        }
+      }
+    },
+    "你的私人鱼缸。点鱼看小百科。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your private aquarium. Tap a fish to read about it."
+          }
+        }
+      }
+    },
+    "鱼缸空空的～去“最近渔获”里留几条吧": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The aquarium is empty — keep a few from Recent Catches!"
+          }
+        }
+      }
+    },
+    "鱼缸里的鱼": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fish in the aquarium"
+          }
+        }
+      }
+    },
+    "最近渔获（留下最好的一条，不卖）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent catches (keep the best one instead of selling)"
+          }
+        }
+      }
+    },
+    "海上风平浪静，暂时没有新鲜事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calm seas — nothing new yet"
+          }
+        }
+      }
+    },
+    "小百科": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fish Guide"
+          }
+        }
+      }
+    },
+    "英文名": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English name"
+          }
+        }
+      }
+    },
+    "别名": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also known as"
+          }
+        }
+      }
+    },
+    "体型": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Size"
+          }
+        }
+      }
+    },
+    "分布与栖息地": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Range & habitat"
+          }
+        }
+      }
+    },
+    "习性": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behaviour"
+          }
+        }
+      }
+    },
+    "食性": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diet"
+          }
+        }
+      }
+    },
+    "冷知识": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fun fact"
+          }
+        }
+      }
+    },
+    "保护等级": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conservation status"
+          }
+        }
+      }
+    },
+    "我的记录": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My records"
+          }
+        }
+      }
+    },
+    "图片来源与许可": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image source & license"
+          }
+        }
+      }
+    },
+    "首次捕获后解锁完整百科。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Catch it once to unlock the full entry."
+          }
+        }
+      }
+    },
+    "资料参考：维基百科 / FishBase / IUCN 红色名录": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sources: Wikipedia / FishBase / IUCN Red List"
+          }
+        }
+      }
+    },
+    "IUCN 未评估 (NE)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Evaluated (NE)"
+          }
+        }
+      }
+    },
+    "数据缺乏 (DD)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data Deficient (DD)"
+          }
+        }
+      }
+    },
+    "无危 (LC)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Least Concern (LC)"
+          }
+        }
+      }
+    },
+    "近危 (NT)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Near Threatened (NT)"
+          }
+        }
+      }
+    },
+    "易危 (VU)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnerable (VU)"
+          }
+        }
+      }
+    },
+    "濒危 (EN)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endangered (EN)"
+          }
+        }
+      }
+    },
+    "极危 (CR)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Critically Endangered (CR)"
+          }
+        }
+      }
+    },
+    "船长们在哪儿？": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where are the captains?"
+          }
+        }
+      }
+    },
+    "每片海域对应一处真实海区，母港在舟山。底图：Natural Earth（公有领域）。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each sea maps to a real ocean region; home port is Zhoushan. Basemap: Natural Earth (public domain)."
+          }
+        }
+      }
+    },
+    "船长们还在海上！": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The captains are still at sea!"
+          }
+        }
+      }
+    },
+    "⚓️港口": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚓️ Port"
+          }
+        }
+      }
+    },
+    "鱼市场": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fish Market"
+          }
+        }
+      }
+    },
+    "今日渔获": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's Catch"
+          }
+        }
+      }
+    },
+    "设置": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "声音与触感": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sound & Haptics"
+          }
+        }
+      }
+    },
+    "🔊 音效": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🔊 Sound effects"
+          }
+        }
+      }
+    },
+    "🎵 背景音乐": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🎵 Music"
+          }
+        }
+      }
+    },
+    "📳 触感反馈": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📳 Haptics"
+          }
+        }
+      }
+    },
+    "完整版": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full Version"
+          }
+        }
+      }
+    },
+    "🔓 解锁完整版": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🔓 Unlock Full Version"
+          }
+        }
+      }
+    },
+    "一次购买，永久解锁全部海域、全部渔具与鱼缸扩容。宝石不出售。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One purchase unlocks every sea, all gear and aquarium upgrades forever. Gems are never sold."
+          }
+        }
+      }
+    },
+    "恢复购买": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore Purchases"
+          }
+        }
+      }
+    },
+    "关于": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About"
+          }
+        }
+      }
+    },
+    "隐私政策": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy Policy"
+          }
+        }
+      }
+    },
+    "致谢与素材来源": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits & Licenses"
+          }
+        }
+      }
+    },
+    "致谢": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits"
+          }
+        }
+      }
+    },
+    "重新查看新手引导": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show tutorial again"
+          }
+        }
+      }
+    },
+    "版本": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        }
+      }
+    },
+    "完成": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        }
+      }
+    },
+    "《船长别回来》不收集、不上传任何个人信息。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captain, Don't Come Back collects and uploads no personal information."
+          }
+        }
+      }
+    },
+    "• 游戏进度只保存在你的设备上（应用沙盒内的存档文件与系统偏好设置）。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• Your progress is stored only on your device (a save file in the app sandbox and system preferences)."
+          }
+        }
+      }
+    },
+    "• 不含广告、不含第三方统计或追踪 SDK，不请求定位、通讯录、相机等权限。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• No ads, no third-party analytics or tracking SDKs, and no location, contacts or camera permissions."
+          }
+        }
+      }
+    },
+    "• 内购由 Apple App Store 处理，我们拿不到你的支付信息。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• In-app purchases are handled by the Apple App Store; we never see your payment details."
+          }
+        }
+      }
+    },
+    "• 删除应用即可清除全部数据。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• Deleting the app removes all data."
+          }
+        }
+      }
+    },
+    "如有疑问请联系：support@example.com（上架前替换）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questions? Contact support@example.com"
+          }
+        }
+      }
+    },
+    "3D 模型": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3D models"
+          }
+        }
+      }
+    },
+    "音效": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio"
+          }
+        }
+      }
+    },
+    "图片与资料": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Images & references"
+          }
+        }
+      }
+    },
+    "小熊船长、场景布局、程序": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bear captains, scene layout, code"
+          }
+        }
+      }
+    },
+    "本作原创": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original to this game"
+          }
+        }
+      }
+    },
+    "Kenney（kenney.nl）Pirate / Watercraft / Survival / Nature Kit — CC0": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kenney (kenney.nl) Pirate / Watercraft / Survival / Nature Kit — CC0"
+          }
+        }
+      }
+    },
+    "Kenney Interface Sounds、Music Jingles — CC0": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kenney Interface Sounds, Music Jingles — CC0"
+          }
+        }
+      }
+    },
+    "背景音乐《港口小调》— 本作原创（程序合成）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Music \"Harbor Tune\" — original (procedurally synthesized)"
+          }
+        }
+      }
+    },
+    "鱼类照片：Wikimedia Commons，各作者与许可见图鉴页": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fish photos: Wikimedia Commons — authors & licenses on each Codex page"
+          }
+        }
+      }
+    },
+    "世界地图：Natural Earth — 公有领域": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "World map: Natural Earth — public domain"
+          }
+        }
+      }
+    },
+    "欢迎来到小港口": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to the little harbor"
+          }
+        }
+      }
+    },
+    "你雇的小熊船长们会自己出海打鱼——而且一出海就不太想回来。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your bear captains sail out to fish on their own — and once they're out, they'd rather not come back."
+          }
+        }
+      }
+    },
+    "挂机也能赚": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earn while idle"
+          }
+        }
+      }
+    },
+    "船长们会自动出海、捕鱼、返航卖鱼。离开游戏时他们也在干活，回来记得收钱。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captains sail, fish and sell automatically. They keep working while you're away — collect when you return."
+          }
+        }
+      }
+    },
+    "探索真实海域": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explore real seas"
+          }
+        }
+      }
+    },
+    "解锁新海域、升级船和渔具，收集 32 种真实鱼类的图鉴。四季轮换，不同季节有不同的鱼。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock new seas, upgrade boats and gear, and collect 32 real fish species. Seasons rotate, and each brings different fish."
+          }
+        }
+      }
+    },
+    "你的私人鱼缸": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your private aquarium"
+          }
+        }
+      }
+    },
+    "把喜欢的鱼留进鱼缸慢慢欣赏，点一下就能看小百科。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep your favourite fish in the aquarium and tap one to read about it."
+          }
+        }
+      }
+    },
+    "下一步": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        }
+      }
+    },
+    "开船啦！": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set sail!"
+          }
+        }
+      }
+    },
+    "金币": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coins"
+          }
+        }
+      }
+    },
+    "宝石": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gems"
+          }
+        }
+      }
+    },
+    "海上趣事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sea stories"
+          }
+        }
+      }
+    },
+    "你离开了 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You were away for %@"
+          }
+        }
+      }
+    },
+    "%lld 条": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld fish"
+          }
+        }
+      }
+    },
+    "%lld 种": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld species"
+          }
+        }
+      }
+    },
+    "%lld海里": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld nm"
+          }
+        }
+      }
+    },
+    "%@ 带回 %lld 条鱼 %@%@  +%lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ brought back %2$lld fish %3$@%4$@  +%5$lld"
+          }
+        }
+      }
+    },
+    "解锁 %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock %lld"
+          }
+        }
+      }
+    },
+    "购买 %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy %lld"
+          }
+        }
+      }
+    },
+    "购买 %lld💎": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy %lld💎"
+          }
+        }
+      }
+    },
+    "雇佣新船长（%lld 金币）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hire a new captain (%lld coins)"
+          }
+        }
+      }
+    },
+    "航速 Lv%lld ↑%lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speed Lv%1$lld ↑%2$lld"
+          }
+        }
+      }
+    },
+    "鱼舱 %lld ↑%lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold %1$lld ↑%2$lld"
+          }
+        }
+      }
+    },
+    "收益×%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Income ×%@"
+          }
+        }
+      }
+    },
+    "🐠 生态鱼缸 %lld/%lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🐠 Aquarium %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "扩容 +%lld（%lld）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand +%1$lld (%2$lld)"
+          }
+        }
+      }
+    },
+    "留下 −%lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep −%lld"
+          }
+        }
+      }
+    },
+    "%lld/%lld · 集齐奖 %lld 金币": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld/%2$lld · Completion reward %3$lld coins"
+          }
+        }
+      }
+    },
+    "🏆 已集齐 · 收益+%lld%%": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🏆 Complete · Income +%lld%%"
+          }
+        }
+      }
+    }
+  }
+}
