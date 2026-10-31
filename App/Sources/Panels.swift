@@ -397,7 +397,13 @@ struct AquariumView: View {
                     PillButton(title: tr("扩容 +2（\(cost.formatted())）", "Expand +2 (\(cost.formatted()))"), tint: Theme.teal, enabled: s.coins >= cost) { game.upgradeTank() }
                 }
             }
-            TankScene(tank: s.tank) { game.encyclopediaFish = $0 }
+            ZStack {
+                Aquarium3D(ids: s.tank.map(\.fishID)) { game.encyclopediaFish = $0 }
+                if s.tank.isEmpty {
+                    Text(tr("鱼缸空空的～回港时从鱼舱挑几条吧", "The aquarium is empty — pick a few from the hold in port")).font(.caption).foregroundStyle(.white)
+                }
+            }
+            .background(LinearGradient(colors: [Color(red: 0.70, green: 0.94, blue: 0.93), Color(red: 0.20, green: 0.58, blue: 0.70)], startPoint: .top, endPoint: .bottom))
                 .frame(height: 190)
                 .clipShape(RoundedRectangle(cornerRadius: 14))
             Text(tr("回港后可以在鱼舱里点 💧 把喜欢的鱼放进鱼缸。点鱼看小百科。", "In port, tap 💧 on a fish in the hold to move it here. Tap a fish to read about it."))

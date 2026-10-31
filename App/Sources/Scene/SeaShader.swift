@@ -43,18 +43,9 @@ float depthT = smoothstep(2.5, 30.0, r);
 float3 col = mix(shallowColor, deepColor, depthT);
 
 // —— 柔和焦散（近处更明显）——
-float2 cp = p * 0.55 + float2(t * 0.05, t * 0.03);
-float2 ii = cp;
-float c = 1.0;
-float inten = 0.008;
-for (int n = 0; n < 3; n++) {
-    float tt = t * 0.35 * (1.0 - (3.5 / float(n + 1)));
-    ii = cp + float2(cos(tt - ii.x) + sin(tt + ii.y), sin(tt - ii.y) + cos(tt + ii.x));
-    c += 1.0 / length(float2(cp.x / (sin(ii.x + tt) / inten), cp.y / (cos(ii.y + tt) / inten)));
-}
-c /= 3.0;
-c = 1.17 - pow(c, 1.4);
-float caus = clamp(pow(abs(c), 7.0), 0.0, 1.0);
+float2 q = p * 0.85;
+float v1 = sin(q.x * 1.7 + t * 0.55 + sin(q.y * 1.3 + t * 0.40) * 1.6) * sin(q.y * 1.9 - t * 0.45 + sin(q.x * 1.1 - t * 0.35) * 1.6);
+float caus = pow(1.0 - abs(v1), 10.0) * 0.22;
 col += float3(1.0, 0.98, 0.9) * caus * causticAmt * (1.0 - smoothstep(4.0, 26.0, r));
 
 // —— 柔和菲涅尔：掠射角处映出天空色 ——
@@ -87,8 +78,8 @@ float fm = clamp(foam * (0.75 + 0.25 * nz) + wake, 0.0, 1.0);
 col = mix(col, foamColor, fm * 0.85);
 
 col *= mix(1.0, 0.55, nightAmt);
-_surface.diffuse = float4(col * 0.30, 1.0);
-_surface.emission = float4(col * 0.78, 1.0);
+_surface.diffuse = float4(col * 0.35, 1.0);
+_surface.emission = float4(col * 0.58, 1.0);
 _surface.roughness = 0.18;
 """
 

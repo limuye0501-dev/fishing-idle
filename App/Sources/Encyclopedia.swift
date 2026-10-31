@@ -78,6 +78,12 @@ struct EncyclopediaView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
+                    if unlocked {
+                        FishTurntable(id: fishID)
+                            .frame(height: 200).frame(maxWidth: .infinity)
+                            .background(LinearGradient(colors: [Color(red: 0.99, green: 0.93, blue: 0.88), Color(red: 0.80, green: 0.93, blue: 0.94)], startPoint: .top, endPoint: .bottom))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
                     if let e = entry, let img = Encyclopedia.photo(e.photo) {
                         Image(uiImage: img).resizable().scaledToFit()
                             .frame(maxWidth: .infinity)

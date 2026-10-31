@@ -87,13 +87,13 @@ final class ShipScene: NSObject {
         // HDR 后期：柔光泛光、暗角、调色 LUT、轻微景深
         c.wantsHDR = true
         c.wantsExposureAdaptation = false
-        c.exposureOffset = 0.35
-        c.whitePoint = 1.15
+        c.exposureOffset = 0.0
+        c.whitePoint = 1.0
         c.minimumExposure = -1; c.maximumExposure = 1
         c.contrast = -0.12
         c.saturation = 1.04
         c.bloomIntensity = 0.55
-        c.bloomThreshold = 0.82
+        c.bloomThreshold = 0.95
         c.bloomBlurRadius = 14
         c.vignettingIntensity = 0.45
         c.vignettingPower = 0.9
@@ -281,7 +281,7 @@ final class ShipScene: NSObject {
             let colors = [UIColor(red: 1, green: 0.62, blue: 0.48, alpha: 1), UIColor(red: 0.98, green: 0.80, blue: 0.42, alpha: 1),
                           UIColor(red: 0.55, green: 0.80, blue: 0.86, alpha: 1)]
             let p = shipRoot.convertPosition(SCNVector3(3.9, 0, 2.1), to: scene.rootNode)
-            SoftFX.fishPop(at: p, in: scene.rootNode, color: colors[state.totalFishCaught % colors.count])
+            SoftFX.fishPop(at: p, in: scene.rootNode, color: colors[state.totalFishCaught % colors.count], fishID: state.hold.last?.fishID)
         }
         lastCaught = state.totalFishCaught
         let part = state.dayPart(now)

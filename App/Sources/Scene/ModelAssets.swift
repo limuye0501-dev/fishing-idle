@@ -93,8 +93,11 @@ enum SoftFX {
         n.runAction(.sequence([.wait(duration: 2), .removeFromParentNode()]))
     }
 
-    static func fishPop(at p: SCNVector3, in parent: SCNNode, color: UIColor) {
+    static func fishPop(at p: SCNVector3, in parent: SCNNode, color: UIColor, fishID: String? = nil) {
         let fish = SCNNode()
+        if let id = fishID, let m = FishModels.node(id) {
+            m.scale = SCNVector3(0.32, 0.32, 0.32); fish.addChildNode(m)
+        } else {
         let body = SCNSphere(radius: 0.18); body.segmentCount = 20
         let m = SCNMaterial(); m.lightingModel = .physicallyBased; m.diffuse.contents = color; m.roughness.contents = 0.35
         m.emission.contents = color.withAlphaComponent(0.25)
@@ -102,6 +105,7 @@ enum SoftFX {
         let b = SCNNode(geometry: body); b.scale = SCNVector3(1.6, 0.9, 0.7); fish.addChildNode(b)
         let tail = SCNPyramid(width: 0.26, height: 0.24, length: 0.06); tail.materials = [m]
         let t = SCNNode(geometry: tail); t.eulerAngles.z = .pi / 2; t.position.x = -0.38; t.position.y = -0.12; fish.addChildNode(t)
+        }
         fish.position = p; fish.scale = SCNVector3(0.01, 0.01, 0.01)
         parent.addChildNode(fish)
         let up = SCNAction.group([.moveBy(x: 0.6, y: 1.6, z: 0, duration: 0.45), .scale(to: 1, duration: 0.25), .rotateBy(x: 0, y: 0, z: 0.9, duration: 0.45)])
