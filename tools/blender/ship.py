@@ -12,6 +12,8 @@ C = dict(
     orange=(1.0, 0.60, 0.28), green=(0.42, 0.62, 0.48), glass=(0.20, 0.30, 0.40))
 M = {k: mat(k, v, rough=0.55) for k, v in C.items()}
 M['brass'] = mat('brassM', C['brass'], rough=0.3, metal=0.7)
+from texmats import textured, NB, finish_paint
+M.update(textured(C))   # v5：手绘风程序化材质
 
 SX, BX, BEAM = -4.3, 4.7, 1.65
 def u(x): return (x - SX) / (BX - SX)
@@ -52,8 +54,11 @@ def hull_mat():
     els = r.color_ramp.elements
     while len(els) < len(stops): els.new(0.5)
     for e, (pos, col) in zip(els, stops): e.position = pos; e.color = (*srgb(col), 1)
-    nt.links.new(r.outputs["Color"], b.inputs["Base Color"])
-    return m
+    # v5：笔触色差 + 边缘磨损露出木色
+    nb = NB(m)
+    var = nb.ramp(nb.noise(1.4, 3, 0.5), [(0.3, (0.86, 0.86, 0.86)), (0.7, (1.0, 1.0, 1.0))])
+    col = nb.mix(1.0, r.outputs["Color"], var, 'MULTIPLY')
+    return finish_paint(nb, col, C['wood'], 1.0, m)
 
 # ---------- 船体（壳体 + 实心化 + 细分）----------
 def hull():
@@ -96,15 +101,14 @@ def deck_mesh():
         a = bm.verts.new((x, -w, deck(x))); b = bm.verts.new((x, w, deck(x)))
         if prev: bm.faces.new((prev[0], a, b, prev[1]))
         prev = (a, b)
-    return mesh_obj("deck", bm, M['wood'])
+    return mesh_obj("deck", bm, M['deck'])
 parts.append(deck_mesh())
-# 甲板木条纹（细长条凸起）
-for k in range(-6, 7):
-    y = k * 0.24
-    xs = [x for x in [SX + 0.15 + i * 0.25 for i in range(40)] if hw(x) - 0.12 > abs(y) and x < BX - 0.5]
-    if len(xs) > 1:
-        parts.append(box("plank", (xs[-1] - xs[0], 0.015, 0.012), ((xs[-1] + xs[0]) / 2, y, deck((xs[-1] + xs[0]) / 2) + 0.004), M['woodDark'], bev=0))
-
+# v5：甲板木板缝由 deck 材质的砖块纹理生成；船身铆钉
+for side in (-1, 1):
+    for i in range(30):
+        x = SX + 0.35 + (BX - 0.9 - SX) * i / 29
+        for dz in (-0.10,):
+            parts.append(sphere("rivet", 0.022, (x, side * (hw(x) * 0.99 + 0.012), top(x) + dz), M['charcoal'], seg=8))
 # 舷窗（两舷）
 for side in (-1, 1):
     for x in [-3.3, -2.5, -1.7, -0.9]:
@@ -176,12 +180,12 @@ f = join(fun, "funnelG"); f.location = (FX, -0.1, fz); f.rotation_euler = (0, -0
 
 # ---------- 桅杆、吊杆 ----------
 MX = 0.7; mz = deck(MX); MT = mz + 4.6
-parts.append(cyl("mast", 0.09, 4.6, (MX, 0, mz + 2.3), M['cream'], r2=0.07))
-parts.append(cyl("cross", 0.05, 1.7, (MX, 0, MT - 1.0), M['cream'], rot=(math.pi / 2, 0, 0)))
+parts.append(cyl("mast", 0.10, 4.6, (MX, 0, mz + 2.3), M['wood'], r2=0.075))
+parts.append(cyl("cross", 0.05, 1.7, (MX, 0, MT - 1.0), M['wood'], rot=(math.pi / 2, 0, 0)))
 parts.append(sphere("mtop", 0.09, (MX, 0, MT + 0.05), M['white']))
 boomTip = (MX + 2.9, -2.5, mz + 4.0)
-parts.append(tube("boom", [(MX, -0.1, mz + 1.0), boomTip], 0.065, M['cream']))
-parts.append(tube("boomP", [(MX, 0.1, mz + 1.0), (MX - 0.6, 1.6, mz + 3.9)], 0.06, M['cream']))
+parts.append(tube("boom", [(MX, -0.1, mz + 1.0), boomTip], 0.07, M['wood']))
+parts.append(tube("boomP", [(MX, 0.1, mz + 1.0), (MX - 0.6, 1.6, mz + 3.9)], 0.065, M['wood']))
 parts.append(torus("boomRing", 0.08, 0.02, (MX, 0, mz + 1.0), M['charcoal'], rot=(0, 0, 0)))
 # 索具（略微下垂）
 rig = [(( MX, 0, MT), boomTip, 0.05), ((MX, 0, MT), (BX - 0.3, 0, top(BX - 0.3) + 0.25), 0.08),
@@ -233,6 +237,29 @@ for dx in (-0.2, 0.2):
 for k in range(6):
     z = top(LX) + 0.15 - k * 0.25
     parts.append(cyl("rung", 0.025, 0.46, (LX, ly - 0.01 * k, z), M['wood'], rot=(0, math.pi / 2, 0)))
+# v5：更多甲板杂物（鱼筐、网堆、第二盘缆绳、油桶、帆布）
+def basket(x, y, r=0.24):
+    g = [cyl("bk", r, 0.3, (0, 0, 0), M['woodDark'], r2=r * 1.15, seg=20)]
+    for dz in (-0.1, 0.0, 0.1):
+        g.append(torus("bkr", r * (1.07 + dz * 0.5), 0.014, (0, 0, dz), M['rope'], seg=24, mseg=6))
+    for k in range(4):
+        g.append(sphere("bkf", 0.09, (0.08 * math.cos(k * 1.6), 0.08 * math.sin(k * 1.6), 0.15), M['white'] if k % 2 else M['orange'], scale=(1.8, 0.7, 0.6), seg=12))
+    o = join(g, "basket"); o.location = (x, y, deck(x) + 0.15); parts.append(o)
+basket(1.0, 0.45); basket(2.1, -0.55, 0.2); basket(-0.7, 0.35, 0.22)
+coil2 = [(-3.2 + (0.26 - 0.01 * k) * math.cos(a), 0.9 + (0.26 - 0.01 * k) * math.sin(a), deck(-3.2) + 0.05 + 0.05 * (k // 24))
+         for k in range(24 * 3) for a in [2 * math.pi * (k % 24) / 24]]
+parts.append(smooth_tube("coil2", coil2[::2], 0.045, M['rope']))
+bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=24, v_segments=12, radius=0.55)
+for v in bm.verts: v.co.z = max(0, v.co.z) * 0.45; v.co.x *= 1.3
+pile = mesh_obj("netpile", bm, M['rope']); pile.location = (-2.3, -0.75, deck(-2.3))
+wf = pile.modifiers.new("wf", "WIREFRAME"); wf.thickness = 0.03; parts.append(pile)
+for k, (x, y) in enumerate([(-2.0, 0.95), (-2.35, 1.05)]):
+    parts.append(cyl("drum", 0.2, 0.55, (x, y, deck(x) + 0.28), M['coral'] if k else M['teal'], seg=24, bev=0.02))
+    parts.append(torus("drumhoop", 0.2, 0.015, (x, y, deck(x) + 0.42), M['charcoal'], mseg=6))
+parts.append(box("tarp", (0.9, 0.7, 0.35), (1.95, 0.15, deck(1.95) + 0.18), M['tealDark'], bev=0.12))
+for side in (-1, 1):   # 舷边挂的护舷轮胎/浮球
+    for x in (-2.0, 1.6):
+        parts.append(torus("fender", 0.16, 0.07, (x, side * (hw(x) + 0.07), 0.95), M['charcoal'], rot=(math.pi / 2, 0, 0), seg=24, mseg=10))
 # 船头小灯笼柱、旗杆
 parts.append(cyl("bowpost", 0.035, 0.9, (BX - 0.45, 0, top(BX - 0.45) + 0.4), M['wood']))
 

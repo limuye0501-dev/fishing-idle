@@ -2,7 +2,7 @@
 import bpy, sys, os, numpy as np
 args = sys.argv[sys.argv.index("--") + 1:]
 ship_blend, cap_blend, out = args
-RES = 2048
+RES = int(os.environ.get('RES', '4096'))
 
 def export(path):
     bpy.ops.wm.usd_export(filepath=path, export_materials=True, generate_preview_surface=True, export_textures=True,
@@ -33,7 +33,7 @@ def bake(kind, name):
 alb = bake('DIFFUSE', "alb")
 bpy.ops.mesh.primitive_plane_add(size=60, location=(0, 0, 0.0)); water = bpy.context.object
 bpy.ops.object.select_all(action='DESELECT'); bpy.context.view_layer.objects.active = ship; ship.select_set(True)
-sc.cycles.samples = 48
+sc.cycles.samples = 32
 ao = bake('AO', "ao")
 bpy.data.objects.remove(water)
 
@@ -46,7 +46,7 @@ F[..., 3] = 1
 tex = bpy.data.images.new("ShipBaked", RES, RES, alpha=False)
 tex.pixels[:] = F.ravel()
 os.makedirs(out, exist_ok=True)
-tex.filepath_raw = os.path.join(out, "ShipBaked.png"); tex.file_format = 'PNG'; tex.save()
+tex.filepath_raw = os.path.join(out, "ShipBaked.jpg"); tex.file_format = 'JPEG'; sc.render.image_settings.quality = 88; tex.save()
 
 m = bpy.data.materials.new("ShipBakedM"); m.use_nodes = True; nt = m.node_tree
 b = nt.nodes["Principled BSDF"]; b.inputs["Roughness"].default_value = 0.62
@@ -58,6 +58,8 @@ for o in list(bpy.data.objects):
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, "ship_baked.blend"))
 export(os.path.join(out, "Ship.usdz"))
 
+if cap_blend == '-':
+    print("DONE"); raise SystemExit(0)
 bpy.ops.wm.open_mainfile(filepath=cap_blend)
 for o in list(bpy.data.objects):
     if o.type in ('CAMERA', 'LIGHT'): bpy.data.objects.remove(o)
