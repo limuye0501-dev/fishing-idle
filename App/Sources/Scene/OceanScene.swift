@@ -47,7 +47,7 @@ final class OceanScene {
         let sun = SCNNode()
         let light = SCNLight()
         light.type = .directional
-        light.intensity = 1050
+        light.intensity = 780
         light.color = UIColor(red: 1.0, green: 0.94, blue: 0.82, alpha: 1)
         light.castsShadow = true
         light.shadowMode = .forward
@@ -66,7 +66,7 @@ final class OceanScene {
         let ambient = SCNNode()
         ambient.light = SCNLight()
         ambient.light!.type = .ambient
-        ambient.light!.intensity = 520
+        ambient.light!.intensity = 300
         ambient.light!.color = UIColor(red: 0.90, green: 0.93, blue: 1.0, alpha: 1)
         scene.rootNode.addChildNode(ambient)
     }
@@ -93,13 +93,13 @@ final class OceanScene {
             float3 shallow = float3(0.07, 0.62, 0.62);
             float3 col = mix(deep, shallow, v);
             float t = scn_frame.time;
-            float2 p = uv * 140.0;
+            float2 p = uv * 70.0;
             float a = sin(p.x * 1.10 + sin(p.y * 0.9 + t * 0.6) * 1.6 + t * 0.7);
             float b = sin(p.y * 1.35 + sin(p.x * 0.7 - t * 0.5) * 1.8 - t * 0.55);
             float cell = a * b;
-            col = mix(col, col * 1.25 + 0.03, smoothstep(0.35, 0.75, cell));
-            float foam = smoothstep(0.88, 0.97, cell);
-            col = mix(col, float3(0.92, 0.97, 0.97), foam * 0.75);
+            col = mix(col, col * 1.12 + 0.02, smoothstep(0.45, 0.85, cell));
+            float foam = smoothstep(0.94, 0.99, cell);
+            col = mix(col, float3(0.92, 0.97, 0.97), foam * 0.45);
             _surface.diffuse.rgb = col;
             """
         ]
@@ -279,7 +279,7 @@ final class OceanScene {
     private func updateBubble(_ boat: SCNNode, captain c: Captain, state: GameState, config: EconomyConfig) {
         switch c.phase {
         case .returning, .unloading:
-            setBubble(boat, id: c.id, key: "fish1", image: { BubbleArt.fishBubble(count: 1) }, width: 2.3, height: 2.1)
+            setBubble(boat, id: c.id, key: "fish1", image: { BubbleArt.fishBubble(count: 1) }, width: 3.0, height: 2.7)
         case .sailingOut, .fishing:
             let el = c.phaseElapsed
             var rem = GameState.phaseDuration(c, c.phase, config) - el
@@ -290,7 +290,7 @@ final class OceanScene {
             let text = String(format: "%02d:%02d", secs / 60, secs % 60)
             let prog = total > 0 ? 1 - rem / total : 0
             let key = text + "|" + String(Int(prog * 20))
-            setBubble(boat, id: c.id, key: key, image: { BubbleArt.timerPill(text, progress: prog) }, width: 3.0, height: 1.1)
+            setBubble(boat, id: c.id, key: key, image: { BubbleArt.timerPill(text, progress: prog) }, width: 4.2, height: 1.55)
         }
     }
 

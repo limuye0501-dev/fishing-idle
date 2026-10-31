@@ -1,12 +1,12 @@
 import json
 N=[]
 def add(**k): N.append(k)
-W=[0.72,0.52,0.33]; DW=[0.52,0.36,0.22]
+W=[0.62,0.42,0.26]; DW=[0.52,0.36,0.22]
 # 码头：海盗套件平台拼成 L 形
 for x in (-7.5,-5,-2.5,0,2.5,5,7.5,10):
     for z in (6,8.5):
-        add(m="pirate_structure_platform",p=[x,-0.25,z])
-for z in (3.5,1.0): add(m="pirate_structure_platform",p=[9.0,-0.25,z])
+        add(m="pirate_structure_platform",p=[x,-0.25,z],tint=[0.8,0.72,0.66])
+for z in (3.5,1.0): add(m="pirate_structure_platform",p=[9.0,-0.25,z],tint=[0.8,0.72,0.66])
 # 前沿木桩 + 绳子
 for x in (-8.6,-6,-3.4,-0.8,1.8,4.4):
     add(k="cyl",size=[0.18,1.9],c=DW,p=[x,0.8,4.75],foam=0.9)
@@ -16,7 +16,7 @@ for z in (-0.2,2.2): add(k="cyl",size=[0.18,1.9],c=DW,p=[7.75,0.8,z]); add(k="cy
 # 石板路地面
 for x in range(-10,11,1):
     for z in (10.3,11.2,12.1):
-        add(m="nature_path_stone",p=[x+(0.5 if z==11.2 else 0),0.68,z],s=[1.05,1,1.6],tint=[1.0,0.98,0.95])
+        add(m="nature_path_stone",p=[x+(0.5 if z==11.2 else 0),0.68,z],s=[1.05,1,1.6],tint=[0.78,0.76,0.72])
 add(k="box",size=[22,1.4,3.6],c=[0.55,0.52,0.48],p=[0,0,11.2])
 # 鱼市场小屋
 H=[-5.2,0.68,7.3]
@@ -47,14 +47,14 @@ add(k="cyl",size=[0.1,2.6],c=[0.3,0.25,0.22],p=[10.6,2.0,4.9])
 add(k="box",size=[0.45,0.55,0.45],c=[1,0.85,0.4],p=[10.6,3.5,4.9],glow=1)
 # 礁石 + 植物
 def rock(m,x,z,s,ry=0,plants=False):
-    add(m=m,p=[x,-0.6,z],s=s,ry=ry,tint=[1.3,1.08,0.9],foam=s*2.2)
+    add(m=m,p=[x,-0.6,z],s=s,ry=ry,tint=[1.15,0.92,0.75],foam=s*2.2)
     if plants:
         top=[x,-0.6+s*2.4,z]
         for (dx,dz,mm,ss) in [(0,0,"nature_plant_bushLarge",5),(-0.6,0.5,"nature_flower_yellowA",6),(0.5,0.6,"nature_flower_yellowA",6),(0.7,-0.3,"nature_plant_bush",4),(-0.5,-0.4,"nature_grass_large",4)]:
             add(m=mm,p=[top[0]+dx*s,top[1]-0.3,top[2]+dz*s],s=ss*s/1.0*0.25)
-rock("pirate_rocks_a",-9.5,-14,0.9,30)
-rock("pirate_rocks_c",-11,-4,0.8,0)
-rock("pirate_rocks_c",11,-7,0.9,200,True)
+rock("pirate_rocks_a",-8.5,-11,1.3,30)
+rock("pirate_rocks_c",-10,-2,1.1,0)
+rock("pirate_rocks_c",10.5,-6,1.3,200,True)
 rock("pirate_rocks_b",8.5,-19,0.7,90)
 # 浮标
 for i,(x,z) in enumerate([(-5.5,-1.0),(4.5,-9.0),(-4,-16)]):
