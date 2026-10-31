@@ -24,6 +24,9 @@ final class ShipScene: NSObject {
     private let lanternLight = SCNNode()
     private var lastKey = ""
     private var lastName = ""
+    private var usingModels = false
+    private var lastCaught = -1
+    private let rim = SCNNode()
     private var palette = SkyPalette.make(part: .dusk, weather: .sunny, ocean: "coastal")
     private var lastSize: CGSize = .zero
     private let pitch: Float = -0.30
@@ -37,12 +40,24 @@ final class ShipScene: NSObject {
         buildCamera()
         buildLights()
         buildSea()
+        // 优先使用 Blender 制作的 USDZ 模型；名字牌仍用 SCNText 贴在右舷
         let built = ShipModel.build(name: "云栖号")
-        shipNode = built.ship; nameNode = built.nameNode; windows = built.windows
-        built.radar.runAction(.repeatForever(.rotateBy(x: 0, y: .pi * 2, z: 0, duration: 4)))
+        nameNode = built.nameNode
+        if let m = ModelAssets.ship() {
+            shipNode = m.node; windows = m.windows; usingModels = true
+            m.radar?.runAction(.repeatForever(.rotateBy(x: 0, y: .pi * 2, z: 0, duration: 4)))
+            let sway = SCNAction.sequence([.rotateBy(x: 0.05, y: 0, z: 0.04, duration: 1.7), .rotateBy(x: -0.05, y: 0, z: -0.04, duration: 1.7)])
+            sway.timingMode = .easeInEaseOut
+            m.net?.runAction(.repeatForever(sway))
+            nameNode.removeFromParentNode()
+            shipNode.addChildNode(nameNode)
+        } else {
+            shipNode = built.ship; windows = built.windows
+            built.radar.runAction(.repeatForever(.rotateBy(x: 0, y: .pi * 2, z: 0, duration: 4)))
+        }
         shipRoot.addChildNode(shipNode)
         // 小船长站在前甲板，面朝镜头偏右
-        let captain = CaptainModel.build()
+        let captain = ModelAssets.captain() ?? CaptainModel.build()
         captain.position = SCNVector3(2.1, ShipModel.deckY(2.1), 0.75)
         captain.eulerAngles.y = -1.75
         captain.scale = SCNVector3(1.5, 1.5, 1.5)
@@ -69,6 +84,11 @@ final class ShipScene: NSObject {
         c.projectionDirection = .horizontal
         c.zNear = 0.1; c.zFar = 700
         c.wantsHDR = false
+        // 柔和环境光遮蔽，让模型更有体积感
+        c.screenSpaceAmbientOcclusionIntensity = 0.6
+        c.screenSpaceAmbientOcclusionRadius = 0.35
+        c.screenSpaceAmbientOcclusionNormalThreshold = 0.3
+        c.screenSpaceAmbientOcclusionDepthThreshold = 0.2
         cameraNode.camera = c
         cameraNode.position = SCNVector3(0.4, 5.6, 12.2)
         cameraNode.eulerAngles = SCNVector3(pitch, 0, 0)
@@ -76,12 +96,16 @@ final class ShipScene: NSObject {
     }
     private func buildLights() {
         let s = SCNLight(); s.type = .directional; s.castsShadow = true; s.shadowMode = .deferred
-        s.shadowColor = UIColor(white: 0, alpha: 0.35); s.shadowRadius = 4; s.shadowSampleCount = 8
+        s.shadowColor = UIColor(red: 0.12, green: 0.10, blue: 0.22, alpha: 0.28); s.shadowRadius = 8; s.shadowSampleCount = 16
         s.orthographicScale = 12; s.shadowMapSize = CGSize(width: 2048, height: 2048)
         sun.light = s
         scene.rootNode.addChildNode(sun)
         let a = SCNLight(); a.type = .ambient; ambient.light = a
         scene.rootNode.addChildNode(ambient)
+        // 暖色轮廓光（从船后上方打来）
+        let r = SCNLight(); r.type = .directional; r.color = UIColor(red: 1, green: 0.78, blue: 0.62, alpha: 1); r.intensity = 450
+        rim.light = r; rim.eulerAngles = SCNVector3(-0.5, .pi * 0.85, 0)
+        scene.rootNode.addChildNode(rim)
     }
     private func buildSea() {
         seaMat.lightingModel = .physicallyBased
@@ -232,6 +256,13 @@ final class ShipScene: NSObject {
     // MARK: 同步
     func sync(state: VoyageState, now: Date) {
         if state.shipName != lastName { lastName = state.shipName; ShipModel.setName(nameNode, state.shipName) }
+        if lastCaught >= 0, state.totalFishCaught > lastCaught, state.phase == .fishing || state.phase == .sailing {
+            let colors = [UIColor(red: 1, green: 0.62, blue: 0.48, alpha: 1), UIColor(red: 0.98, green: 0.80, blue: 0.42, alpha: 1),
+                          UIColor(red: 0.55, green: 0.80, blue: 0.86, alpha: 1)]
+            let p = shipRoot.convertPosition(SCNVector3(3.9, 0, 2.1), to: scene.rootNode)
+            SoftFX.fishPop(at: p, in: scene.rootNode, color: colors[state.totalFishCaught % colors.count])
+        }
+        lastCaught = state.totalFishCaught
         let part = state.dayPart(now)
         let weather = state.weather(at: now)
         let key = "\(part)-\(weather)-\(state.oceanID)-\(state.phase.rawValue)"
@@ -260,6 +291,7 @@ final class ShipScene: NSObject {
         let night = part == .night
         windows?.emission.contents = night ? ShipModel.rgb(0.75, 0.55, 0.30) : UIColor.black
         lanternLight.light?.intensity = night ? 220 : 0
+        rim.light?.intensity = night ? 120 : (part == .dusk || part == .dawn ? 650 : 420)
         rainNode.isHidden = !(weather == .rain || weather == .storm)
         rainNode.particleSystems?.first?.birthRate = weather == .storm ? 1600 : 700
         gulls.isHidden = night || weather == .storm || weather == .rain
