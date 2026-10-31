@@ -31,9 +31,28 @@ jobs:
             -project FishingIdle.xcodeproj \
             -scheme FishingIdle \
             -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination 'generic/platform=iOS Simulator' ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+      - name: Run in simulator & screenshot
+        run: |
+          set -x
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print([x['udid'] for k,v in d.items() if 'iOS' in k for x in v if 'iPhone' in x['name'] and 'Pro Max' in x['name']][-1])")
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          APP=$(find build/Build/Products -name "FishingIdle.app" -path "*iphonesimulator*" | head -1)
+          xcrun simctl install "$UDID" "$APP"
+          xcrun simctl launch "$UDID" com.example.fishingidle
+          sleep 15
+          mkdir -p screens
+          xcrun simctl io "$UDID" screenshot screens/launch.png
+          sleep 20
+          xcrun simctl io "$UDID" screenshot screens/after35s.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: simulator-screenshots
+          path: screens/
 
   # ---------------------------------------------------------------
   # TestFlight 上传（暂未启用）。需要在仓库 Secrets 中配置：
