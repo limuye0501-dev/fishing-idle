@@ -76,3 +76,10 @@ Converted OGG → AAC (m4a, mono 64 kbps) with ffmpeg.
 ## App 图标 / 启动图
 
 The app icon and launch logo were generated for this project with Grok Bot's image generation (original artwork, no third-party assets).
+
+## v4（3D 风格升级）
+- 天空（黄昏/白天/夜晚）与云朵贴图：由 AI 图像生成工具（Grok Bot GenerateImage）生成的原创绘画贴图，位于 `App/Resources/Art/`。
+- 39 种 Q 版鱼 3D 模型：项目原创，由 `tools/blender/fish.py` 参数化生成（Blender 4.2，GPL 工具，产出物归本项目）。
+- 图标与引导页插图：Blender Cycles 渲染原创船与船长模型（`tools/blender/hero.py`）+ 上述 AI 天空合成。
+- 调色 LUT `GradeLUT.png`、海面 Metal 着色器：项目原创代码生成。
+- 小百科实拍照片仍来自 Wikimedia Commons（见上文各自许可）。
