@@ -14,6 +14,10 @@ public struct EconomyConfig: Codable, Sendable {
     public var captainHireBase = 150.0
     public var captainHireGrowth = 2.2
     public var maxCaptains = 6
+    // 免费版范围：前两片海域、只有鱼竿、固定春季、鱼缸不能扩容；宝石永不出售
+    public var freeAreaCount = 2
+    public var freeGear: [GearType] = [.rod]
+    public var freeSeason: Season = .spring
     public var maxOfflineSeconds: Double = 8 * 3600
     public var areas: [SeaArea]
     // 船长成长

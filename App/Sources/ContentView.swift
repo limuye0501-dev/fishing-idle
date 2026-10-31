@@ -13,7 +13,8 @@ struct ContentView: View {
                     .ignoresSafeArea(edges: .top)
                 VStack(spacing: 8) {
                     HUDView(coins: game.state.coins, gems: game.state.gems, fish: game.state.totalFishCaught,
-                            season: game.season, secondsLeft: Season.secondsUntilNext(Date(), seasonSeconds: game.config.seasonSeconds))
+                            season: game.season, secondsLeft: Season.secondsUntilNext(Date(), seasonSeconds: game.config.seasonSeconds),
+                            full: game.isFullVersion)
                     if let banner = game.eventBanner {
                         Text(banner)
                             .font(.footnote.bold()).multilineTextAlignment(.center)
@@ -83,6 +84,7 @@ struct HUDView: View {
     let fish: Int
     let season: Season
     let secondsLeft: Double
+    var full: Bool = true
     var body: some View {
         VStack(spacing: 4) {
             HStack(spacing: 14) {
@@ -94,8 +96,12 @@ struct HUDView: View {
             .font(.headline)
             HStack {
                 Text("\(season.emoji) \(season.name)季").font(.subheadline.bold()).foregroundStyle(.white)
+                if !full {
+                    Text("免费版·四季轮换需完整版").font(.caption).foregroundStyle(.white.opacity(0.85))
+                } else {
                 Text("距\(Season(rawValue: (season.rawValue + 1) % 4)!.name)季 \(formatDuration(secondsLeft))")
                     .font(.caption).foregroundStyle(.white.opacity(0.85))
+                }
                 Spacer()
             }
         }

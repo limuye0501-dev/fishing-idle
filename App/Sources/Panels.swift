@@ -33,22 +33,27 @@ struct GearRow: View {
         let equipped = captain.boat.equipped == gear
         let area = cfg.area(captain.areaID)
         let pool = area?.candidates(gear: gear, season: game.season) ?? []
+        let levelFactor: Double = 1 + cfg.gearLevelBonus * Double(max(1, lv) - 1)
+        let mult: Double = cfg.gearCatchMultiplier(gear) * levelFactor
+        let poolText: String = pool.isEmpty ? "无" : pool.map { $0.emoji + $0.name }.joined(separator: " ")
         HStack(alignment: .top) {
             Text(gear.emoji).font(.title2)
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
                     Text(gear.name).font(.subheadline.bold())
                     if lv > 0 { Text("Lv\(lv)").font(.caption2.bold()) }
-                    Text("渔获×\(String(format: "%.2f", cfg.gearCatchMultiplier(gear) * (1 + cfg.gearLevelBonus * Double(max(1, lv) - 1))))")
+                    Text("渔获×" + String(format: "%.2f", mult))
                         .font(.caption2).foregroundStyle(.secondary)
                 }
                 Text(gear.detail).font(.caption2).foregroundStyle(.secondary)
-                Text("\(area?.name ?? "")·\(game.season.name)季可捕：" + (pool.isEmpty ? "无" : pool.map { $0.emoji + $0.name }.joined(separator: " ")))
+                Text((area?.name ?? "") + "·" + game.season.name + "季可捕：" + poolText)
                     .font(.caption2).foregroundStyle(pool.isEmpty ? .red : .primary).lineLimit(2)
             }
             Spacer()
             VStack(spacing: 4) {
-                if lv == 0 {
+                if lv == 0 && !game.state.isGearAvailable(gear, config: cfg) {
+                    FullVersionBadge()
+                } else if lv == 0 {
                     let p = cfg.gearPrice(gear)
                     Button(p.gems > 0 ? "购买 \(p.gems)💎" : "购买 \(p.coins)") { game.buyGear(gear, captain.id) }
                         .disabled(game.state.coins < p.coins || game.state.gems < p.gems)
@@ -90,7 +95,7 @@ struct SeaMapView: View {
                     ForEach(cfg.areas) { a in
                         Path { p in
                             p.move(to: port)
-                            p.addLine(to: CGPoint(x: a.mapX * w, y: a.mapY * h))
+                            p.addLine(to: CGPoint(x: CGFloat(a.mapX) * w, y: CGFloat(a.mapY) * h))
                         }
                         .stroke(Color.white.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
                     }
@@ -106,7 +111,7 @@ struct SeaMapView: View {
                         .foregroundStyle(.white)
                         .padding(3)
                         .background((selected == a.id ? Color.orange : Color.black.opacity(0.35)), in: RoundedRectangle(cornerRadius: 6))
-                        .position(x: a.mapX * w, y: a.mapY * h)
+                        .position(x: CGFloat(a.mapX) * w, y: CGFloat(a.mapY) * h)
                         .onTapGesture { selected = a.id }
                     }
                 }
@@ -132,6 +137,8 @@ struct AreaDetail: View {
                 Spacer()
                 if unlocked {
                     Text("已解锁").font(.caption).foregroundStyle(.green)
+                } else if !game.state.isAreaAvailable(area, config: cfg) {
+                    FullVersionBadge()
                 } else {
                     Button("解锁 \(area.unlockCost)") { game.unlock(area.id) }
                         .buttonStyle(.borderedProminent).font(.caption)
@@ -177,9 +184,11 @@ struct AquariumView: View {
                 Text("物种越多游客越多（同种不叠加）。点鱼看小百科。").font(.caption2).foregroundStyle(.secondary)
                 Spacer()
                 let cost = cfg.tankUpgradeCost(level: game.state.tankLevel)
+                if !game.isFullVersion { FullVersionBadge() } else {
                 Button("扩容 +\(cfg.tankCapacityPerLevel)（\(cost)）") { game.upgradeTank() }
                     .buttonStyle(.bordered).font(.caption)
                     .disabled(game.state.coins < cost)
+                }
             }
             if !game.state.tank.isEmpty {
                 Text("鱼缸里的鱼").font(.subheadline.bold())
@@ -217,6 +226,24 @@ struct TankScene: View {
     let tank: [TankFish]
     let onTap: (String) -> Void
 
+    private func swimmer(_ f: TankFish, index i: Int, t: Double, w: CGFloat, h: CGFloat) -> some View {
+        let seed: Double = Double(abs(f.id.hashValue % 1000)) / 1000.0
+        let omega: Double = (0.15 + 0.1 * seed) * 2.0 * Double.pi / 3.0
+        let angle: Double = t * omega + seed * 6.28
+        let x: Double = 0.5 + 0.42 * sin(angle)
+        let goingRight: Bool = cos(angle) > 0
+        let row: Double = Double(i % 5) / 4.0
+        let y: Double = 0.2 + 0.6 * row + 0.04 * sin(t * 1.7 + seed * 10.0)
+        let emoji: String = GameState.fish(f.fishID, config: EconomyConfig())?.emoji ?? "🐟"
+        let px: CGFloat = CGFloat(x) * w
+        let py: CGFloat = CGFloat(y) * (h - 20)
+        return Text(emoji)
+            .font(.system(size: 26))
+            .scaleEffect(x: goingRight ? -1 : 1, y: 1)
+            .position(x: px, y: py)
+            .onTapGesture { onTap(f.fishID) }
+    }
+
     var body: some View {
         TimelineView(.animation) { ctx in
             let t = ctx.date.timeIntervalSinceReferenceDate
@@ -231,30 +258,30 @@ struct TankScene: View {
                     ForEach(0..<5, id: \.self) { k in
                         Text("🌿").font(.title2)
                             .rotationEffect(.degrees(sin(t * 1.3 + Double(k)) * 8), anchor: .bottom)
-                            .position(x: w * (0.1 + 0.2 * Double(k)), y: h - 22)
+                            .position(x: w * CGFloat(0.1 + 0.2 * Double(k)), y: h - 22)
                     }
                     ForEach(0..<6, id: \.self) { k in
                         let phase = (t * 0.25 + Double(k) * 0.37).truncatingRemainder(dividingBy: 1)
                         Circle().stroke(Color.white.opacity(0.6), lineWidth: 1).frame(width: 5, height: 5)
-                            .position(x: w * (0.15 + 0.14 * Double(k)), y: h * (1 - phase))
+                            .position(x: w * CGFloat(0.15 + 0.14 * Double(k)), y: h * CGFloat(1 - phase))
                     }
                     if tank.isEmpty {
                         Text("鱼缸空空的～去“最近渔获”里留几条吧").font(.caption).foregroundStyle(.white)
                     }
                     ForEach(Array(tank.enumerated()), id: \.element.id) { i, f in
-                        let seed = Double(abs(f.id.hashValue % 1000)) / 1000
-                        let speed = 0.15 + 0.1 * seed
-                        let x = 0.5 + 0.42 * sin(t * speed * 2 * .pi / 3 + seed * 6.28)
-                        let goingRight = cos(t * speed * 2 * .pi / 3 + seed * 6.28) > 0
-                        let y = 0.2 + 0.6 * (Double(i % 5) / 4) + 0.04 * sin(t * 1.7 + seed * 10)
-                        Text(GameState.fish(f.fishID, config: EconomyConfig())?.emoji ?? "🐟")
-                            .font(.system(size: 26))
-                            .scaleEffect(x: goingRight ? -1 : 1, y: 1)
-                            .position(x: x * w, y: y * (h - 20))
-                            .onTapGesture { onTap(f.fishID) }
+                        swimmer(f, index: i, t: t, w: w, h: h)
                     }
                 }
             }
         }
+    }
+}
+
+/// 完整版标记：点按进入购买流程
+struct FullVersionBadge: View {
+    @EnvironmentObject var game: GameViewModel
+    var body: some View {
+        Button("🔓 完整版") { game.purchaseFullVersion() }
+            .buttonStyle(.borderedProminent).tint(.orange).font(.caption2)
     }
 }

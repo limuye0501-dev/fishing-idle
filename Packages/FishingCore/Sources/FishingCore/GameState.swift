@@ -2,6 +2,8 @@ import Foundation
 
 public enum GameError: Error, Equatable {
     case notEnoughCoins, maxCaptains, unknownArea, areaLocked, alreadyUnlocked, unknownCaptain
+    /// 需要「解锁完整版」（一次性买断内购）
+    case requiresFullVersion
 }
 
 /// 纯逻辑游戏状态（无 UI 依赖，可在 Linux 上测试）
@@ -28,6 +30,8 @@ public struct GameState: Codable, Sendable {
     public var tankLevel: Int
     /// 鱼缸门票收入的小数累积
     public var tankIncomeCarry: Double
+    /// 是否已解锁完整版。所有付费内容只看这一个开关，下一轮接入 StoreKit 2 时由购买结果写入。
+    public var isFullVersion: Bool
 
     public init(config: EconomyConfig = EconomyConfig(), now: Date = Date()) {
         coins = config.startingCoins
@@ -46,11 +50,12 @@ public struct GameState: Codable, Sendable {
         tank = []
         tankLevel = 0
         tankIncomeCarry = 0
+        isFullVersion = false
     }
 
     enum CodingKeys: String, CodingKey {
         case coins, gems, captains, unlockedAreaIDs, lastUpdate, totalFishCaught, rngState, recentCatches
-        case codex, completedAreaIDs, eventLog, eventCounter, tank, tankLevel, tankIncomeCarry
+        case codex, completedAreaIDs, eventLog, eventCounter, tank, tankLevel, tankIncomeCarry, isFullVersion
     }
 
     /// 兼容旧存档：新字段缺失时取默认值
@@ -71,6 +76,10 @@ public struct GameState: Codable, Sendable {
         tank = try c.decodeIfPresent([TankFish].self, forKey: .tank) ?? []
         tankLevel = try c.decodeIfPresent(Int.self, forKey: .tankLevel) ?? 0
         tankIncomeCarry = try c.decodeIfPresent(Double.self, forKey: .tankIncomeCarry) ?? 0
+        // 老存档：已经玩到免费范围之外的内容（解锁了第 3 片以后的海域）的玩家视为完整版，避免已得内容被锁
+        let freeIDs = Set(EconomyConfig().areas.prefix(EconomyConfig().freeAreaCount).map(\.id))
+        isFullVersion = try c.decodeIfPresent(Bool.self, forKey: .isFullVersion)
+            ?? !Set(unlockedAreaIDs).isSubset(of: freeIDs)
     }
 
     // MARK: - 数值计算
@@ -165,8 +174,9 @@ public struct GameState: Codable, Sendable {
         return 0
     }
 
+    /// 生效季节：免费版永远是春天（季节系统属于完整版）
     public func season(at date: Date, config: EconomyConfig) -> Season {
-        Season.at(date, seasonSeconds: config.seasonSeconds)
+        isFullVersion ? Season.at(date, seasonSeconds: config.seasonSeconds) : config.freeSeason
     }
 
     /// 到达渔场时抽取海上事件
@@ -344,6 +354,7 @@ public struct GameState: Codable, Sendable {
     public mutating func unlockArea(_ areaID: String, config: EconomyConfig) throws {
         guard let area = config.area(areaID) else { throw GameError.unknownArea }
         guard !unlockedAreaIDs.contains(areaID) else { throw GameError.alreadyUnlocked }
+        guard isAreaAvailable(area, config: config) else { throw GameError.requiresFullVersion }
         try spend(area.unlockCost)
         unlockedAreaIDs.append(areaID)
     }
@@ -371,6 +382,19 @@ public struct GameState: Codable, Sendable {
         return d > 0 ? min(1, c.phaseElapsed / d) : 0
     }
 
+    // MARK: - 完整版开关（唯一的付费判定入口）
+
+    public func isAreaAvailable(_ area: SeaArea, config: EconomyConfig) -> Bool {
+        isFullVersion || (config.areas.firstIndex { $0.id == area.id } ?? .max) < config.freeAreaCount
+    }
+
+    public func isGearAvailable(_ g: GearType, config: EconomyConfig) -> Bool {
+        isFullVersion || config.freeGear.contains(g)
+    }
+
+    /// 购买完整版成功后调用（StoreKit 2 交易验证通过 / 恢复购买时）
+    public mutating func grantFullVersion() { isFullVersion = true }
+
     // MARK: - 渔具
 
     public enum GearError: Error, Equatable { case alreadyOwned, notOwned, maxLevel, notEnoughGems }
@@ -378,6 +402,7 @@ public struct GameState: Codable, Sendable {
     public mutating func buyGear(_ g: GearType, captain id: UUID, config: EconomyConfig) throws {
         let i = try index(of: id)
         guard !captains[i].boat.owns(g) else { throw GearError.alreadyOwned }
+        guard isGearAvailable(g, config: config) else { throw GameError.requiresFullVersion }
         let price = config.gearPrice(g)
         guard coins >= price.coins else { throw GameError.notEnoughCoins }
         guard gems >= price.gems else { throw GearError.notEnoughGems }
@@ -464,6 +489,7 @@ public struct GameState: Codable, Sendable {
     }
 
     public mutating func upgradeTank(config: EconomyConfig) throws {
+        guard isFullVersion else { throw GameError.requiresFullVersion }
         try spend(config.tankUpgradeCost(level: tankLevel))
         tankLevel += 1
     }

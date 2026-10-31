@@ -48,6 +48,7 @@ final class GameViewModel: ObservableObject {
         var s = GameState(config: config, now: start)
         s.coins = 100_000
         s.gems = 40
+        s.grantFullVersion()
         for a in ["mangrove", "reef", "kelp"] { try? s.unlockArea(a, config: config) }
         try? s.hireCaptain(config: config)
         try? s.hireCaptain(config: config)
@@ -113,6 +114,7 @@ final class GameViewModel: ObservableObject {
         catch GameError.notEnoughCoins { toast = "金币不足" }
         catch GameError.maxCaptains { toast = "船长已满员" }
         catch GameError.areaLocked { toast = "海域未解锁" }
+        catch GameError.requiresFullVersion { toast = "解锁完整版后可用" }
         catch GameState.GearError.notEnoughGems { toast = "宝石不足" }
         catch GameState.GearError.maxLevel { toast = "已满级" }
         catch GameState.GearError.notOwned { toast = "还没有这件渔具" }
@@ -135,7 +137,19 @@ final class GameViewModel: ObservableObject {
     func release(_ id: UUID) { perform { try $0.releaseFish(id) } }
     func upgradeTank() { perform { try $0.upgradeTank(config: config) } }
 
-    var season: Season { Season.at(Date(), seasonSeconds: config.seasonSeconds) }
+    /// 唯一的付费开关（下一轮由 StoreKit 2 的交易结果驱动）
+    var isFullVersion: Bool { state.isFullVersion }
+
+    /// 「解锁完整版」入口。StoreKit 2 接入前：DEBUG 直接授予，Release 提示即将上线
+    func purchaseFullVersion() {
+        #if DEBUG
+        state.grantFullVersion(); save(); toast = "已解锁完整版（调试）"
+        #else
+        toast = "内购即将上线"
+        #endif
+    }
+
+    var season: Season { state.season(at: Date(), config: config) }
     func fish(_ id: String) -> FishType? { GameState.fish(id, config: config) }
     func area(of fishID: String) -> SeaArea? { config.areas.first { $0.fish.contains { $0.id == fishID } } }
 

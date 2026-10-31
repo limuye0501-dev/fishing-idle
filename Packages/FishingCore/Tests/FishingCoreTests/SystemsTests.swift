@@ -96,6 +96,7 @@ final class ProgressionTests: XCTestCase {
         XCTAssertEqual(c.xpToNext(cfg), Int((60 * pow(10.0, 1.6)).rounded()))
         // 三小时近海挂机：等级应保持在个位数
         var s = GameState(config: EconomyConfig(), now: date(in: .spring))
+        s.isFullVersion = true
         s.applyElapsed(now: date(in: .spring).addingTimeInterval(3 * 3600), config: EconomyConfig())
         XCTAssertLessThan(s.captains[0].level, 10)
         XCTAssertGreaterThan(s.captains[0].level, 1)
@@ -105,6 +106,7 @@ final class ProgressionTests: XCTestCase {
         let cfg = EconomyConfig()
         let t = date(in: .summer)
         var s = GameState(config: cfg, now: t)
+        s.isFullVersion = true
         s.captains[0].trait = .veteran
         s.applyElapsed(now: t.addingTimeInterval(3 * 3600), config: cfg)
         // ~568 趟 × 3% ≈ 17 颗
@@ -166,6 +168,8 @@ final class ProgressionTests: XCTestCase {
         let cfg = EconomyConfig()
         let t = date(in: .autumn)
         var a = GameState(config: cfg, now: t), b = GameState(config: cfg, now: t)
+        a.isFullVersion = true; b.isFullVersion = true
+        a.isFullVersion = true
         a.applyElapsed(now: t.addingTimeInterval(7200), config: cfg)
         b.applyElapsed(now: t.addingTimeInterval(7200), config: cfg)
         XCTAssertEqual(a.coins, b.coins); XCTAssertEqual(a.gems, b.gems); XCTAssertEqual(a.codex, b.codex)

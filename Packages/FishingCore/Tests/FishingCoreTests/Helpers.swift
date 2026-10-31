@@ -17,5 +17,6 @@ func date(in season: Season, cycle: Int = 100) -> Date {
 func plainState(_ cfg: EconomyConfig, at t: Date) -> GameState {
     var s = GameState(config: cfg, now: t)
     s.captains[0].trait = .veteran   // 近海无效果
+    s.isFullVersion = true
     return s
 }
