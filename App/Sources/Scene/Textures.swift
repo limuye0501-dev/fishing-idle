@@ -38,7 +38,7 @@ struct SkyPalette: Equatable {
                            cloud: rgb(1.0, 0.80, 0.80), cloudShade: rgb(0.90, 0.62, 0.70), mountains: rgb(0.78, 0.66, 0.78),
                            sea: rgb(0.16, 0.70, 0.74), lightColor: rgb(1.0, 0.78, 0.56), lightIntensity: 1900,
                            ambient: rgb(1.0, 0.80, 0.78), ambientIntensity: 620, lightElevation: 0.22, stars: false, cloudCount: 7,
-                           fogStart: 45, fogEnd: 170)
+                           fogStart: 110, fogEnd: 420)
         case .day:
             p = SkyPalette(zenith: rgb(0.48, 0.74, 0.93), mid: rgb(0.66, 0.85, 0.96), horizon: rgb(0.88, 0.94, 0.97),
                            sun: rgb(1.0, 0.98, 0.88), sunVisible: false, sunX: 0.8,

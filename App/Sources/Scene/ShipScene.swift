@@ -69,7 +69,7 @@ final class ShipScene: NSObject {
         lanternLight.light = l; lanternLight.position = SCNVector3(-0.5, 2.6, 1.6)
         shipNode.addChildNode(lanternLight)
         scene.rootNode.addChildNode(shipRoot)
-        shipRoot.eulerAngles.y = 0.55   // 船头偏向右前方，露出右舷
+        shipRoot.eulerAngles.y = -0.62   // v5：船头朝向右前方（靠近镜头），三分之四视角
         buildWake()
         buildGulls()
         buildRain()
@@ -99,7 +99,7 @@ final class ShipScene: NSObject {
         c.vignettingPower = 0.9
         if let lut = UIImage(named: "GradeLUT.png") { c.colorGrading.contents = lut; c.colorGrading.intensity = 0.6 }
         c.wantsDepthOfField = true
-        c.focusDistance = 10.6
+        c.focusDistance = 11.5
         c.fStop = 4.5
         c.apertureBladeCount = 6
         c.focalBlurSampleCount = 6
@@ -109,7 +109,7 @@ final class ShipScene: NSObject {
         c.screenSpaceAmbientOcclusionNormalThreshold = 0.3
         c.screenSpaceAmbientOcclusionDepthThreshold = 0.2
         cameraNode.camera = c
-        cameraNode.position = SCNVector3(0.3, 5.0, 10.0)   // v5：更近的三分之四视角
+        cameraNode.position = SCNVector3(0.1, 5.3, 11.0)   // v5：更近的三分之四视角
         cameraNode.eulerAngles = SCNVector3(pitch, 0, 0)
         scene.rootNode.addChildNode(cameraNode)
     }
@@ -308,7 +308,7 @@ final class ShipScene: NSObject {
         let shallow = p.sea.mix(SkyPalette.rgb(0.20, 0.84, 0.82), night0 ? 0.2 : 0.65)
         let deep = p.sea.mix(SkyPalette.rgb(0.02, 0.44, 0.58), night0 ? 0.3 : 0.65)
         SeaShader.set(seaMat, shallow: shallow, deep: deep, sky: p.horizon.mix(p.mid, 0.3), foam: p.horizon.mix(.white, 0.88),
-                      sunDir: sunDir, yaw: state.phase == .docked ? 0 : 0.55, wake: state.phase == .sailing ? 1 : (state.phase == .fishing ? 0.75 : 0.5), night: night0 ? 0.35 : 0)
+                      sunDir: sunDir, yaw: state.phase == .docked ? 0 : -0.62, wake: state.phase == .sailing ? 1 : (state.phase == .fishing ? 0.75 : 0.5), night: night0 ? 0.6 : 0)
         seaMat.setValue(NSNumber(value: weather == .storm || weather == .rain || weather == .fog ? 0.3 : 1.0), forKey: "causticAmt")
         seaMat.setValue(NSNumber(value: night0 ? 0.6 : (weather == .storm || weather == .fog ? 0.2 : 1.0)), forKey: "sparkleAmt")
         for n in cloudRoot.childNodes { n.geometry?.firstMaterial?.multiply.contents = p.cloud.mix(.white, 0.35) }
@@ -330,7 +330,7 @@ final class ShipScene: NSObject {
         let docked = state.phase == .docked
         portNode.isHidden = !docked
         wakeNode.isHidden = true
-        shipRoot.eulerAngles.y = docked ? 0 : 0.55
+        shipRoot.eulerAngles.y = docked ? 0 : -0.62
         startMotion(amp: weather == .storm ? 3.2 : (weather == .rain || weather == .breeze ? 1.6 : 1))
         scene.rootNode.removeAction(forKey: "lightning")
         if weather == .storm {

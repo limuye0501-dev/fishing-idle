@@ -31,7 +31,7 @@ g += d1 * cos(a1) * 0.20; g += d2 * cos(a2) * 0.15; g += d3 * cos(a3) * 0.10; g 
 hgt = sin(a1) * 0.40 + sin(a2) * 0.30 + sin(a3) * 0.18 + sin(a4) * 0.12;
 float camDist = length(wp4.xyz - (scn_frame.inverseViewTransform * float4(0.0, 0.0, 0.0, 1.0)).xyz);
 float nearF = 1.0 - smoothstep(12.0, 80.0, camDist);
-g *= mix(0.35, 1.0, nearF);
+g *= mix(0.7, 1.0, nearF);
 float3 nW = normalize(float3(-g.x, 1.0, -g.y));
 _surface.normal = normalize((scn_frame.viewTransform * float4(nW, 0.0)).xyz);
 
@@ -62,14 +62,14 @@ float3 Vw = normalize((scn_frame.inverseViewTransform * float4(V, 0.0)).xyz);
 float3 Rw = reflect(-Vw, nW);
 float3 S = normalize(sunDirW);
 float rd = max(dot(Rw, S), 0.0);
-float spec = pow(rd, 260.0) * 1.6 + pow(rd, 24.0) * 0.35;
+float spec = pow(rd, 260.0) * 1.8 + pow(rd, 40.0) * 0.6 + pow(rd, 6.0) * 0.12;
 float2 cp = p * float2(2.2, 4.0);
 float2 cell = floor(cp);
 float h = fract(sin(dot(cell, float2(12.9898, 78.233))) * 43758.5453);
 float2 fr = fract(cp) - 0.5 - (float2(fract(h * 7.31), fract(h * 3.17)) - 0.5) * 0.5;
 float dotm = 1.0 - smoothstep(0.06, 0.16, length(fr * float2(1.0, 1.8)));
 float tw = smoothstep(0.55, 1.0, sin(t * (1.5 + h * 2.5) + h * 40.0));
-float path = smoothstep(0.80, 0.995, rd);
+float path = smoothstep(0.70, 0.99, rd);
 float spark = step(0.55, h) * tw * dotm * path * sparkleAmt;
 float3 sunCol = mix(float3(1.0, 0.82, 0.50), float3(1.0, 0.97, 0.90), nightAmt);
 col += sunCol * (spec + spark * 1.4) * mix(1.0, 0.6, nightAmt);
@@ -98,7 +98,7 @@ float wake = clamp((wakeCore * 0.7 * streaks + wakeEdge * 0.85 * (0.7 + 0.3 * nz
 float fm = clamp(foam * (0.8 + 0.2 * nz) + wake + crest * 0.8, 0.0, 1.0);
 col = mix(col, foamColor, fm * 0.92);
 
-col *= mix(1.0, 0.55, nightAmt);
+col *= mix(1.0, 0.45, nightAmt);
 _surface.diffuse = float4(col, 1.0);
 """
 
