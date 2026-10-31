@@ -49,7 +49,7 @@ final class ShipScene: NSObject {
         shipNode.addChildNode(captain)
         // 夜间灯光
         let l = SCNLight(); l.type = .omni; l.color = UIColor(red: 1, green: 0.75, blue: 0.45, alpha: 1); l.intensity = 0
-        l.attenuationStartDistance = 0.5; l.attenuationEndDistance = 7
+        l.attenuationStartDistance = 0.3; l.attenuationEndDistance = 4.5
         lanternLight.light = l; lanternLight.position = SCNVector3(-0.5, 2.6, 1.6)
         shipNode.addChildNode(lanternLight)
         scene.rootNode.addChildNode(shipRoot)
@@ -68,12 +68,9 @@ final class ShipScene: NSObject {
         c.fieldOfView = 48
         c.projectionDirection = .horizontal
         c.zNear = 0.1; c.zFar = 700
-        c.wantsHDR = true
-        c.bloomIntensity = 0.35; c.bloomThreshold = 0.85
-        c.vignettingIntensity = 0.25; c.vignettingPower = 0.6
-        c.saturation = 1.05
+        c.wantsHDR = false
         cameraNode.camera = c
-        cameraNode.position = SCNVector3(0.6, 6.4, 14.5)
+        cameraNode.position = SCNVector3(0.4, 5.6, 12.2)
         cameraNode.eulerAngles = SCNVector3(pitch, 0, 0)
         scene.rootNode.addChildNode(cameraNode)
     }
@@ -250,23 +247,25 @@ final class ShipScene: NSObject {
 
     private func apply(part: DayPart, weather: Weather, state: VoyageState) {
         let p = palette
+        let night0 = part == .night
         sun.light?.color = p.lightColor; sun.light?.intensity = p.lightIntensity
         sun.eulerAngles = SCNVector3(-p.lightElevation, Float((0.5 - p.sunX) * 1.2), 0)
         ambient.light?.color = p.ambient; ambient.light?.intensity = p.ambientIntensity
         seaMat.diffuse.contents = p.sea
+        seaMat.emission.contents = p.sea.mix(.black, night0 ? 0.75 : 0.45)
         scene.fogColor = p.horizon
         scene.fogStartDistance = p.fogStart; scene.fogEndDistance = p.fogEnd; scene.fogDensityExponent = 1.3
         scene.lightingEnvironment.contents = p.environmentImage()
-        scene.lightingEnvironment.intensity = part == .night ? 0.6 : 1.2
+        scene.lightingEnvironment.intensity = part == .night ? 0.35 : 0.9
         let night = part == .night
-        windows?.emission.contents = night ? ShipModel.rgb(1.0, 0.78, 0.45) : UIColor.black
-        lanternLight.light?.intensity = night ? 900 : 0
+        windows?.emission.contents = night ? ShipModel.rgb(0.75, 0.55, 0.30) : UIColor.black
+        lanternLight.light?.intensity = night ? 220 : 0
         rainNode.isHidden = !(weather == .rain || weather == .storm)
         rainNode.particleSystems?.first?.birthRate = weather == .storm ? 1600 : 700
         gulls.isHidden = night || weather == .storm || weather == .rain
         let polar = state.oceanID == "arctic" || state.oceanID == "southern"
         iceNode.isHidden = !(polar || weather == .ice)
-        scene.rootNode.childNode(withName: "glitter", recursively: false)?.isHidden = !(p.sunVisible && !night) && weather != .sunny
+        scene.rootNode.childNode(withName: "glitter", recursively: false)?.isHidden = night || weather == .rain || weather == .storm || weather == .fog
         let docked = state.phase == .docked
         portNode.isHidden = !docked
         wakeNode.isHidden = state.phase != .sailing

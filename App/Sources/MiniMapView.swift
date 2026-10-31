@@ -98,7 +98,7 @@ struct MiniMapView: View {
                                 .background((current ? Theme.gold : Color.white).opacity(0.9), in: Capsule())
                                 .foregroundStyle(Theme.ink)
                                 .fixedSize()
-                                .position(x: c.x, y: c.y + 14)
+                                .position(x: c.x, y: c.y > full.height - 24 ? c.y - 14 : c.y + 14)
                         }
                     }
                     Image(systemName: "house.fill").font(.system(size: expanded ? 11 : 9)).foregroundStyle(Theme.navy)
