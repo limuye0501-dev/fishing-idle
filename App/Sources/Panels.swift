@@ -35,7 +35,11 @@ struct GearRow: View {
         let pool = area?.candidates(gear: gear, season: game.season) ?? []
         let levelFactor: Double = 1 + cfg.gearLevelBonus * Double(max(1, lv) - 1)
         let mult: Double = cfg.gearCatchMultiplier(gear) * levelFactor
-        let poolText: String = pool.isEmpty ? "无" : pool.map { $0.emoji + $0.name }.joined(separator: " ")
+        let names: [String] = pool.map { (f: FishType) -> String in f.emoji + f.name }
+        let poolText: String = pool.isEmpty ? "无" : names.joined(separator: " ")
+        let areaName: String = area?.name ?? ""
+        let poolLine: String = areaName + "·" + game.season.name + "季可捕：" + poolText
+        let poolColor: Color = pool.isEmpty ? Color.red : Color.primary
         HStack(alignment: .top) {
             Text(gear.emoji).font(.title2)
             VStack(alignment: .leading, spacing: 2) {
@@ -46,8 +50,8 @@ struct GearRow: View {
                         .font(.caption2).foregroundStyle(.secondary)
                 }
                 Text(gear.detail).font(.caption2).foregroundStyle(.secondary)
-                Text((area?.name ?? "") + "·" + game.season.name + "季可捕：" + poolText)
-                    .font(.caption2).foregroundStyle(pool.isEmpty ? .red : .primary).lineLimit(2)
+                Text(poolLine)
+                    .font(.caption2).foregroundStyle(poolColor).lineLimit(2)
             }
             Spacer()
             VStack(spacing: 4) {

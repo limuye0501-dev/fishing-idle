@@ -233,7 +233,7 @@ struct FishCard: View {
                 Text("×\(e.count) · \(formatKg(e.bestKg))").font(.system(size: 9)).foregroundStyle(.secondary)
             } else {
                 Text(fish.available(in: season) ? "当季可捕" : "不在季").font(.system(size: 9))
-                    .foregroundStyle(fish.available(in: season) ? .green : .secondary)
+                    .foregroundStyle(fish.available(in: season) ? Color.green : Color.secondary)
             }
         }
         .frame(maxWidth: .infinity)
@@ -281,7 +281,7 @@ struct CaptainRow: View {
             HStack(spacing: 4) {
                 Text("\(boat.equipped.emoji) \(boat.equipped.name) Lv\(boat.gearLevel(boat.equipped))").font(.caption.bold())
                 Text(pool.isEmpty ? "⚠️ 当季此渔具钓不到鱼" : "可捕：" + pool.map(\.emoji).joined())
-                    .font(.caption2).foregroundStyle(pool.isEmpty ? .red : .secondary).lineLimit(1)
+                    .font(.caption2).foregroundStyle(pool.isEmpty ? Color.red : Color.secondary).lineLimit(1)
                 Spacer()
                 Button("换渔具") { game.gearCaptainID = captain.id; game.panelTab = 1 }.font(.caption2)
             }
