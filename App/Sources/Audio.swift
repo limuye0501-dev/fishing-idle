@@ -43,15 +43,37 @@ final class AudioManager {
         p.play()
     }
 
-    func startMusic() { updateMusic() }
-    func stopMusic() { bgm?.pause() }
+    private let musicVolume: Float = 0.35
+    private var fadeToken = 0
+
+    /// 回到前台：从静音淡入
+    func startMusic() {
+        fadeToken += 1
+        guard musicOn else { return }
+        if bgm == nil { updateMusic(); bgm?.volume = 0 }
+        guard let p = bgm else { return }
+        if !p.isPlaying { p.volume = 0; p.play() }
+        p.setVolume(musicVolume, fadeDuration: 1.2)
+    }
+
+    /// 切到后台：淡出后暂停
+    func stopMusic() {
+        guard let p = bgm, p.isPlaying else { return }
+        fadeToken += 1
+        let token = fadeToken
+        p.setVolume(0, fadeDuration: 0.5)
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(550))
+            if token == self.fadeToken { p.pause() }
+        }
+    }
 
     private func updateMusic() {
         if musicOn {
             if bgm == nil, let u = url("bgm_harbor") {
                 bgm = try? AVAudioPlayer(contentsOf: u)
                 bgm?.numberOfLoops = -1
-                bgm?.volume = 0.35
+                bgm?.volume = musicVolume
             }
             bgm?.play()
         } else {
