@@ -348,7 +348,7 @@ enum ShipModel {
             }
             ship.addChildNode(c)
         }
-        crate(1.7, 0.75, 0.42, 0.2); crate(1.75, 0.72, 0.36, -0.1, stack: 1); crate(2.25, 0.9, 0.36, 0.5); crate(-0.35, -0.9, 0.4, 0.1)
+        crate(1.35, 0.85, 0.42, 0.2); crate(1.4, 0.82, 0.36, -0.1, stack: 1); crate(1.6, -0.8, 0.36, 0.5); crate(-0.35, -0.9, 0.4, 0.1)
         func barrel(_ x: Float, _ z: Float) {
             let b = cyl(0.2, 0.5, wood, rough: 0.8); b.position = SCNVector3(x, deckY(x) + 0.25, z)
             for dy in [-0.15, 0.15] as [Float] { let h = cyl(0.205, 0.04, charcoal, rough: 0.4, metal: 0.5); h.position.y = dy; b.addChildNode(h) }

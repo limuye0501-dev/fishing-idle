@@ -43,9 +43,9 @@ final class ShipScene: NSObject {
         shipRoot.addChildNode(shipNode)
         // 小船长站在前甲板，面朝镜头偏右
         let captain = CaptainModel.build()
-        captain.position = SCNVector3(2.3, ShipModel.deckY(2.3), 0.35)
-        captain.eulerAngles.y = -1.15
-        captain.scale = SCNVector3(1.2, 1.2, 1.2)
+        captain.position = SCNVector3(2.1, ShipModel.deckY(2.1), 0.75)
+        captain.eulerAngles.y = -0.95
+        captain.scale = SCNVector3(1.5, 1.5, 1.5)
         shipNode.addChildNode(captain)
         // 夜间灯光
         let l = SCNLight(); l.type = .omni; l.color = UIColor(red: 1, green: 0.75, blue: 0.45, alpha: 1); l.intensity = 0
@@ -252,7 +252,7 @@ final class ShipScene: NSObject {
         sun.eulerAngles = SCNVector3(-p.lightElevation, Float((0.5 - p.sunX) * 1.2), 0)
         ambient.light?.color = p.ambient; ambient.light?.intensity = p.ambientIntensity
         seaMat.diffuse.contents = p.sea
-        seaMat.emission.contents = p.sea.mix(.black, night0 ? 0.75 : 0.45)
+        seaMat.emission.contents = p.sea.mix(.black, night0 ? 0.8 : 0.62)
         scene.fogColor = p.horizon
         scene.fogStartDistance = p.fogStart; scene.fogEndDistance = p.fogEnd; scene.fogDensityExponent = 1.3
         scene.lightingEnvironment.contents = p.environmentImage()

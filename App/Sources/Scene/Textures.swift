@@ -33,14 +33,14 @@ struct SkyPalette: Equatable {
             p = SkyPalette(zenith: rgb(0.93, 0.70, 0.74), mid: rgb(0.99, 0.80, 0.72), horizon: rgb(1.0, 0.90, 0.76),
                            sun: rgb(1.0, 0.93, 0.70), sunVisible: true, sunX: part == .dusk ? 0.62 : 0.38,
                            cloud: rgb(1.0, 0.80, 0.80), cloudShade: rgb(0.90, 0.62, 0.70), mountains: rgb(0.78, 0.66, 0.78),
-                           sea: rgb(0.42, 0.80, 0.80), lightColor: rgb(1.0, 0.82, 0.68), lightIntensity: 1500,
+                           sea: rgb(0.33, 0.74, 0.76), lightColor: rgb(1.0, 0.82, 0.68), lightIntensity: 1500,
                            ambient: rgb(1.0, 0.84, 0.82), ambientIntensity: 650, lightElevation: 0.22, stars: false, cloudCount: 7,
                            fogStart: 45, fogEnd: 170)
         case .day:
             p = SkyPalette(zenith: rgb(0.48, 0.74, 0.93), mid: rgb(0.66, 0.85, 0.96), horizon: rgb(0.88, 0.95, 0.96),
                            sun: rgb(1.0, 0.98, 0.88), sunVisible: false, sunX: 0.8,
                            cloud: rgb(1.0, 1.0, 1.0), cloudShade: rgb(0.80, 0.86, 0.94), mountains: rgb(0.64, 0.76, 0.86),
-                           sea: rgb(0.36, 0.80, 0.82), lightColor: rgb(1.0, 0.97, 0.90), lightIntensity: 1800,
+                           sea: rgb(0.28, 0.72, 0.78), lightColor: rgb(1.0, 0.97, 0.90), lightIntensity: 1800,
                            ambient: rgb(0.86, 0.92, 1.0), ambientIntensity: 700, lightElevation: 0.75, stars: false, cloudCount: 6,
                            fogStart: 50, fogEnd: 190)
         case .night:
