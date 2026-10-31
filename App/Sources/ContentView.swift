@@ -12,7 +12,8 @@ struct ContentView: View {
                 SeaSceneView(state: game.state, config: game.config)
                     .ignoresSafeArea(edges: .top)
                 VStack(spacing: 8) {
-                    HUDView(coins: game.state.coins, gems: game.state.gems, fish: game.state.totalFishCaught)
+                    HUDView(coins: game.state.coins, gems: game.state.gems, fish: game.state.totalFishCaught,
+                            season: game.season, secondsLeft: Season.secondsUntilNext(Date(), seasonSeconds: game.config.seasonSeconds))
                     if let banner = game.eventBanner {
                         Text(banner)
                             .font(.footnote.bold()).multilineTextAlignment(.center)
@@ -45,6 +46,10 @@ struct ContentView: View {
             }
         }
         .background(Color(red: 0.55, green: 0.82, blue: 0.95))
+        .sheet(item: Binding(get: { game.encyclopediaFish.map(FishRef.init) },
+                             set: { game.encyclopediaFish = $0?.id })) { ref in
+            EncyclopediaView(fishID: ref.id).environmentObject(game)
+        }
         .alert("船长们还在海上！", isPresented: Binding(
             get: { game.offlineReport != nil },
             set: { if !$0 { game.offlineReport = nil } })) {
@@ -70,19 +75,31 @@ func formatDuration(_ s: Double) -> String {
     return m >= 60 ? "\(m / 60)小时\(m % 60)分" : "\(m)分钟"
 }
 
+struct FishRef: Identifiable { let id: String }
+
 struct HUDView: View {
     let coins: Int
     let gems: Int
     let fish: Int
+    let season: Season
+    let secondsLeft: Double
     var body: some View {
-        HStack(spacing: 14) {
-            Label("\(coins)", systemImage: "dollarsign.circle.fill").foregroundStyle(.yellow)
-            Label("\(gems)", systemImage: "diamond.fill").foregroundStyle(.purple)
-            Spacer()
-            Label("\(fish) 条", systemImage: "fish.fill").foregroundStyle(.white)
+        VStack(spacing: 4) {
+            HStack(spacing: 14) {
+                Label("\(coins)", systemImage: "dollarsign.circle.fill").foregroundStyle(.yellow)
+                Label("\(gems)", systemImage: "diamond.fill").foregroundStyle(.purple)
+                Spacer()
+                Label("\(fish) 条", systemImage: "fish.fill").foregroundStyle(.white)
+            }
+            .font(.headline)
+            HStack {
+                Text("\(season.emoji) \(season.name)季").font(.subheadline.bold()).foregroundStyle(.white)
+                Text("距\(Season(rawValue: (season.rawValue + 1) % 4)!.name)季 \(formatDuration(secondsLeft))")
+                    .font(.caption).foregroundStyle(.white.opacity(0.85))
+                Spacer()
+            }
         }
-        .font(.headline)
-        .padding(.horizontal, 16).padding(.vertical, 10)
+        .padding(.horizontal, 16).padding(.vertical, 8)
         .background(.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 16))
     }
 }
@@ -94,19 +111,23 @@ struct ControlPanel: View {
         VStack(spacing: 8) {
             Picker("", selection: $game.panelTab) {
                 Text("船长").tag(0)
-                Text("海域").tag(1)
-                Text("图鉴").tag(2)
-                Text("日志").tag(3)
+                Text("渔具").tag(1)
+                Text("海图").tag(2)
+                Text("图鉴").tag(3)
+                Text("鱼缸").tag(4)
+                Text("日志").tag(5)
             }.pickerStyle(.segmented)
             ScrollView {
                 switch game.panelTab {
                 case 0: captainList
-                case 1: areaList
-                case 2: CodexView()
+                case 1: GearPanel()
+                case 2: SeaMapView()
+                case 3: CodexView()
+                case 4: AquariumView()
                 default: logList
                 }
             }
-            .frame(maxHeight: 220)
+            .frame(maxHeight: 250)
         }
         .padding(12)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
@@ -127,31 +148,6 @@ struct ControlPanel: View {
         }
     }
 
-    private var areaList: some View {
-        VStack(spacing: 8) {
-            ForEach(game.config.areas) { a in
-                let unlocked = game.state.unlockedAreaIDs.contains(a.id)
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text(a.name).font(.headline)
-                        Text(a.fish.map { "\($0.emoji)\($0.name) \($0.value)" }.joined(separator: " · "))
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    if unlocked {
-                        Text("已解锁").font(.caption).foregroundStyle(.green)
-                    } else {
-                        Button("解锁 \(a.unlockCost)") { game.unlock(a.id) }
-                            .buttonStyle(.bordered)
-                            .disabled(game.state.coins < a.unlockCost)
-                    }
-                }
-                .padding(8)
-                .background(Color.white.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
-            }
-        }
-    }
-
     private var logList: some View {
         VStack(alignment: .leading, spacing: 6) {
             if game.state.eventLog.isEmpty {
@@ -166,6 +162,14 @@ struct ControlPanel: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+}
+
+func seasonText(_ f: FishType) -> String {
+    f.seasons.isEmpty ? "四季" : f.seasons.map { $0.emoji + $0.name }.joined(separator: "")
+}
+
+func gearText(_ f: FishType) -> String {
+    f.gears.map { $0.emoji }.joined()
 }
 
 struct CodexView: View {
@@ -184,9 +188,10 @@ struct CodexView: View {
                                   : "\(p.caught)/\(p.total) · 集齐奖 \(game.config.codexReward(for: area)) 金币")
                             .font(.caption).foregroundStyle(done ? .orange : .secondary)
                     }
-                    HStack(spacing: 6) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
                         ForEach(area.fish) { f in
-                            FishCard(fish: f, entry: game.state.codex[f.id])
+                            FishCard(fish: f, entry: game.state.codex[f.id], season: game.season)
+                                .onTapGesture { game.encyclopediaFish = f.id }
                         }
                     }
                 }
@@ -197,24 +202,38 @@ struct CodexView: View {
     }
 }
 
+func rarityColor(_ r: Rarity) -> Color {
+    switch r {
+    case .common: return .gray
+    case .rare: return .blue
+    case .epic: return .purple
+    case .legendary: return .orange
+    }
+}
+
 struct FishCard: View {
     let fish: FishType
     let entry: CodexEntry?
+    let season: Season
 
     var body: some View {
         VStack(spacing: 2) {
-            Text(entry == nil ? "❔" : fish.emoji).font(.title2)
-            Text(entry == nil ? "???" : fish.name).font(.caption.bold())
+            Text(entry == nil ? "❔" : fish.emoji).font(.title3)
+            Text(entry == nil ? "???" : fish.name).font(.caption2.bold()).lineLimit(1).minimumScaleFactor(0.6)
+            Text(fish.rarity.name).font(.system(size: 9, weight: .bold))
+                .padding(.horizontal, 4).background(rarityColor(fish.rarity).opacity(0.25), in: Capsule())
+            Text(gearText(fish) + " " + seasonText(fish)).font(.system(size: 9)).lineLimit(1).minimumScaleFactor(0.5)
             if let e = entry {
-                Text("×\(e.count) · 最重 \(formatKg(e.bestKg))").font(.caption2).foregroundStyle(.secondary)
-                Text(e.firstCaught, format: .dateTime.month().day()).font(.caption2).foregroundStyle(.secondary)
+                Text("×\(e.count) · \(formatKg(e.bestKg))").font(.system(size: 9)).foregroundStyle(.secondary)
             } else {
-                Text("未发现").font(.caption2).foregroundStyle(.secondary)
+                Text(fish.available(in: season) ? "当季可捕" : "不在季").font(.system(size: 9))
+                    .foregroundStyle(fish.available(in: season) ? .green : .secondary)
             }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 4)
         .background(Color.white.opacity(entry == nil ? 0.3 : 0.8), in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(rarityColor(fish.rarity).opacity(entry == nil ? 0.2 : 0.7), lineWidth: 1))
     }
 }
 
@@ -230,6 +249,7 @@ struct CaptainRow: View {
         let cfg = game.config
         let boat = captain.boat
         let area = cfg.area(captain.areaID)
+        let pool = area?.candidates(gear: boat.equipped, season: game.season) ?? []
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text("⛵️ \(captain.name)").font(.headline)
@@ -248,13 +268,23 @@ struct CaptainRow: View {
                 .font(.caption2).foregroundStyle(.secondary)
             HStack(spacing: 6) {
                 Text("经验").font(.caption2)
-                ProgressView(value: Double(captain.xp), total: Double(captain.xpToNext)).tint(.purple)
-                Text("收益×\(String(format: "%.2f", game.state.valueMultiplier(captain, config: cfg)))")
+                ProgressView(value: Double(captain.xp), total: Double(captain.xpToNext(cfg))).tint(.purple)
+                Text("收益×\(String(format: "%.2f", game.state.valueMultiplier(captain, config: cfg, season: game.season)))")
                     .font(.caption2).foregroundStyle(.secondary)
+            }
+            HStack(spacing: 4) {
+                Text("\(boat.equipped.emoji) \(boat.equipped.name) Lv\(boat.gearLevel(boat.equipped))").font(.caption.bold())
+                Text(pool.isEmpty ? "⚠️ 当季此渔具钓不到鱼" : "可捕：" + pool.map(\.emoji).joined())
+                    .font(.caption2).foregroundStyle(pool.isEmpty ? .red : .secondary).lineLimit(1)
+                Spacer()
+                Button("换渔具") { game.gearCaptainID = captain.id; game.panelTab = 1 }.font(.caption2)
             }
             HStack {
                 Text(phaseText(captain)).font(.caption)
                 ProgressView(value: game.state.phaseProgress(captain, config: cfg))
+                Button("⚡️\(cfg.rushGemCost)💎") { game.rush(captain.id) }
+                    .font(.caption2).buttonStyle(.bordered).tint(.purple)
+                    .disabled(game.state.gems < cfg.rushGemCost)
             }
             HStack {
                 let sc = cfg.speedUpgradeCost(level: boat.speedLevel)

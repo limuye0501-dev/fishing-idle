@@ -49,11 +49,19 @@ jobs:
           sleep 20
           xcrun simctl io "$UDID" screenshot screens/after35s.png
           # 演示存档 + 各分页截图
-          for TAB in 0 2 3; do
+          # 0 船长 1 渔具 2 海图 3 图鉴 4 鱼缸
+          for TAB in 0 1 2 3 4; do
             xcrun simctl terminate "$UDID" com.example.fishingidle || true
             xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab $TAB
             sleep 12
             xcrun simctl io "$UDID" screenshot screens/demo-tab$TAB.png
+          done
+          # 小百科：已解锁与未解锁条目
+          for FISH in sardine coelacanth; do
+            xcrun simctl terminate "$UDID" com.example.fishingidle || true
+            xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab 3 -ency $FISH
+            sleep 12
+            xcrun simctl io "$UDID" screenshot screens/ency-$FISH.png
           done
       - uses: actions/upload-artifact@v4
         if: always()

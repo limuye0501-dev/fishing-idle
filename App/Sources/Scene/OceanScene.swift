@@ -333,7 +333,7 @@ final class OceanScene {
 
     /// 每个海域在画面中的渔场位置（越远越靠上）
     private func fishingSpot(for areaIndex: Int, lane: Int) -> SCNVector3 {
-        let z = -4.0 - Double(areaIndex) * 7
+        let z = -4.0 - Double(min(areaIndex, 7)) * 3.2
         let x = Double(Self.laneX(lane))
         return SCNVector3(Float(x), 0, Float(z))
     }

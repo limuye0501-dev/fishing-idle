@@ -1,0 +1,38 @@
+# 图片与资料来源（CREDITS）
+
+鱼类照片均来自 Wikimedia Commons，均为公有领域 / CC0 / CC BY / CC BY-SA 许可，已缩放至最长边 480px（属“改编”，许可不变）。百科文字参考对应英文维基百科条目与 FishBase，保护等级取自 IUCN 红色名录（经维基百科物种信息框核对）。
+
+| 鱼种 | 学名 | 作者 | 许可 | 来源 |
+|---|---|---|---|---|
+| 欧洲沙丁鱼 | *Sardina pilchardus* | Citron | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Sardina_pilchardus_2011.jpg |
+| 白腹鲭 | *Scomber japonicus* | Unknown author | Public domain | https://commons.wikimedia.org/wiki/File:Scomber_japonicus.png |
+| 三疣梭子蟹 | *Portunus trituberculatus* | Almandine | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Portunus_trituberculatus.jpg |
+| 真鲷 | *Pagrus major* | Miya | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Pagrus_major_Red_seabream_ja01.jpg |
+| 弹涂鱼 | *Periophthalmus modestus* | Daiju Azuma (uploader) | CC BY-SA 2.5 | https://commons.wikimedia.org/wiki/File:Periophthalmus_modestus.jpg |
+| 斑节对虾 | *Penaeus monodon* | CSIRO | CC BY 3.0 | https://commons.wikimedia.org/wiki/File:CSIRO_ScienceImage_2992_The_Giant_Tiger_Prawn.jpg |
+| 锯缘青蟹 | *Scylla serrata* | Richard Pillans, CSIRO | CC BY 3.0 | https://commons.wikimedia.org/wiki/File:CSIRO_ScienceImage_10696_Mud_crabs_are_caught_measured_tagged_and_released_as_part_of_the_research_into_the_effectiveness_of_green_zones_in_Moreton_Bay.jpg |
+| 尖吻鲈 | *Lates calcarifer* | Mitch Ames | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Lates_calcarifer,_2014-09-19a.jpg |
+| 眼斑双锯鱼 | *Amphiprion ocellaris* | Ritiks | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Clown_fish_in_the_Andaman_Coral_Reef.jpg |
+| 莱氏拟乌贼 | *Sepioteuthis lessoniana* | Diego Delso | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Calamar_de_arrecifes_(Sepioteuthis_lessoniana),_Nosy_Iranja,_Madagascar,_2025-09-17,_DD_134.jpg |
+| 锦绣龙虾 | *Panulirus ornatus* | Robert Kerton, CSIRO | CC BY 3.0 | https://commons.wikimedia.org/wiki/File:CSIRO_ScienceImage_2518_Ornate_Lobster.jpg |
+| 豹纹鳃棘鲈 | *Plectropomus leopardus* | portioid (iNaturalist) | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Leopard_Coralgrouper,_Thailand_imported_from_iNaturalist_photo_328446756.jpg |
+| 紫球海胆 | *Strongylocentrotus purpuratus* | Ed Bierman from CA, usa | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Urchin_(9398869414).jpg |
+| 皱纹盘鲍 | *Haliotis discus hannai* | H. Zell | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Haliotis_discus_discus_01.JPG |
+| 五条鰤 | *Seriola quinqueradiata* | E-190's | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Seriola_quinqueradiata_(200810).jpg |
+| 叶海龙 | *Phycodurus eques* | James Rosindell | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Leafy_Seadragon_on_Kangaroo_Island.jpg |
+| 黄鳍金枪鱼 | *Thunnus albacares* | Unknown author | Public domain | https://commons.wikimedia.org/wiki/File:Thunnus_albacares.png |
+| 鲯鳅 | *Coryphaena hippurus* | gendereuphorbia | CC0 | https://commons.wikimedia.org/wiki/File:Common_Dolphinfish_Monterey_Bay.jpg |
+| 红鳍东方鲀 | *Takifugu rubripes* | Togabi (uploader) | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Fugu_in_Tank.jpg |
+| 剑鱼 | *Xiphias gladius* | Naturalis Biodiversity Center | CC0 | https://commons.wikimedia.org/wiki/File:Xiphias_gladius_Linnaeus,_1758_2599925021.jpg |
+| 大西洋鳕 | *Gadus morhua* | Wilhelm Thomas Fiege | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Atlantic_Cod,_Atlantischer_Kabeljau_(Gadus_morhua).jpg |
+| 大西洋鲑 | *Salmo salar* | Wolfgang Striewski | Public domain | https://commons.wikimedia.org/wiki/File:Wst_atlantischer_lachs_stoer_001.jpg |
+| 北极红点鲑 | *Salvelinus alpinus* | Alison Copeland | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Salvelinus_alpinus_311639131.jpg |
+| 堪察加拟石蟹 | *Paralithodes camtschaticus* | Dr. Roger Mann, VIMS | Public domain | https://commons.wikimedia.org/wiki/File:Spider_crab.jpg |
+| 黄鮟鱇 | *Lophius litulon* | Geekgecko | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Lophius_litulon_0.jpg |
+| 北太平洋巨型章鱼 | *Enteroctopus dofleini* | NOAA / R. N. Lea | Public domain | https://commons.wikimedia.org/wiki/File:Enteroctopus_dolfeini.jpg |
+| 大王乌贼 | *Architeuthis* | NTNU Vitenskapsmuseet | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Giant_squid_Ranheim.jpg |
+| 皇带鱼 | *Regalecus glesne* | Sandstein | CC BY 3.0 | https://commons.wikimedia.org/wiki/File:Regalecus_glesne,_Naturhistorisches_Museum_Wien.jpg |
+| 大西洋蓝鳍金枪鱼 | *Thunnus thynnus* | Unknown author | Public domain | https://commons.wikimedia.org/wiki/File:Bluefin-big.jpg |
+| 翻车鲀 | *Mola mola* | U.S. National Oceanic and Atmospheric Administration | Public domain | https://commons.wikimedia.org/wiki/File:Mola_mola.jpg |
+| 巨口鲨 | *Megachasma pelagios* | opencage | CC BY-SA 2.5 | https://commons.wikimedia.org/wiki/File:Megamouth_shark_Megachasma_pelagios.jpg |
+| 西印度洋矛尾鱼 | *Latimeria chalumnae* | Bruce A.S. Henderson | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Coelacanth_off_Pumula_on_the_KwaZulu-Natal_South_Coast,_South_Africa,_on_22_November_2019.png |
