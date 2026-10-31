@@ -5,99 +5,128 @@ import FishingCore
 
 struct OfflineReport {
     let seconds: Double
-    let coins: Int
-    let gems: Int
-    let events: Int
+    let fish: Int
+    let released: Int
+    let newSpecies: Int
+    let arrived: String?
 }
 
-/// UI 与纯逻辑层之间的桥：驱动时钟、存档、离线收益
+/// 面板
+enum Panel: String, Identifiable, CaseIterable {
+    case chart, gear, dock, codex, tank, log, hold
+    var id: String { rawValue }
+}
+
+/// UI 与纯逻辑层之间的桥：驱动时钟、存档、离线收益（v2：一艘船）
 @MainActor
 final class GameViewModel: ObservableObject {
-    @Published private(set) var state: GameState
+    @Published private(set) var state: VoyageState
     @Published var offlineReport: OfflineReport?
-    @Published var showPanel = true
+    @Published var panel: Panel?
     @Published var showMap = false
     @Published var toast: String?
-    /// 面板当前分页：0 船长 1 渔具 2 海图 3 图鉴 4 鱼缸 5 日志
-    @Published var panelTab = 0
-    /// 最近一条海上事件提示（自动消失）
     @Published var eventBanner: String?
-    private var seenEventCounter = 0
-    /// 正在查看的小百科条目（鱼种 id）
     @Published var encyclopediaFish: String?
-    /// 渔具页当前选中的船长
-    @Published var gearCaptainID: UUID?
-
-    /// 首次启动新手引导
     @Published var showOnboarding = false
     @Published var showSettings = false
+    @Published var showNaming = false
+    @Published var showMinigame = false
+    /// 最近一条捕获（浮动提示）
+    @Published var lastCatch: HoldFish?
+    @Published var migratedFromV1 = false
+    /// 演示：小游戏自动玩
+    var autoplayMinigame = false
+    private var seenEventCounter = 0
     private var lastCatchCount = 0
+
     lazy var storeManager: StoreManager = StoreManager { [weak self] in
         guard let self, !self.state.isFullVersion else { return }
-        self.state.grantFullVersion(); self.save()
-        self.toast = "已解锁完整版，谢谢支持！"
+        self.state.isFullVersion = true; self.save()
+        self.toast = tr("已解锁完整版，谢谢支持！", "Full Version unlocked — thank you!")
     }
 
-    let config = EconomyConfig()
-    private let store = SaveStore.defaultStore()
+    private let store = VoyageStore.defaultStore()
     private var timer: AnyCancellable?
     private var ticksSinceSave = 0
 
     init() {
         CoreLang.english = (Bundle.main.preferredLocalizations.first ?? "zh-Hans").hasPrefix("en")
-        state = SaveStore.defaultStore().load() ?? GameState(config: EconomyConfig())
         let args = ProcessInfo.processInfo.arguments
-        if let i = args.firstIndex(of: "-tab"), i + 1 < args.count, let t = Int(args[i + 1]) { panelTab = t }
+        if let (s, migrated) = VoyageStore.defaultStore().load() {
+            state = s; migratedFromV1 = migrated
+        } else {
+            state = VoyageState(shipName: CoreLang.english ? "Cloud Haven" : "云栖号")
+        }
+        state.utcOffset = TimeZone.current.secondsFromGMT()
         #if DEBUG
-        // CI 截图用：-demo 生成一个玩了一会儿的存档
-        if args.contains("-demo") { state = Self.demoState(config: config) }
+        if args.contains("-demo") { state = Self.demoState() }
         if let i = args.firstIndex(of: "-ency"), i + 1 < args.count { encyclopediaFish = args[i + 1] }
+        if let i = args.firstIndex(of: "-panel"), i + 1 < args.count { panel = Panel(rawValue: args[i + 1]) }
+        if let i = args.firstIndex(of: "-weather"), i + 1 < args.count { state.weatherOverride = Weather(rawValue: args[i + 1]) }
+        if let i = args.firstIndex(of: "-hour"), i + 1 < args.count, let h = Int(args[i + 1]) {
+            // 把本地时间“拨”到指定小时，用于截图昼夜
+            let now = Int(Date().timeIntervalSince1970)
+            let cur = ((now / 3600) % 24 + 24) % 24
+            state.utcOffset = ((h - cur) % 24) * 3600
+        }
+        if args.contains("-port") { state.phase = .docked }
+        if args.contains("-sailing") { try? state.sail(to: "pacific", now: Date()); state.sailElapsed = state.sailTotal * 0.4 }
+        if let i = args.firstIndex(of: "-ocean"), i + 1 < args.count { state.oceanID = args[i + 1] }
+        if args.contains("-minigame") { showMinigame = true; autoplayMinigame = args.contains("-autoplay") }
+        if args.contains("-naming") { showNaming = true }
         #endif
         seenEventCounter = state.eventCounter
         lastCatchCount = state.totalFishCaught
         let onboarded = UserDefaults.standard.bool(forKey: "onboarded")
         showOnboarding = (!onboarded && !args.contains("-demo") && !args.contains("-skipOnboarding")) || args.contains("-onboarding")
+        if args.contains("-skipOnboarding") && !onboarded && !args.contains("-demo") { showNaming = false }
         if args.contains("-settings") { showSettings = true }
         if args.contains("-tour") { runTour() }
         if args.contains("-offline") {
-            offlineReport = OfflineReport(seconds: 3 * 3600 + 25 * 60, coins: 3200, gems: 3, events: 7)
+            offlineReport = OfflineReport(seconds: 3 * 3600 + 25 * 60, fish: 142, released: 96, newSpecies: 2, arrived: nil)
         }
     }
 
+    /// 引导结束 → 给船起名
     func finishOnboarding() {
         UserDefaults.standard.set(true, forKey: "onboarded")
         showOnboarding = false
         AudioManager.shared.play(.open)
+        if !UserDefaults.standard.bool(forKey: "named") {
+            Task { try? await Task.sleep(for: .milliseconds(500)); showNaming = true }
+        }
+    }
+
+    func rename(_ name: String) {
+        state.rename(name); save()
+        UserDefaults.standard.set(true, forKey: "named")
+        showNaming = false
+        AudioManager.shared.play(.upgrade); AudioManager.shared.notify(.success)
     }
 
     #if DEBUG
-    static func demoState(config: EconomyConfig) -> GameState {
+    static func demoState() -> VoyageState {
         let start = Date().addingTimeInterval(-3 * 3600)
-        var s = GameState(config: config, now: start)
-        s.coins = 100_000
-        s.gems = 40
-        s.grantFullVersion()
-        for a in ["mangrove", "reef", "kelp"] { try? s.unlockArea(a, config: config) }
-        try? s.hireCaptain(config: config)
-        try? s.hireCaptain(config: config)
-        let ids = s.captains.map(\.id)
-        try? s.buyGear(.trap, captain: ids[0], config: config)
-        try? s.buyGear(.longline, captain: ids[1], config: config)
-        try? s.equipGear(.longline, captain: ids[1])
-        try? s.assign(captain: ids[1], to: "reef", config: config)
-        try? s.buyGear(.trawl, captain: ids[2], config: config)
-        try? s.equipGear(.trawl, captain: ids[2])
-        try? s.assign(captain: ids[2], to: "mangrove", config: config)
-        try? s.upgradeGear(.rod, captain: ids[0], config: config)
-        s.applyElapsed(now: Date().addingTimeInterval(-1.5 * 3600), config: config)
-        try? s.equipGear(.trap, captain: ids[0])
-        s.applyElapsed(now: Date(), config: config)
-        // 鱼缸：先升级两次，再放进几种不同的鱼（截图演示用）
-        try? s.upgradeTank(config: config); try? s.upgradeTank(config: config)
-        for (id, kg) in [("clown", 0.06), ("seadragon", 0.12), ("crab", 0.35), ("seabream", 1.8),
-                         ("lobster", 2.1), ("squid", 0.9), ("mudskipper", 0.02), ("urchin", 0.1)] {
-            s.tank.append(TankFish(id: UUID(), fishID: id, kg: kg, caughtAt: Date()))
+        var s = VoyageState(now: start, shipName: CoreLang.english ? "Cloud Haven" : "云栖号")
+        s.coins = 128_560; s.gems = 24; s.isFullVersion = true
+        s.unlockedOceans = ["coastal", "atlantic", "pacific", "indian"]
+        s.visitedOceans = ["coastal", "atlantic", "pacific"]
+        s.parts = ["engine": 3, "hold": 4, "sonar": 3, "nets": 3, "icebox": 2, "hull": 1]
+        s.gearLevels = ["rod": 2, "trap": 2, "trawl": 3, "longline": 1]
+        s.level = 32; s.skills = ["angling": 5, "keenEye": 4, "seamanship": 3, "cook": 2]
+        s.weatherOverride = .sunny
+        s.utcOffset = TimeZone.current.secondsFromGMT()
+        for f in VoyageConfig.oceans.prefix(3).flatMap(\.fish).prefix(20) {
+            s.codex[f.id] = CodexEntry(count: 3 + f.id.count, bestKg: f.baseKg * 1.3, firstCaught: start)
         }
+        s.questIndex = 8; s.totalFishCaught = 2_380
+        s.tank = [("clown", 0.06), ("seabream", 1.8), ("crab", 0.35), ("octopus", 14), ("salmon", 5.2), ("mahimahi", 9)]
+            .map { TankFish(fishID: $0.0, kg: $0.1, caughtAt: start) }
+        s.tankLevel = 2
+        s.oceanID = "coastal"
+        s.lastUpdate = start.addingTimeInterval(2.5 * 3600)
+        s.advance(to: Date())
+        s.fuel = s.fuelCapacity * 0.72
         return s
     }
     #endif
@@ -105,48 +134,44 @@ final class GameViewModel: ObservableObject {
     func resume() {
         AudioManager.shared.startMusic()
         _ = storeManager
-        let gemsBefore = state.gems, eventsBefore = state.eventCounter
-        let r = state.applyElapsed(now: Date(), config: config)
-        if r.seconds > 60, r.coins > 0 {
-            offlineReport = OfflineReport(seconds: r.seconds, coins: r.coins,
-                                          gems: state.gems - gemsBefore, events: state.eventCounter - eventsBefore)
+        let r = state.advance(to: Date())
+        if r.seconds > 120, !r.catches.isEmpty {
+            offlineReport = OfflineReport(seconds: r.seconds, fish: r.catches.count, released: r.released,
+                                          newSpecies: r.newSpecies.count, arrived: r.arrived)
         }
         seenEventCounter = state.eventCounter
+        lastCatchCount = state.totalFishCaught
         guard timer == nil else { return }
-        timer = Timer.publish(every: 0.1, on: .main, in: .common)
+        timer = Timer.publish(every: 0.25, on: .main, in: .common)
             .autoconnect()
-            .sink { [weak self] now in
-                MainActor.assumeIsolated { self?.tick(now) }
-            }
+            .sink { [weak self] now in MainActor.assumeIsolated { self?.tick(now) } }
     }
 
     func pauseAndSave() {
         AudioManager.shared.stopMusic()
         timer?.cancel(); timer = nil
-        state.applyElapsed(now: Date(), config: config)
+        state.advance(to: Date())
         save()
     }
 
     private func tick(_ now: Date) {
-        state.applyElapsed(now: now, config: config)
+        let r = state.advance(to: now)
+        if let c = r.catches.last {
+            lastCatch = c
+            AudioManager.shared.play(.coin, volume: 0.4)
+            AudioManager.shared.haptic(.soft)
+        }
         if state.eventCounter != seenEventCounter {
             seenEventCounter = state.eventCounter
             eventBanner = state.eventLog.first?.text
         }
-        if state.totalFishCaught != lastCatchCount {
-            if state.totalFishCaught > lastCatchCount {
-                AudioManager.shared.play(.coin, volume: 0.5)
-                AudioManager.shared.haptic(.soft)
-            }
-            lastCatchCount = state.totalFishCaught
-        }
         ticksSinceSave += 1
-        if ticksSinceSave >= 50 { ticksSinceSave = 0; save() }   // 每 5 秒存档
+        if ticksSinceSave >= 20 { ticksSinceSave = 0; save() }
     }
 
-    private func save() { try? store.save(state) }
+    func save() { try? store.save(state) }
 
-    private func perform(_ action: (inout GameState) throws -> Void) {
+    private func perform(_ action: (inout VoyageState) throws -> Void) {
         do {
             try action(&state); save()
             AudioManager.shared.play(.upgrade, volume: 0.5)
@@ -154,94 +179,104 @@ final class GameViewModel: ObservableObject {
         } catch {
             AudioManager.shared.play(.error, volume: 0.5)
             AudioManager.shared.notify(.warning)
-            report(error)
+            toast = Self.message(error)
         }
     }
 
-    private func report(_ error: Error) {
-        do { throw error }
-        catch GameError.notEnoughCoins { toast = "金币不足" }
-        catch GameError.maxCaptains { toast = "船长已满员" }
-        catch GameError.areaLocked { toast = "海域未解锁" }
-        catch GameError.requiresFullVersion { toast = "解锁完整版后可用" }
-        catch GameState.GearError.notEnoughGems { toast = "宝石不足" }
-        catch GameState.GearError.maxLevel { toast = "已满级" }
-        catch GameState.GearError.notOwned { toast = "还没有这件渔具" }
-        catch GameState.TankError.full { toast = "鱼缸满了，先升级或放生" }
-        catch GameState.TankError.alreadyKept { toast = "这条已经在鱼缸里了" }
-        catch { toast = "操作失败" }
+    static func message(_ e: Error) -> String {
+        switch e as? VoyageError {
+        case .notEnoughCoins: return tr("金币不足", "Not enough coins")
+        case .notEnoughGems: return tr("宝石不足", "Not enough gems")
+        case .needsFullVersion: return tr("解锁完整版后可用", "Available in the Full Version")
+        case .needsPort: return tr("要先回港才能做这件事", "Head back to port first")
+        case .locked: return tr("还没解锁", "Not unlocked yet")
+        case .needsSpecies(let n): return tr("图鉴需要收集 \(n) 种", "Discover \(n) species first")
+        case .needsHull(let n): return tr("船体加固需要 \(n) 级", "Needs Lv\(n) ice-strengthened hull")
+        case .maxLevel: return tr("已满级", "Max level")
+        case .holdEmpty: return tr("鱼舱是空的", "The hold is empty")
+        case .carrierCooldown: return tr("收购船还在路上", "The carrier ship is on its way")
+        case .alreadyThere: return tr("已经在这里了", "Already there")
+        case .noSkillPoints: return tr("没有技能点", "No skill points")
+        case .tankFull: return tr("鱼缸满了，先扩容或放生", "Aquarium is full — expand it or release a fish")
+        default: return tr("操作失败", "Something went wrong")
+        }
     }
 
-    func upgradeSpeed(_ id: UUID) { perform { try $0.upgradeSpeed(captain: id, config: config) } }
-    func upgradeCapacity(_ id: UUID) { perform { try $0.upgradeCapacity(captain: id, config: config) } }
-    func hire() { perform { try $0.hireCaptain(config: config) } }
-    func unlock(_ areaID: String) { perform { try $0.unlockArea(areaID, config: config) } }
-    func assign(_ id: UUID, to areaID: String) { perform { try $0.assign(captain: id, to: areaID, config: config) } }
+    // MARK: 操作
+    func sail(to dest: String) { perform { try $0.sail(to: dest, now: Date()) }; panel = nil }
+    func unlock(_ id: String) { perform { try $0.unlock(id, now: Date()) } }
+    func sell(useGems: Bool = false) {
+        do {
+            let n = try state.sellAll(now: Date(), useGems: useGems); save()
+            AudioManager.shared.play(.catchFish); AudioManager.shared.notify(.success)
+            toast = "+\(n) 🪙"
+        } catch { AudioManager.shared.play(.error, volume: 0.5); toast = Self.message(error) }
+    }
+    func refuel() { perform { try $0.refuel(now: Date()) } }
+    func upgrade(_ p: ShipPart) { perform { try $0.upgrade(p, now: Date()) } }
+    func buyGear(_ g: GearType) { perform { try $0.buyGear(g, now: Date()) } }
+    func equip(_ g: GearType) { perform { try $0.equip(g, now: Date()) } }
+    func learn(_ s: CrewSkill) { perform { try $0.learn(s) } }
+    func keep(_ id: UUID) { perform { try $0.keepInTank(id, now: Date()) } }
+    func release(_ id: UUID) { if let i = state.tank.firstIndex(where: { $0.id == id }) { state.release(tankIndex: i); save() } }
+    func upgradeTank() { perform { try $0.upgradeTank() } }
+    /// 小游戏结果
+    func finishMinigame(quality: Double) -> HoldFish? {
+        let f = state.activeCatch(quality: quality, now: Date())
+        save()
+        if f != nil { AudioManager.shared.play(.catchFish); AudioManager.shared.notify(.success) }
+        else { AudioManager.shared.play(.error, volume: 0.4) }
+        return f
+    }
 
-    func buyGear(_ g: GearType, _ id: UUID) { perform { try $0.buyGear(g, captain: id, config: config) } }
-    func upgradeGear(_ g: GearType, _ id: UUID) { perform { try $0.upgradeGear(g, captain: id, config: config) } }
-    func equipGear(_ g: GearType, _ id: UUID) { perform { try $0.equipGear(g, captain: id) } }
-    func rush(_ id: UUID) { perform { try $0.rushTrip(captain: id, config: config, now: Date()) } }
-    func keep(_ index: Int) { perform { try $0.keepCatch(at: index, config: config, now: Date()) } }
-    func release(_ id: UUID) { perform { try $0.releaseFish(id) } }
-    func upgradeTank() { perform { try $0.upgradeTank(config: config) } }
-
-    /// 唯一的付费开关（下一轮由 StoreKit 2 的交易结果驱动）
     var isFullVersion: Bool { state.isFullVersion }
-
-    /// 「解锁完整版」：StoreKit 2 购买；成功后由 StoreManager 回调授予 isFullVersion
     func purchaseFullVersion() {
         Task {
             let ok = await storeManager.purchase()
             if ok { AudioManager.shared.play(.catchFish); AudioManager.shared.notify(.success) }
-            else if !state.isFullVersion { toast = "购买未完成" }
+            else if !state.isFullVersion { toast = tr("购买未完成", "Purchase not completed") }
         }
     }
-
     func restorePurchases() {
         Task {
             let ok = await storeManager.restore()
-            toast = ok ? "已恢复购买" : "没有找到可恢复的购买"
+            toast = ok ? tr("已恢复购买", "Purchases restored") : tr("没有找到可恢复的购买", "No purchases to restore")
         }
     }
-
     func collectOffline() {
         offlineReport = nil
-        AudioManager.shared.play(.catchFish)
-        AudioManager.shared.notify(.success)
+        AudioManager.shared.play(.catchFish); AudioManager.shared.notify(.success)
     }
 
-    var season: Season { state.season(at: Date(), config: config) }
-    func fish(_ id: String) -> FishType? { GameState.fish(id, config: config) }
-    /// 渔获记录里的鱼名（存档存的是捕获时语言的名字，优先按 id 取当前语言）
-    func fishName(_ r: CatchRecord) -> String { r.fishID.flatMap { fish($0)?.name } ?? r.fishName }
-    func area(of fishID: String) -> SeaArea? { config.areas.first { $0.fish.contains { $0.id == fishID } } }
+    var season: Season { Season.at(Date(), seasonSeconds: 86_400) }
+    func fish(_ id: String) -> FishType? { VoyageConfig.fish(id) }
+    func area(of fishID: String) -> Ocean? { VoyageConfig.oceanOf(fish: fishID) }
 
     func resetGame() {
-        state = GameState(config: config)
+        state = VoyageState(shipName: state.shipName)
+        state.utcOffset = TimeZone.current.secondsFromGMT()
         save()
     }
 
     // MARK: - 演示视频用自动导览（-demo -tour）
     private func runTour() {
         let steps: [(Double, (GameViewModel) -> Void)] = [
-            (0, { $0.showPanel = false }),
-            (10, { $0.showMap = true }),
-            (17, { $0.showMap = false }),
-            (19, { $0.offlineReport = OfflineReport(seconds: 2 * 3600 + 40 * 60, coins: 2850, gems: 2, events: 5) }),
-            (25, { $0.collectOffline() }),
-            (28, { $0.panelTab = 0; $0.showPanel = true }),
-            (32, { vm in if let c = vm.state.captains.first { vm.upgradeSpeed(c.id) } }),
-            (35, { vm in if let c = vm.state.captains.first { vm.upgradeCapacity(c.id) } }),
-            (38, { $0.panelTab = 1 }),
-            (45, { $0.panelTab = 2 }),
-            (51, { $0.panelTab = 3 }),
-            (55, { $0.encyclopediaFish = "sardine" }),
-            (63, { $0.encyclopediaFish = nil }),
-            (65, { $0.panelTab = 4 }),
-            (72, { $0.showSettings = true }),
-            (79, { $0.showSettings = false }),
-            (81, { $0.showPanel = false }),
+            (0, { $0.panel = nil }),
+            (9, { $0.autoplayMinigame = true; $0.showMinigame = true }),
+            (24, { $0.showMinigame = false }),
+            (27, { $0.state.weatherOverride = .fog }),
+            (33, { $0.state.weatherOverride = .sunny; $0.panel = .hold }),
+            (39, { $0.sell() }),
+            (41, { $0.panel = .chart }),
+            (49, { $0.panel = nil; $0.showMap = true }),
+            (55, { $0.showMap = false; $0.sail(to: "port") }),
+            (58, { $0.state.forceArrive() }),
+            (60, { $0.panel = .dock }),
+            (64, { $0.upgrade(.sonar) }),
+            (67, { $0.panel = .codex }),
+            (71, { $0.encyclopediaFish = "seabream" }),
+            (77, { $0.encyclopediaFish = nil; $0.panel = .tank }),
+            (83, { $0.panel = nil }),
         ]
         Task { @MainActor [weak self] in
             var t = 0.0
@@ -252,4 +287,9 @@ final class GameViewModel: ObservableObject {
             }
         }
     }
+}
+
+extension VoyageState {
+    /// 演示：立刻抵达
+    mutating func forceArrive() { if phase == .sailing { sailElapsed = sailTotal; lastUpdate = Date().addingTimeInterval(-1); advance(to: Date()) } }
 }

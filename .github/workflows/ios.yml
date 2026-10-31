@@ -45,62 +45,38 @@ jobs:
           # App Store 截图风格的状态栏
           xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3 || true
           mkdir -p screens
-          # 首次启动：新手引导
-          xcrun simctl launch "$UDID" com.example.fishingidle
-          sleep 12
-          xcrun simctl io "$UDID" screenshot screens/onboarding.png
-          xcrun simctl terminate "$UDID" com.example.fishingidle || true
-          xcrun simctl launch "$UDID" com.example.fishingidle -skipOnboarding -AppleLanguages "(zh-Hans)"
-          sleep 15
-          xcrun simctl io "$UDID" screenshot screens/launch.png
-          sleep 20
-          xcrun simctl io "$UDID" screenshot screens/after35s.png
-          # 演示存档 + 各分页截图
-          # 0 船长 1 渔具 2 海图 3 图鉴 4 鱼缸
-          for TAB in 0 1 2 3 4; do
-            xcrun simctl terminate "$UDID" com.example.fishingidle || true
-            xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab $TAB -AppleLanguages "(zh-Hans)"
-            sleep 12
-            xcrun simctl io "$UDID" screenshot screens/demo-tab$TAB.png
-          done
-          # 设置页、离线收益卡片
-          for EXTRA in settings offline; do
-            xcrun simctl terminate "$UDID" com.example.fishingidle || true
-            xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab 0 -$EXTRA -AppleLanguages "(zh-Hans)"
-            sleep 12
-            xcrun simctl io "$UDID" screenshot screens/demo-$EXTRA.png
-          done
-          # 英文界面：各分页、离线收益、小百科
-          for TAB in 0 1 2 3 4; do
-            xcrun simctl terminate "$UDID" com.example.fishingidle || true
-            xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab $TAB -AppleLanguages "(en)" -AppleLocale en_US
-            sleep 12
-            xcrun simctl io "$UDID" screenshot screens/en-demo-tab$TAB.png
-          done
-          xcrun simctl terminate "$UDID" com.example.fishingidle || true
-          xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab 0 -offline -AppleLanguages "(en)" -AppleLocale en_US
-          sleep 12
-          xcrun simctl io "$UDID" screenshot screens/en-demo-offline.png
-          xcrun simctl terminate "$UDID" com.example.fishingidle || true
-          xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab 3 -ency sardine -AppleLanguages "(en)" -AppleLocale en_US
-          sleep 12
-          xcrun simctl io "$UDID" screenshot screens/en-ency-sardine.png
-          # 小百科：已解锁与未解锁条目
-          for FISH in sardine coelacanth; do
-            xcrun simctl terminate "$UDID" com.example.fishingidle || true
-            xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab 3 -ency $FISH -AppleLanguages "(zh-Hans)"
-            sleep 12
-            xcrun simctl io "$UDID" screenshot screens/ency-$FISH.png
-          done
+          shot () { NAME=$1; shift; xcrun simctl terminate "$UDID" com.example.fishingidle || true; xcrun simctl launch "$UDID" com.example.fishingidle "$@"; sleep 12; xcrun simctl io "$UDID" screenshot screens/$NAME.png; }
+          ZH='-AppleLanguages (zh-Hans)'
+          EN='-AppleLanguages (en) -AppleLocale en_US'
+          shot onboarding $ZH
+          shot naming -demo -naming $ZH
+          shot main-dusk -demo -hour 18 -weather sunny $ZH
+          shot main-day -demo -hour 11 -weather sunny $ZH
+          shot main-night -demo -hour 23 -weather sunny $ZH
+          shot main-storm -demo -hour 15 -weather storm $ZH
+          shot main-fog -demo -hour 8 -weather fog $ZH
+          shot main-polar -demo -hour 18 -ocean arctic -weather ice $ZH
+          shot main-port -demo -hour 18 -port $ZH
+          shot main-sailing -demo -hour 18 -sailing $ZH
+          for P in chart gear dock codex tank log hold; do shot panel-$P -demo -hour 18 -panel $P $ZH; done
+          shot minigame -demo -hour 18 -minigame $ZH
+          shot offline -demo -hour 18 -offline $ZH
+          shot settings -demo -settings $ZH
+          shot ency-sardine -demo -ency sardine $ZH
+          shot en-onboarding $EN
+          shot en-main-dusk -demo -hour 18 $EN
+          for P in chart dock hold log; do shot en-panel-$P -demo -hour 18 -panel $P $EN; done
+          shot en-minigame -demo -hour 18 -minigame $EN
+          shot en-offline -demo -hour 18 -offline $EN
       - name: Record gameplay video (zh)
         continue-on-error: true
         run: |
           UDID=$(xcrun simctl list devices booted -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print([x['udid'] for v in d.values() for x in v][0])")
           mkdir -p video
           xcrun simctl terminate "$UDID" com.example.fishingidle || true
-          xcrun simctl launch "$UDID" com.example.fishingidle -demo -tour -AppleLanguages "(zh-Hans)"
+          xcrun simctl launch "$UDID" com.example.fishingidle -demo -tour -hour 18 -AppleLanguages "(zh-Hans)"
           sleep 3
-          xcrun simctl io "$UDID" recordVideo --codec=h264 --force video/gameplay-zh.mov &
+          xcrun simctl io "$UDID" recordVideo --codec=h264 --force video/gameplay-v2-zh.mov &
           REC=$!
           sleep 88
           kill -INT $REC

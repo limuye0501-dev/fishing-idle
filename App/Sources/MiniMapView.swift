@@ -1,43 +1,28 @@
 import SwiftUI
 import FishingCore
 
-/// 真实世界航线小地图：每片海域对应现实中的一个海区，按出海进度沿航线插值
+/// 真实世界航线：母港舟山 → 各大洋渔场（经度用 -120…240 连续表示，地图以亚洲—太平洋为中心）
 enum SeaRoutes {
-    /// 母港：舟山（30.0°N, 122.2°E）
     static let home = (lat: 30.0, lon: 122.2)
-    /// 航点（经度用 0…360 连续表示，避免跨日界线）
+    static let lon0 = -120.0, lon1 = 240.0, lat0 = 85.0, lat1 = -75.0
+    static let aspect = 1440.0 / 640.0
     static let routes: [String: [(lat: Double, lon: Double)]] = [
-        "bay": [(29.4, 122.9)],                                             // 舟山群岛外海
-        "mangrove": [(27.0, 121.5), (22.5, 117.5), (20.5, 112.0), (20.0, 110.6)], // 海南东寨港红树林
-        "reef": [(28.0, 125.0), (26.2, 127.3)],                             // 冲绳庆良间珊瑚礁
-        "kelp": [(32.0, 135.0), (38.0, 160.0), (40.0, 200.0), (36.6, 238.1)],    // 加州蒙特雷海藻林
-        "deep": [(25.0, 135.0), (20.0, 165.0)],                             // 北太平洋中部
-        "ice": [(35.0, 142.0), (45.0, 155.0), (55.0, 170.0), (64.0, 190.0)],     // 白令海
-        "trench": [(25.0, 130.0), (11.35, 142.2)],                          // 马里亚纳海沟
-        "legend": [(25.0, 135.0), (15.0, 200.0), (8.0, 270.0), (9.0, 280.5), (25.0, 289.0)] // 百慕大三角
+        "coastal": [(29.5, 124.0)],
+        "atlantic": [(22, 115), (5, 105), (2, 95), (-5, 80), (-30, 45), (-36, 20), (-20, 5), (10, -20), (35, -30), (52, -30)],
+        "pacific": [(28, 140), (24, 160), (20, 190)],
+        "indian": [(22, 115), (5, 105), (2, 95), (-12, 75)],
+        "arctic": [(40, 140), (55, 165), (66, 190), (73, 175), (77, 140), (78, 90), (76, 30)],
+        "southern": [(22, 115), (5, 105), (-10, 100), (-35, 80), (-55, 40), (-62, 20)],
     ]
-    static let placeNames: [String: String] = [
-        "bay": "舟山外海", "mangrove": "海南东寨港", "reef": "冲绳庆良间", "kelp": "加州蒙特雷",
-        "deep": "北太平洋", "ice": "白令海", "trench": "马里亚纳海沟", "legend": "百慕大三角"
-    ]
-    static let placeNamesEN: [String: String] = [
-        "bay": "Off Zhoushan", "mangrove": "Dongzhai Harbor, Hainan", "reef": "Kerama Islands, Okinawa", "kelp": "Monterey, California",
-        "deep": "North Pacific", "ice": "Bering Sea", "trench": "Mariana Trench", "legend": "Bermuda Triangle"
-    ]
-    static func place(_ id: String) -> String { (CoreLang.english ? placeNamesEN[id] : placeNames[id]) ?? "" }
-    // 地图图片范围（与 WorldMap.png 生成参数一致）
-    static let lon0 = 95.0, lon1 = 300.0, lat0 = -8.0, lat1 = 72.0
-
-    static func path(_ area: String) -> [(lat: Double, lon: Double)] { [home] + (routes[area] ?? []) }
+    static func center(_ id: String) -> (lat: Double, lon: Double) { routes[id]?.last ?? home }
+    static func path(_ id: String) -> [(lat: Double, lon: Double)] { [home] + (routes[id] ?? []) }
 
     static func point(_ p: (lat: Double, lon: Double), in size: CGSize) -> CGPoint {
-        CGPoint(x: (p.lon - lon0) / (lon1 - lon0) * size.width, y: (lat1 - p.lat) / (lat1 - lat0) * size.height)
+        CGPoint(x: (p.lon - lon0) / (lon1 - lon0) * size.width, y: (lat0 - p.lat) / (lat0 - lat1) * size.height)
     }
 
-    /// t∈[0,1]：沿航线按长度插值
-    static func position(_ area: String, t: Double) -> (lat: Double, lon: Double) {
-        let pts = path(area)
-        guard pts.count > 1 else { return home }
+    static func along(_ pts: [(lat: Double, lon: Double)], t: Double) -> (lat: Double, lon: Double) {
+        guard pts.count > 1 else { return pts.first ?? home }
         var lens: [Double] = []
         for i in 1..<pts.count { lens.append(hypot(pts[i].lat - pts[i - 1].lat, pts[i].lon - pts[i - 1].lon)) }
         var remain = max(0, min(1, t)) * lens.reduce(0, +)
@@ -51,57 +36,102 @@ enum SeaRoutes {
         return pts.last!
     }
 
-    /// 根据船长阶段求航线进度
-    static func progress(_ c: Captain, state: GameState, config: EconomyConfig) -> Double? {
-        let p = state.phaseProgress(c, config: config)
-        switch c.phase {
-        case .sailingOut: return p
-        case .fishing: return 1
-        case .returning: return 1 - p
-        case .unloading: return nil
+    /// 当前航段（起点→终点经过母港）
+    static func voyagePath(_ s: VoyageState) -> [(lat: Double, lon: Double)]? {
+        guard s.phase == .sailing, let to = s.sailTo else { return nil }
+        let from = s.sailFrom ?? "port"
+        let a = from == "port" ? [home] : Array(path(from).reversed())
+        let b = to == "port" ? [home] : path(to)
+        return a + b.dropFirst()
+    }
+
+    /// 船的位置；作业时在渔场里慢慢转圈
+    static func shipPosition(_ s: VoyageState, now: Date = Date()) -> (lat: Double, lon: Double) {
+        switch s.phase {
+        case .docked: return home
+        case .sailing: return along(voyagePath(s) ?? [home], t: s.sailProgress)
+        case .fishing:
+            let c = center(s.oceanID)
+            let a = now.timeIntervalSince1970 / 600
+            let r = s.oceanID == "coastal" ? 0.6 : 3.0
+            return (c.lat + r * 0.6 * sin(a), c.lon + r * cos(a))
         }
     }
 }
 
 struct MiniMapView: View {
-    let state: GameState
-    let config: EconomyConfig
+    let state: VoyageState
     var expanded: Bool = false
 
-    private static let colors: [Color] = [.blue, .red, .green, .orange, .purple, .teal]
-
     var body: some View {
-        let atSea = state.captains.enumerated().filter { $0.element.phase != .unloading }
-        GeometryReader { geo in
-            let size = geo.size
-            ZStack(alignment: .topLeading) {
-                Image(uiImage: UIImage(named: "WorldMap") ?? UIImage()).resizable()
-                ForEach(atSea, id: \.element.id) { item in
-                    let c = item.element
-                    let color = Self.colors[item.offset % Self.colors.count]
-                    let pts = SeaRoutes.path(c.areaID).map { SeaRoutes.point($0, in: size) }
-                    Path { p in p.addLines(pts) }
-                        .stroke(color.opacity(0.7), style: StrokeStyle(lineWidth: expanded ? 2.5 : 1.5, lineCap: .round, dash: [4, 3]))
-                    if let t = SeaRoutes.progress(c, state: state, config: config) {
-                        let pos = SeaRoutes.point(SeaRoutes.position(c.areaID, t: t), in: size)
-                        Circle().fill(color).overlay(Circle().stroke(.white, lineWidth: 1.5))
-                            .frame(width: expanded ? 12 : 8, height: expanded ? 12 : 8)
-                            .position(pos)
-                        if expanded {
-                            Text("\(displayCaptainName(c.name)) · \(SeaRoutes.place(c.areaID))")
-                                .font(.caption2.bold()).padding(.horizontal, 6).padding(.vertical, 2)
-                                .background(.white.opacity(0.85), in: Capsule())
-                                .position(x: pos.x, y: pos.y - 14)
+        TimelineView(.periodic(from: .now, by: 2)) { ctx in
+            GeometryReader { geo in
+                let size = geo.size
+                // 小地图：以船为中心放大；展开：全图
+                let zoom: CGFloat = expanded ? 1 : 2.2
+                let shipLL = SeaRoutes.shipPosition(state, now: ctx.date)
+                let full = CGSize(width: size.width * zoom, height: size.height * zoom)
+                let sp = SeaRoutes.point(shipLL, in: full)
+                let ox = expanded ? 0 : min(0, max(size.width - full.width, size.width / 2 - sp.x))
+                let oy = expanded ? 0 : min(0, max(size.height - full.height, size.height / 2 - sp.y))
+                ZStack(alignment: .topLeading) {
+                    Image(uiImage: UIImage(named: "WorldMap") ?? UIImage()).resizable()
+                        .frame(width: full.width, height: full.height)
+                    // 航线
+                    if let p = SeaRoutes.voyagePath(state) {
+                        Path { path in path.addLines(p.map { SeaRoutes.point($0, in: full) }) }
+                            .stroke(Theme.coral, style: StrokeStyle(lineWidth: expanded ? 2.5 : 2, lineCap: .round, dash: [5, 4]))
+                    }
+                    // 各大洋渔场：展开时只标名称（避免重叠：标签放在点的固定一侧，小地图只标当前大洋）
+                    ForEach(VoyageConfig.oceans) { o in
+                        let c = SeaRoutes.point(SeaRoutes.center(o.id), in: full)
+                        let unlocked = state.unlockedOceans.contains(o.id)
+                        let current = state.oceanID == o.id
+                        Circle().fill(unlocked ? Theme.teal : Color.gray.opacity(0.6))
+                            .frame(width: expanded ? 9 : 6, height: expanded ? 9 : 6)
+                            .overlay(Circle().stroke(.white, lineWidth: 1))
+                            .position(c)
+                        if expanded && o.id != "coastal" {
+                            Text((unlocked ? "" : "🔒") + o.name)
+                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                                .padding(.horizontal, 5).padding(.vertical, 1)
+                                .background((current ? Theme.gold : Color.white).opacity(0.9), in: Capsule())
+                                .foregroundStyle(Theme.ink)
+                                .fixedSize()
+                                .position(x: c.x, y: c.y + 14)
                         }
                     }
+                    Image(systemName: "house.fill").font(.system(size: expanded ? 11 : 9)).foregroundStyle(Theme.navy)
+                        .position(SeaRoutes.point(SeaRoutes.home, in: full))
+                    // 船
+                    ZStack {
+                        Circle().fill(Theme.coral.opacity(0.25)).frame(width: 26, height: 26)
+                        Image(systemName: "ferry.fill").font(.system(size: expanded ? 13 : 11, weight: .bold)).foregroundStyle(Theme.coral)
+                    }
+                    .position(sp)
+                    if expanded {
+                        Text(state.shipName).font(.system(size: 11, weight: .heavy, design: .rounded))
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(Theme.navy, in: Capsule()).foregroundStyle(Theme.cream)
+                            .fixedSize()
+                            .position(x: sp.x, y: sp.y - 20)
+                    }
                 }
-                Image(systemName: "house.fill").font(.system(size: expanded ? 12 : 8)).foregroundStyle(.brown)
-                    .position(SeaRoutes.point(SeaRoutes.home, in: size))
+                .offset(x: ox, y: oy)
             }
+            .aspectRatio(expanded ? SeaRoutes.aspect : 1.5, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: expanded ? 14 : 12))
+            .overlay(RoundedRectangle(cornerRadius: expanded ? 14 : 12).stroke(Theme.gold, lineWidth: 2))
+            .overlay(alignment: .bottomLeading) {
+                if !expanded {
+                    Text(state.phase == .docked ? tr("母港", "Port") : (state.phase == .sailing ? "\(Int(state.sailProgress * 100))%" : state.ocean.name))
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Theme.cream.opacity(0.9), in: Capsule()).foregroundStyle(Theme.ink)
+                        .padding(5)
+                }
+            }
+            .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
         }
-        .aspectRatio(820.0 / 320.0, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: expanded ? 14 : 10))
-        .overlay(RoundedRectangle(cornerRadius: expanded ? 14 : 10).stroke(.white, lineWidth: 2))
-        .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
     }
 }

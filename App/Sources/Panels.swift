@@ -1,227 +1,413 @@
 import SwiftUI
 import FishingCore
 
-// MARK: - 渔具
+func seasonText(_ f: FishType) -> String {
+    f.seasons.isEmpty ? tr("四季", "All year") : f.seasons.map { $0.emoji + $0.name }.joined(separator: "")
+}
+func gearText(_ f: FishType) -> String { f.gears.map { $0.emoji }.joined() }
+func rarityColor(_ r: Rarity) -> Color {
+    switch r { case .common: .gray; case .rare: .blue; case .epic: .purple; case .legendary: .orange }
+}
 
+/// 面板外壳
+struct PanelSheet: View {
+    @EnvironmentObject var game: GameViewModel
+    let panel: Panel
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(title).font(.system(.title3, design: .serif).bold()).foregroundStyle(Theme.navy)
+                Spacer()
+                Button { game.panel = nil } label: {
+                    Image(systemName: "xmark").font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.ink)
+                        .frame(width: 30, height: 30).background(Theme.creamDeep, in: Circle())
+                }
+                .accessibilityLabel(tr("关闭", "Close"))
+            }
+            .padding(.horizontal, 18).padding(.top, 18).padding(.bottom, 8)
+            ScrollView {
+                Group {
+                    switch panel {
+                    case .chart: ChartPanel()
+                    case .gear: GearPanel()
+                    case .dock: DockPanel()
+                    case .codex: CodexView()
+                    case .tank: AquariumView()
+                    case .log: LogPanel()
+                    case .hold: HoldPanel()
+                    }
+                }
+                .padding(.horizontal, 16).padding(.bottom, 24)
+            }
+        }
+        .foregroundStyle(Theme.ink)
+    }
+    private var title: String {
+        switch panel {
+        case .chart: tr("🗺️ 海图", "🗺️ Chart")
+        case .gear: tr("🎣 渔具", "🎣 Gear")
+        case .dock: tr("🔧 船坞与船员", "🔧 Dock & Crew")
+        case .codex: tr("📖 图鉴", "📖 Codex")
+        case .tank: tr("🐠 鱼缸", "🐠 Aquarium")
+        case .log: tr("📜 航海日志", "📜 Logbook")
+        case .hold: tr("📦 鱼舱", "📦 Hold")
+        }
+    }
+}
+
+struct Card<Content: View>: View {
+    @ViewBuilder var content: Content
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) { content }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(Color.white.opacity(0.65), in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.gold.opacity(0.45), lineWidth: 1))
+    }
+}
+
+struct PillButton: View {
+    let title: String
+    var tint: Color = Theme.coral
+    var enabled = true
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(title).font(.system(.caption, design: .rounded).bold()).foregroundStyle(.white)
+                .padding(.horizontal, 12).padding(.vertical, 7)
+                .background(enabled ? tint : Color.gray.opacity(0.5), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+    }
+}
+
+// MARK: - 海图：选择大洋、解锁、航行
+struct ChartPanel: View {
+    @EnvironmentObject var game: GameViewModel
+    var body: some View {
+        let s = game.state
+        VStack(spacing: 10) {
+            MiniMapView(state: s, expanded: true)
+            if s.phase != .docked {
+                Card {
+                    HStack {
+                        Text(tr("⚓️ 返回母港", "⚓️ Return to home port")).font(.headline)
+                        Spacer()
+                        PillButton(title: tr("返航 \(formatDuration(s.travelSeconds(to: "port")))", "Go · \(formatDuration(s.travelSeconds(to: "port")))"),
+                                   tint: Theme.navy, enabled: s.phase == .fishing) { game.sail(to: "port") }
+                    }
+                    Text(tr("回港可以全价卖鱼、便宜加油、改装船只、把鱼放进鱼缸。不回港也没关系，收购船会来海上收鱼。", "In port you get full prices, cheap fuel, refits and the aquarium. Staying out is fine too — a carrier ship buys fish at sea."))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            ForEach(Array(VoyageConfig.oceans.enumerated()), id: \.element.id) { i, o in
+                OceanCard(ocean: o, index: i)
+            }
+        }
+    }
+}
+
+struct OceanCard: View {
+    @EnvironmentObject var game: GameViewModel
+    let ocean: Ocean
+    let index: Int
+    var body: some View {
+        let s = game.state
+        let unlocked = s.unlockedOceans.contains(ocean.id)
+        let here = s.oceanID == ocean.id && s.phase == .fishing
+        Card {
+            HStack {
+                Text(ocean.name).font(.system(.headline, design: .serif))
+                if ocean.polar { Text("🧊").font(.caption) }
+                Spacer()
+                if here {
+                    Text(tr("📍 作业中", "📍 Fishing here")).font(.caption.bold()).foregroundStyle(Theme.teal)
+                } else if unlocked {
+                    let blocked = s.canEnter(ocean)
+                    PillButton(title: blocked != nil ? GameViewModel.message(blocked!) : tr("前往 \(formatDuration(s.travelSeconds(to: ocean.id)))", "Sail · \(formatDuration(s.travelSeconds(to: ocean.id)))"),
+                               tint: Theme.teal, enabled: blocked == nil && s.phase != .sailing) { game.sail(to: ocean.id) }
+                } else if index >= VoyageConfig.freeOceanCount && !s.isFullVersion {
+                    FullVersionBadge()
+                } else {
+                    PillButton(title: tr("解锁 \(ocean.unlockCost.formatted())", "Unlock \(ocean.unlockCost.formatted())"),
+                               enabled: s.coins >= ocean.unlockCost && s.codex.count >= ocean.speciesRequired) { game.unlock(ocean.id) }
+                }
+            }
+            Text(ocean.blurb).font(.caption).foregroundStyle(.secondary)
+            if !unlocked {
+                Text(tr("条件：图鉴 \(s.codex.count)/\(ocean.speciesRequired) 种\(ocean.hullRequired > 1 ? " · 船体加固 \(ocean.hullRequired) 级" : "")",
+                        "Needs: \(s.codex.count)/\(ocean.speciesRequired) species\(ocean.hullRequired > 1 ? " · Lv\(ocean.hullRequired) hull" : "")"))
+                    .font(.caption2.bold()).foregroundStyle(Theme.coral)
+            }
+            Text(ocean.fish.map { s.codex[$0.id] != nil ? $0.emoji : "❔" }.joined(separator: " ")).font(.callout)
+        }
+    }
+}
+
+// MARK: - 渔具
 struct GearPanel: View {
     @EnvironmentObject var game: GameViewModel
-
     var body: some View {
-        let caps = game.state.captains
-        let selected = caps.first { $0.id == game.gearCaptainID } ?? caps.first
-        VStack(alignment: .leading, spacing: 8) {
-            if let c = selected {
-                Picker("船长", selection: Binding(get: { c.id }, set: { game.gearCaptainID = $0 })) {
-                    ForEach(caps) { Text("⛵️\(displayCaptainName($0.name))").tag($0.id) }
-                }.pickerStyle(.segmented)
-                ForEach(GearType.allCases, id: \.self) { g in
-                    GearRow(captain: c, gear: g)
-                }
-            }
-        }
-    }
-}
-
-struct GearRow: View {
-    @EnvironmentObject var game: GameViewModel
-    let captain: Captain
-    let gear: GearType
-
-    var body: some View {
-        let cfg = game.config
-        let lv = captain.boat.gearLevel(gear)
-        let equipped = captain.boat.equipped == gear
-        let area = cfg.area(captain.areaID)
-        let pool = area?.candidates(gear: gear, season: game.season) ?? []
-        let levelFactor: Double = 1 + cfg.gearLevelBonus * Double(max(1, lv) - 1)
-        let mult: Double = cfg.gearCatchMultiplier(gear) * levelFactor
-        let names: [String] = pool.map { (f: FishType) -> String in f.emoji + f.name }
-        let poolText: String = pool.isEmpty ? tr("无", "none") : names.joined(separator: " ")
-        let areaName: String = area?.name ?? ""
-        let poolLine: String = areaName + "·" + game.season.name + tr("季可捕：", ": ") + poolText
-        let poolColor: Color = pool.isEmpty ? Color.red : Color.primary
-        HStack(alignment: .top) {
-            Text(gear.emoji).font(.title2)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack {
-                    Text(gear.name).font(.subheadline.bold())
-                    if lv > 0 { Text("Lv\(lv)").font(.caption2.bold()) }
-                    Text(tr("渔获×", "Catch ×") + String(format: "%.2f", mult))
+        let s = game.state
+        VStack(spacing: 10) {
+            Text(tr("船上所有渔具都会一起作业，能捕的鱼种更多；“主力渔具”决定挂机速度。买新渔具要回港。", "Every piece of gear on board works at once, widening which species you can catch; the main gear sets idle speed. Buy new gear in port."))
+                .font(.caption).foregroundStyle(.secondary)
+            ForEach(GearType.allCases, id: \.self) { g in
+                let lv = s.gearLevels[g.rawValue]
+                let cost = s.gearUpgradeCost(g)
+                Card {
+                    HStack {
+                        Text("\(g.emoji) \(g.name)").font(.headline)
+                        if let lv { Text("Lv\(lv)").font(.caption.bold()).foregroundStyle(Theme.teal) }
+                        Spacer()
+                        if lv != nil {
+                            if s.equipped == g { Text(tr("主力", "Main")).font(.caption.bold()).foregroundStyle(Theme.coral) }
+                            else { PillButton(title: tr("设为主力", "Make main"), tint: Theme.navy) { game.equip(g) } }
+                        }
+                        if !VoyageConfig.freeGear.contains(g) && !s.isFullVersion && lv == nil { FullVersionBadge() }
+                        else if (lv ?? 0) < 5 {
+                            PillButton(title: (lv == nil ? tr("购买 ", "Buy ") : tr("升级 ", "Upgrade ")) + (cost.gems > 0 ? "\(cost.gems)💎" : "\(cost.coins.formatted())🪙"),
+                                       enabled: s.phase == .docked && s.coins >= cost.coins && s.gems >= cost.gems) { game.buyGear(g) }
+                        }
+                    }
+                    let fish = s.ocean.fish.filter { $0.gears.contains(g) }
+                    Text(tr("在\(s.ocean.zhName)可捕：", "Catches here: ") + (fish.isEmpty ? "—" : fish.map { $0.emoji + $0.name }.joined(separator: " ")))
                         .font(.caption2).foregroundStyle(.secondary)
                 }
-                Text(gear.detail).font(.caption2).foregroundStyle(.secondary)
-                Text(poolLine)
-                    .font(.caption2).foregroundStyle(poolColor).lineLimit(2)
             }
-            Spacer()
-            VStack(spacing: 4) {
-                if lv == 0 && !game.state.isGearAvailable(gear, config: cfg) {
-                    FullVersionBadge()
-                } else if lv == 0 {
-                    let p = cfg.gearPrice(gear)
-                    Button(p.gems > 0 ? tr("购买 \(p.gems)💎", "Buy \(p.gems)💎") : tr("购买 \(p.coins)", "Buy \(p.coins)")) { game.buyGear(gear, captain.id) }
-                        .disabled(game.state.coins < p.coins || game.state.gems < p.gems)
-                } else {
-                    if equipped {
-                        Text("使用中").font(.caption.bold()).foregroundStyle(.green)
-                    } else {
-                        Button("装备") { game.equipGear(gear, captain.id) }
-                    }
-                    if lv < cfg.maxGearLevel {
-                        let cost = cfg.gearUpgradeCost(gear, level: lv)
-                        Button("↑\(cost)") { game.upgradeGear(gear, captain.id) }
-                            .disabled(game.state.coins < cost)
-                    }
-                }
+            if s.phase != .docked {
+                Text(tr("⚓️ 在海上只能更换主力渔具，买和升级要回港。", "⚓️ At sea you can only switch main gear; buying and upgrading happen in port."))
+                    .font(.caption2.bold()).foregroundStyle(Theme.coral)
             }
-            .buttonStyle(.bordered).font(.caption)
-        }
-        .padding(8)
-        .background(Color.white.opacity(equipped ? 0.8 : 0.5), in: RoundedRectangle(cornerRadius: 12))
-    }
-}
-
-// MARK: - 海图
-
-struct SeaMapView: View {
-    @EnvironmentObject var game: GameViewModel
-    @State private var selected: String = "bay"
-
-    var body: some View {
-        let cfg = game.config
-        VStack(spacing: 8) {
-            GeometryReader { geo in
-                let w = geo.size.width, h = geo.size.height
-                let port = CGPoint(x: w * 0.5, y: h * 0.97)
-                ZStack {
-                    LinearGradient(colors: [Color(red: 0.05, green: 0.2, blue: 0.45), Color(red: 0.25, green: 0.7, blue: 0.85)],
-                                   startPoint: .top, endPoint: .bottom)
-                    ForEach(cfg.areas) { a in
-                        Path { p in
-                            p.move(to: port)
-                            p.addLine(to: CGPoint(x: CGFloat(a.mapX) * w, y: CGFloat(a.mapY) * h))
-                        }
-                        .stroke(Color.white.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                    }
-                    Text("⚓️港口").font(.caption2.bold()).foregroundStyle(.white).position(port)
-                    ForEach(cfg.areas) { a in
-                        let unlocked = game.state.unlockedAreaIDs.contains(a.id)
-                        let boats = game.state.captains.filter { $0.areaID == a.id }.count
-                        VStack(spacing: 0) {
-                            Text(unlocked ? (boats > 0 ? "⛵️×\(boats)" : "🏝️") : "🔒").font(.caption)
-                            Text(a.name).font(.system(size: 10, weight: .bold))
-                            Text(tr("\(Int(a.distance))海里", "\(Int(a.distance)) nm")).font(.system(size: 9))
-                        }
-                        .foregroundStyle(.white)
-                        .padding(3)
-                        .background((selected == a.id ? Color.orange : Color.black.opacity(0.35)), in: RoundedRectangle(cornerRadius: 6))
-                        .position(x: CGFloat(a.mapX) * w, y: CGFloat(a.mapY) * h)
-                        .onTapGesture { selected = a.id }
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel("\(a.name), " + (unlocked ? tr("已解锁，\(boats) 艘船", "unlocked, \(boats) boats") : tr("未解锁", "locked")))
-                        .accessibilityAddTraits(.isButton)
-                        .accessibilityAction { selected = a.id }
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .frame(height: 200)
-            if let a = cfg.area(selected) { AreaDetail(area: a) }
         }
     }
 }
 
-struct AreaDetail: View {
+// MARK: - 船坞（改装 + 船员技能 + 补给）
+struct DockPanel: View {
     @EnvironmentObject var game: GameViewModel
-    let area: SeaArea
-
     var body: some View {
-        let cfg = game.config
-        let unlocked = game.state.unlockedAreaIDs.contains(area.id)
-        let oneWay = area.distance / cfg.baseSpeed
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(area.name).font(.headline)
-                Spacer()
-                if unlocked {
-                    Text("已解锁").font(.caption).foregroundStyle(.green)
-                } else if !game.state.isAreaAvailable(area, config: cfg) {
-                    FullVersionBadge()
-                } else {
-                    Button(tr("解锁 \(area.unlockCost)", "Unlock \(area.unlockCost)")) { game.unlock(area.id) }
-                        .buttonStyle(.borderedProminent).font(.caption)
-                        .disabled(game.state.coins < area.unlockCost)
-                }
-            }
-            Text(area.blurb).font(.caption).foregroundStyle(.secondary)
-            Text(tr("距离 \(Int(area.distance)) 海里 · 航程约 \(Int(oneWay.rounded())) 秒（初始船速，单程）", "\(Int(area.distance)) nm away · about \(Int(oneWay.rounded())) s one way at base speed"))
-                .font(.caption2)
-            ForEach(area.fish) { f in
-                HStack(spacing: 4) {
-                    Text(f.emoji + f.name).font(.caption2.bold())
-                    Text(f.rarity.name).font(.system(size: 9)).foregroundStyle(rarityColor(f.rarity))
+        let s = game.state
+        VStack(spacing: 10) {
+            Card {
+                HStack {
+                    Text(tr("⛽️ 燃油 \(Int(s.fuel))/\(Int(s.fuelCapacity))", "⛽️ Fuel \(Int(s.fuel))/\(Int(s.fuelCapacity))")).font(.headline)
                     Spacer()
-                    Text(gearText(f) + " " + seasonText(f) + " · \(f.value)💰").font(.caption2)
+                    let c = s.refuelCost()
+                    PillButton(title: tr("加满 \(c)🪙", "Fill up \(c)🪙"), tint: Theme.teal,
+                               enabled: c > 0 && s.coins >= c && (s.phase == .docked || s.carrierAvailable(now: Date()) || s.fuel <= 0)) { game.refuel() }
+                }
+                Text(s.phase == .docked ? tr("港口油价 1 金币/升", "Port price: 1 coin per unit")
+                                        : tr("海上向收购船买油，3 金币/升（和收鱼共用冷却）", "At sea the carrier sells fuel at 3 coins/unit (shares its cooldown)"))
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+            Text(tr("船只改装", "Ship refits")).font(.system(.headline, design: .serif)).frame(maxWidth: .infinity, alignment: .leading)
+            if s.phase != .docked {
+                Text(tr("⚓️ 改装需要在母港进行", "⚓️ Refits happen in home port")).font(.caption.bold()).foregroundStyle(Theme.coral)
+            }
+            ForEach(ShipPart.allCases, id: \.self) { p in
+                let lv = s.part(p)
+                Card {
+                    HStack {
+                        Text("\(p.emoji) \(p.name)").font(.headline)
+                        Text("Lv\(lv)").font(.caption.bold()).foregroundStyle(Theme.teal)
+                        Spacer()
+                        if lv >= VoyageConfig.maxPartLevel { Text(tr("已满级", "Max level")).font(.caption) }
+                        else if lv >= s.maxPartLevel { FullVersionBadge() }
+                        else {
+                            let c = VoyageConfig.partCost(p, level: lv)
+                            PillButton(title: "\(c.formatted())🪙", enabled: s.phase == .docked && s.coins >= c) { game.upgrade(p) }
+                        }
+                    }
+                    Text(p.desc).font(.caption2).foregroundStyle(.secondary)
+                }
+            }
+            Text(tr("船员技能（剩余 \(s.skillPoints) 点）", "Crew skills (\(s.skillPoints) points left)")).font(.system(.headline, design: .serif))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            ForEach(CrewSkill.allCases, id: \.self) { k in
+                Card {
+                    HStack {
+                        Text(k.name).font(.headline)
+                        Text(String(repeating: "●", count: s.skill(k)) + String(repeating: "○", count: VoyageConfig.maxSkill - s.skill(k)))
+                            .font(.caption).foregroundStyle(Theme.gold)
+                        Spacer()
+                        PillButton(title: "+1", tint: Theme.navy, enabled: s.skillPoints > 0 && s.skill(k) < VoyageConfig.maxSkill) { game.learn(k) }
+                    }
+                    Text(k.desc).font(.caption2).foregroundStyle(.secondary)
                 }
             }
         }
-        .padding(8)
-        .background(Color.white.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
     }
 }
 
-// MARK: - 生态鱼缸
+// MARK: - 鱼舱：卖鱼
+struct HoldPanel: View {
+    @EnvironmentObject var game: GameViewModel
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 5)) { ctx in
+            let s = game.state
+            let now = ctx.date
+            VStack(spacing: 10) {
+                Card {
+                    HStack {
+                        Text(tr("舱内 \(s.hold.count)/\(s.holdCapacity) 条 · 估值 \(s.holdValue(now: now).formatted())🪙", "\(s.hold.count)/\(s.holdCapacity) fish · worth \(s.holdValue(now: now).formatted())🪙"))
+                            .font(.headline)
+                    }
+                    if s.phase == .docked {
+                        PillButton(title: tr("鱼市全价卖出", "Sell at the market (full price)"), tint: Theme.teal, enabled: !s.hold.isEmpty) { game.sell() }
+                    } else if s.carrierAvailable(now: now) {
+                        PillButton(title: tr("呼叫收购船（75% 价格）", "Call the carrier (75% price)"), tint: Theme.teal, enabled: !s.hold.isEmpty) { game.sell() }
+                    } else {
+                        let left = VoyageConfig.carrierCooldown - now.timeIntervalSince(s.lastCarrier)
+                        HStack {
+                            Text(tr("收购船 \(formatDuration(left)) 后到", "Carrier back in \(formatDuration(left))")).font(.caption)
+                            Spacer()
+                            PillButton(title: tr("加急 \(VoyageConfig.carrierGemCost)💎", "Rush \(VoyageConfig.carrierGemCost)💎"), tint: .purple,
+                                       enabled: !s.hold.isEmpty && s.gems >= VoyageConfig.carrierGemCost) { game.sell(useGems: true) }
+                        }
+                    }
+                    Text(tr("鱼会慢慢不新鲜（最低 30% 价），冰柜越好保鲜越久。舱满后船员会把小鱼放生，只留更值钱的。",
+                            "Fish lose freshness over time (down to 30% value); a better icebox keeps them longer. When the hold is full the crew releases smaller fish and keeps the valuable ones."))
+                        .font(.caption2).foregroundStyle(.secondary)
+                }
+                ForEach(s.hold.sorted { s.value($0, now: now) > s.value($1, now: now) }) { f in
+                    let t = VoyageConfig.fish(f.fishID)
+                    HStack {
+                        Text("\(t?.emoji ?? "🐟") \(t?.name ?? f.fishID)").font(.callout.bold())
+                        if f.kg >= (t?.baseKg ?? 1) * VoyageConfig.trophyFactor { Text("🏆").font(.caption) }
+                        if f.active { Text("🎯").font(.caption) }
+                        Text(formatKg(f.kg)).font(.caption).foregroundStyle(.secondary)
+                        Spacer()
+                        Text("❄︎\(Int(s.freshness(f, now: now) * 100))%").font(.caption2).foregroundStyle(.blue)
+                        Text("\(s.value(f, now: now))🪙").font(.caption.bold()).monospacedDigit()
+                        if s.phase == .docked {
+                            Button { game.keep(f.id) } label: { Image(systemName: "drop.fill").foregroundStyle(Theme.teal) }
+                                .accessibilityLabel(tr("放进鱼缸", "Move to aquarium"))
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+        }
+    }
+}
 
+// MARK: - 日志：任务 + 事件
+struct LogPanel: View {
+    @EnvironmentObject var game: GameViewModel
+    var body: some View {
+        let s = game.state
+        VStack(alignment: .leading, spacing: 10) {
+            if let q = s.currentQuest {
+                Card {
+                    Text(tr("当前目标", "Current goal")).font(.caption.bold()).foregroundStyle(Theme.coral)
+                    Text(q.title).font(.headline)
+                    ProgressView(value: Double(min(q.target, s.questProgress(q))), total: Double(q.target)).tint(Theme.teal)
+                    Text(tr("\(min(q.target, s.questProgress(q)))/\(q.target) · 奖励 \(q.coins.formatted())🪙 \(q.gems)💎", "\(min(q.target, s.questProgress(q)))/\(q.target) · reward \(q.coins.formatted())🪙 \(q.gems)💎"))
+                        .font(.caption2).foregroundStyle(.secondary)
+                }
+            }
+            Card {
+                Text(tr("航海统计", "Voyage stats")).font(.headline)
+                Text(tr("累计 \(s.totalFishCaught) 条 · 亲手钓 \(s.activeCatches) 条 · 纪录大鱼 \(s.trophies) 条 · 回港 \(s.portVisits) 次",
+                        "\(s.totalFishCaught) fish · \(s.activeCatches) by hand · \(s.trophies) trophies · \(s.portVisits) port visits")).font(.caption)
+            }
+            if s.eventLog.isEmpty {
+                Text(tr("海上风平浪静，暂时没有新鲜事", "Calm seas — nothing new yet")).foregroundStyle(.secondary)
+            }
+            ForEach(Array(s.eventLog.enumerated()), id: \.offset) { _, e in
+                HStack(alignment: .top) {
+                    Text(e.date, style: .time).font(.caption2).foregroundStyle(.secondary).frame(width: 48, alignment: .leading)
+                    Text(e.text).font(.caption)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - 图鉴（按大洋）
+struct CodexView: View {
+    @EnvironmentObject var game: GameViewModel
+    var body: some View {
+        VStack(spacing: 10) {
+            Text(tr("已收集 \(game.state.codex.count)/\(VoyageConfig.allFish.count) 种", "\(game.state.codex.count)/\(VoyageConfig.allFish.count) species discovered"))
+                .font(.subheadline.bold()).frame(maxWidth: .infinity, alignment: .leading)
+            ForEach(VoyageConfig.oceans) { o in
+                Card {
+                    HStack {
+                        Text(o.name).font(.system(.headline, design: .serif))
+                        Spacer()
+                        Text("\(o.fish.filter { game.state.codex[$0.id] != nil }.count)/\(o.fish.count)").font(.caption).foregroundStyle(.secondary)
+                    }
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
+                        ForEach(o.fish) { f in
+                            FishCard(fish: f, entry: game.state.codex[f.id], season: game.season)
+                                .onTapGesture { game.encyclopediaFish = f.id }
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(game.state.codex[f.id] != nil ? f.name : tr("未知鱼种", "Unknown species"))
+                                .accessibilityAddTraits(.isButton)
+                                .accessibilityAction { game.encyclopediaFish = f.id }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct FishCard: View {
+    let fish: FishType
+    let entry: CodexEntry?
+    let season: Season
+    var body: some View {
+        VStack(spacing: 2) {
+            if entry != nil, let img = Encyclopedia.photo("fish_\(fish.id)") {
+                Image(uiImage: img).resizable().scaledToFill().frame(width: 40, height: 28).clipShape(RoundedRectangle(cornerRadius: 5))
+            } else {
+                Text(entry == nil ? "❔" : fish.emoji).font(.title3).frame(height: 28)
+            }
+            Text(entry == nil ? "???" : fish.name).font(.caption2.bold()).lineLimit(1).minimumScaleFactor(0.6)
+            Text(fish.rarity.name).font(.system(size: 9, weight: .bold))
+                .padding(.horizontal, 4).background(rarityColor(fish.rarity).opacity(0.25), in: Capsule())
+            if let e = entry {
+                Text("×\(e.count) · \(formatKg(e.bestKg))").font(.system(size: 9)).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.6)
+            } else {
+                Text(gearText(fish) + " " + seasonText(fish)).font(.system(size: 9)).lineLimit(1).minimumScaleFactor(0.5)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 5)
+        .background(entry == nil ? Color.gray.opacity(0.12) : Theme.cream, in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(entry == nil ? Color.clear : rarityColor(fish.rarity).opacity(0.5), lineWidth: 1))
+    }
+}
+
+// MARK: - 鱼缸
 struct AquariumView: View {
     @EnvironmentObject var game: GameViewModel
-
     var body: some View {
-        let cfg = game.config
-        let cap = game.state.tankCapacity(config: cfg)
+        let s = game.state
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(tr("🐠 生态鱼缸 \(game.state.tank.count)/\(cap)", "🐠 Aquarium \(game.state.tank.count)/\(cap)")).font(.headline)
+                Text(tr("🐠 生态鱼缸 \(s.tank.count)/\(s.tankCapacity)", "🐠 Aquarium \(s.tank.count)/\(s.tankCapacity)")).font(.headline)
                 Spacer()
-                Text(tr("\(game.state.tankSpecies.count) 种", "\(game.state.tankSpecies.count) species")).font(.caption).foregroundStyle(.secondary)
-            }
-            TankScene(tank: game.state.tank) { game.encyclopediaFish = $0 }
-                .frame(height: 150)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            HStack {
-                Text("你的私人鱼缸。点鱼看小百科。").font(.caption2).foregroundStyle(.secondary)
-                Spacer()
-                let cost = cfg.tankUpgradeCost(level: game.state.tankLevel)
+                let cost = VoyageConfig.tankUpgradeCost(level: s.tankLevel)
                 if !game.isFullVersion { FullVersionBadge() } else {
-                Button(tr("扩容 +\(cfg.tankCapacityPerLevel)（\(cost)）", "Expand +\(cfg.tankCapacityPerLevel) (\(cost))")) { game.upgradeTank() }
-                    .buttonStyle(.bordered).font(.caption)
-                    .disabled(game.state.coins < cost)
+                    PillButton(title: tr("扩容 +2（\(cost.formatted())）", "Expand +2 (\(cost.formatted()))"), tint: Theme.teal, enabled: s.coins >= cost) { game.upgradeTank() }
                 }
             }
-            if !game.state.tank.isEmpty {
-                Text("鱼缸里的鱼").font(.subheadline.bold())
-                ForEach(game.state.tank) { t in
-                    let f = game.fish(t.fishID)
-                    HStack {
-                        Text("\(f?.emoji ?? "🐟") \(f?.name ?? t.fishID) · \(formatKg(t.kg))").font(.caption)
-                        Spacer()
-                        Button("放生") { game.release(t.id) }.font(.caption2)
-                    }
-                }
-            }
-            Text("最近渔获（留下最好的一条，不卖）").font(.subheadline.bold())
-            ForEach(Array(game.state.recentCatches.prefix(8).enumerated()), id: \.offset) { i, r in
+            TankScene(tank: s.tank) { game.encyclopediaFish = $0 }
+                .frame(height: 190)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+            Text(tr("回港后可以在鱼舱里点 💧 把喜欢的鱼放进鱼缸。点鱼看小百科。", "In port, tap 💧 on a fish in the hold to move it here. Tap a fish to read about it."))
+                .font(.caption2).foregroundStyle(.secondary)
+            ForEach(s.tank) { t in
+                let f = game.fish(t.fishID)
                 HStack {
-                    Text("\(r.fishEmoji)\(game.fishName(r))").font(.caption)
-                    if let kg = r.kg { Text(formatKg(kg)).font(.caption2).foregroundStyle(.secondary) }
-                    Text("· \(displayCaptainName(r.captainName))").font(.caption2).foregroundStyle(.secondary)
+                    Text("\(f?.emoji ?? "🐟") \(f?.name ?? t.fishID) · \(formatKg(t.kg))").font(.caption)
                     Spacer()
-                    if r.kept == true {
-                        Text("已入缸").font(.caption2).foregroundStyle(.green)
-                    } else if r.fishID != nil {
-                        Button(tr("留下 −\(r.sellValue ?? 0)", "Keep −\(r.sellValue ?? 0)")) { game.keep(i) }
-                            .font(.caption2).buttonStyle(.bordered)
-                            .disabled(game.state.tank.count >= cap || game.state.coins < (r.sellValue ?? 0))
-                    }
+                    Button(tr("放生", "Release")) { game.release(t.id) }.font(.caption2)
                 }
             }
         }
@@ -241,15 +427,13 @@ struct TankScene: View {
         let goingRight: Bool = cos(angle) > 0
         let row: Double = Double(i % 5) / 4.0
         let y: Double = 0.2 + 0.6 * row + 0.04 * sin(t * 1.7 + seed * 10.0)
-        let emoji: String = GameState.fish(f.fishID, config: EconomyConfig())?.emoji ?? "🐟"
-        let px: CGFloat = CGFloat(x) * w
-        let py: CGFloat = CGFloat(y) * (h - 20)
+        let emoji: String = VoyageConfig.fish(f.fishID)?.emoji ?? "🐟"
         return Text(emoji)
-            .font(.system(size: 26))
+            .font(.system(size: 28))
             .scaleEffect(x: goingRight ? -1 : 1, y: 1)
-            .position(x: px, y: py)
+            .position(x: CGFloat(x) * w, y: CGFloat(y) * (h - 20))
             .onTapGesture { onTap(f.fishID) }
-            .accessibilityLabel(GameState.fish(f.fishID, config: EconomyConfig())?.name ?? "")
+            .accessibilityLabel(VoyageConfig.fish(f.fishID)?.name ?? "")
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { onTap(f.fishID) }
     }
@@ -260,10 +444,9 @@ struct TankScene: View {
             GeometryReader { geo in
                 let w = geo.size.width, h = geo.size.height
                 ZStack {
-                    LinearGradient(colors: [Color(red: 0.55, green: 0.88, blue: 0.95), Color(red: 0.05, green: 0.45, blue: 0.6)],
+                    LinearGradient(colors: [Color(red: 0.62, green: 0.92, blue: 0.93), Color(red: 0.16, green: 0.58, blue: 0.66)],
                                    startPoint: .top, endPoint: .bottom)
-                    // 沙底与水草
-                    Rectangle().fill(Color(red: 0.93, green: 0.85, blue: 0.62)).frame(height: 14)
+                    Rectangle().fill(Color(red: 0.95, green: 0.88, blue: 0.70)).frame(height: 16)
                         .frame(maxHeight: .infinity, alignment: .bottom)
                     ForEach(0..<5, id: \.self) { k in
                         Text("🌿").font(.title2)
@@ -276,7 +459,7 @@ struct TankScene: View {
                             .position(x: w * CGFloat(0.15 + 0.14 * Double(k)), y: h * CGFloat(1 - phase))
                     }
                     if tank.isEmpty {
-                        Text("鱼缸空空的～去“最近渔获”里留几条吧").font(.caption).foregroundStyle(.white)
+                        Text(tr("鱼缸空空的～回港时从鱼舱挑几条吧", "The aquarium is empty — pick a few from the hold in port")).font(.caption).foregroundStyle(.white)
                     }
                     ForEach(Array(tank.enumerated()), id: \.element.id) { i, f in
                         swimmer(f, index: i, t: t, w: w, h: h)
@@ -291,7 +474,10 @@ struct TankScene: View {
 struct FullVersionBadge: View {
     @EnvironmentObject var game: GameViewModel
     var body: some View {
-        Button("🔓 完整版") { game.purchaseFullVersion() }
-            .buttonStyle(.borderedProminent).tint(.orange).font(.caption2)
+        PillButton(title: tr("🔓 完整版", "🔓 Full Version"), tint: .orange) { game.purchaseFullVersion() }
     }
+}
+
+func formatKg(_ kg: Double) -> String {
+    kg >= 1000 ? String(format: tr("%.1f吨", "%.1f t"), kg / 1000) : (kg >= 10 ? String(format: "%.0fkg", kg) : (kg >= 0.1 ? String(format: "%.2fkg", kg) : String(format: "%.0fg", kg * 1000)))
 }
