@@ -22,6 +22,9 @@ struct SkyPalette: Equatable {
     var cloudCount: Int
     var fogStart: CGFloat
     var fogEnd: CGFloat
+    var art = "dusk"
+    var artFlip = false
+    var tint: UIColor? = nil
 
     static func rgb(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat) -> UIColor { UIColor(red: r, green: g, blue: b, alpha: 1) }
 
@@ -30,27 +33,28 @@ struct SkyPalette: Equatable {
         switch part {
         case .dusk, .dawn:
             // 参考图：粉金色晚霞
-            p = SkyPalette(zenith: rgb(0.93, 0.70, 0.74), mid: rgb(0.99, 0.80, 0.72), horizon: rgb(1.0, 0.90, 0.76),
+            p = SkyPalette(zenith: rgb(0.93, 0.70, 0.74), mid: rgb(0.99, 0.80, 0.72), horizon: rgb(0.97, 0.87, 0.80),
                            sun: rgb(1.0, 0.93, 0.70), sunVisible: true, sunX: part == .dusk ? 0.62 : 0.38,
                            cloud: rgb(1.0, 0.80, 0.80), cloudShade: rgb(0.90, 0.62, 0.70), mountains: rgb(0.78, 0.66, 0.78),
                            sea: rgb(0.33, 0.74, 0.76), lightColor: rgb(1.0, 0.82, 0.68), lightIntensity: 1500,
                            ambient: rgb(1.0, 0.84, 0.82), ambientIntensity: 650, lightElevation: 0.22, stars: false, cloudCount: 7,
                            fogStart: 45, fogEnd: 170)
         case .day:
-            p = SkyPalette(zenith: rgb(0.48, 0.74, 0.93), mid: rgb(0.66, 0.85, 0.96), horizon: rgb(0.88, 0.95, 0.96),
+            p = SkyPalette(zenith: rgb(0.48, 0.74, 0.93), mid: rgb(0.66, 0.85, 0.96), horizon: rgb(0.88, 0.94, 0.97),
                            sun: rgb(1.0, 0.98, 0.88), sunVisible: false, sunX: 0.8,
                            cloud: rgb(1.0, 1.0, 1.0), cloudShade: rgb(0.80, 0.86, 0.94), mountains: rgb(0.64, 0.76, 0.86),
                            sea: rgb(0.28, 0.72, 0.78), lightColor: rgb(1.0, 0.97, 0.90), lightIntensity: 1800,
                            ambient: rgb(0.86, 0.92, 1.0), ambientIntensity: 700, lightElevation: 0.75, stars: false, cloudCount: 6,
                            fogStart: 50, fogEnd: 190)
         case .night:
-            p = SkyPalette(zenith: rgb(0.08, 0.10, 0.26), mid: rgb(0.18, 0.18, 0.40), horizon: rgb(0.38, 0.32, 0.52),
+            p = SkyPalette(zenith: rgb(0.08, 0.10, 0.26), mid: rgb(0.18, 0.18, 0.40), horizon: rgb(0.58, 0.47, 0.70),
                            sun: rgb(0.98, 0.96, 0.85), sunVisible: true, sunX: 0.72,
                            cloud: rgb(0.36, 0.34, 0.55), cloudShade: rgb(0.24, 0.22, 0.42), mountains: rgb(0.22, 0.22, 0.40),
                            sea: rgb(0.13, 0.32, 0.42), lightColor: rgb(0.70, 0.76, 1.0), lightIntensity: 500,
                            ambient: rgb(0.50, 0.52, 0.80), ambientIntensity: 420, lightElevation: 0.5, stars: true, cloudCount: 4,
                            fogStart: 40, fogEnd: 150)
         }
+        p.art = part == .night ? "night" : (part == .day ? "day" : "dusk"); p.artFlip = part == .dawn
         let polar = ocean == "arctic" || ocean == "southern"
         let tropical = ocean == "pacific" || ocean == "indian"
         if polar { p.sea = p.sea.mix(rgb(0.45, 0.62, 0.75), 0.45); p.mountains = rgb(0.90, 0.93, 0.98).mix(p.mountains, 0.4) }
@@ -61,11 +65,11 @@ struct SkyPalette: Equatable {
             p.zenith = p.zenith.mix(grey, 0.7); p.mid = p.mid.mix(grey, 0.6); p.horizon = p.horizon.mix(grey, 0.45)
             p.cloud = p.cloud.mix(grey, 0.6); p.cloudShade = p.cloudShade.mix(grey.mix(.black, 0.2), 0.7)
             p.sea = p.sea.mix(rgb(0.35, 0.50, 0.58), 0.45); p.sunVisible = false
-            p.lightIntensity *= 0.5; p.cloudCount = 12
+            p.lightIntensity *= 0.5; p.cloudCount = 12; p.tint = grey.withAlphaComponent(weather == .storm ? 0.62 : 0.45)
         case .fog:
             let pale = rgb(0.90, 0.90, 0.92)
             p.horizon = p.horizon.mix(pale, 0.7); p.mid = p.mid.mix(pale, 0.6); p.zenith = p.zenith.mix(pale, 0.4)
-            p.fogStart = 8; p.fogEnd = 60; p.sunVisible = false; p.cloudCount = 2; p.lightIntensity *= 0.6
+            p.fogStart = 8; p.fogEnd = 60; p.sunVisible = false; p.cloudCount = 2; p.lightIntensity *= 0.6; p.tint = pale.withAlphaComponent(0.6)
         case .ice:
             p.cloudCount = 5
         default: break
@@ -75,6 +79,33 @@ struct SkyPalette: Equatable {
 
     /// 天空背景图（地平线位置 horizon 0...1，自上而下）
     func skyImage(size: CGSize, horizonAt: CGFloat, seed: Int) -> UIImage {
+        if let art = UIImage(named: "Sky_\(art).jpg") { return paintedSky(art, size: size, horizonAt: horizonAt) }
+        return proceduralSky(size: size, horizonAt: horizonAt, seed: seed)
+    }
+
+    /// 手绘风天空（AI 生成的天空贴图）：底部地平线对齐场景地平线
+    private func paintedSky(_ art: UIImage, size: CGSize, horizonAt: CGFloat) -> UIImage {
+        UIGraphicsImageRenderer(size: size).image { ctx in
+            let cg = ctx.cgContext
+            let hy = size.height * horizonAt
+            cg.setFillColor(horizon.cgColor); cg.fill(CGRect(origin: .zero, size: size))
+            let artHorizon: CGFloat = 0.89
+            // 高度至少覆盖地平线以上区域；宽度按比例，居中裁切
+            let h = max(hy / artHorizon, size.width / art.size.width * art.size.height * 1.0)
+            let w = h * art.size.width / art.size.height
+            let rect = CGRect(x: (size.width - w) / 2 + (artFlip ? 0 : -w * 0.08), y: hy - h * artHorizon, width: w, height: h)
+            if artFlip {
+                cg.saveGState(); cg.translateBy(x: size.width, y: 0); cg.scaleBy(x: -1, y: 1)
+                art.draw(in: rect); cg.restoreGState()
+            } else { art.draw(in: rect) }
+            if let t = tint { cg.setFillColor(t.cgColor); cg.fill(CGRect(x: 0, y: 0, width: size.width, height: hy + 2)) }
+            // 地平线柔和过渡到雾色
+            let fade = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: [horizon.withAlphaComponent(0).cgColor, horizon.cgColor] as CFArray, locations: [0, 1])!
+            cg.drawLinearGradient(fade, start: CGPoint(x: 0, y: hy - size.height * 0.03), end: CGPoint(x: 0, y: hy), options: [.drawsAfterEndLocation])
+        }
+    }
+
+    private func proceduralSky(size: CGSize, horizonAt: CGFloat, seed: Int) -> UIImage {
         let r = UIGraphicsImageRenderer(size: size)
         return r.image { ctx in
             let cg = ctx.cgContext

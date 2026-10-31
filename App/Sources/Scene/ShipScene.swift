@@ -27,6 +27,7 @@ final class ShipScene: NSObject {
     private var usingModels = false
     private var lastCaught = -1
     private let rim = SCNNode()
+    private let cloudRoot = SCNNode()
     private var palette = SkyPalette.make(part: .dusk, weather: .sunny, ocean: "coastal")
     private var lastSize: CGSize = .zero
     private let pitch: Float = -0.30
@@ -83,7 +84,25 @@ final class ShipScene: NSObject {
         c.fieldOfView = 48
         c.projectionDirection = .horizontal
         c.zNear = 0.1; c.zFar = 700
-        c.wantsHDR = false
+        // HDR 后期：柔光泛光、暗角、调色 LUT、轻微景深
+        c.wantsHDR = true
+        c.wantsExposureAdaptation = false
+        c.exposureOffset = 0.35
+        c.whitePoint = 1.15
+        c.minimumExposure = -1; c.maximumExposure = 1
+        c.contrast = -0.12
+        c.saturation = 1.04
+        c.bloomIntensity = 0.55
+        c.bloomThreshold = 0.82
+        c.bloomBlurRadius = 14
+        c.vignettingIntensity = 0.45
+        c.vignettingPower = 0.9
+        if let lut = UIImage(named: "GradeLUT.png") { c.colorGrading.contents = lut; c.colorGrading.intensity = 1 }
+        c.wantsDepthOfField = true
+        c.focusDistance = 13.2
+        c.fStop = 4.5
+        c.apertureBladeCount = 6
+        c.focalBlurSampleCount = 6
         // 柔和环境光遮蔽，让模型更有体积感
         c.screenSpaceAmbientOcclusionIntensity = 0.6
         c.screenSpaceAmbientOcclusionRadius = 0.35
@@ -108,27 +127,16 @@ final class ShipScene: NSObject {
         scene.rootNode.addChildNode(rim)
     }
     private func buildSea() {
-        seaMat.lightingModel = .physicallyBased
-        seaMat.metalness.contents = 0.0
-        seaMat.roughness.contents = 0.12
-        seaMat.normal.contents = Tex.waterNormal
-        seaMat.normal.intensity = 0.6
-        seaMat.normal.wrapS = .repeat; seaMat.normal.wrapT = .repeat
-        seaMat.normal.contentsTransform = SCNMatrix4MakeScale(60, 60, 1)
-        seaMat.fresnelExponent = 2
+        SeaShader.apply(to: seaMat)
+        let plane = SCNPlane(width: 600, height: 600); plane.widthSegmentCount = 1
+        seaNode.geometry = plane
         seaNode.geometry?.materials = [seaMat]
         seaNode.eulerAngles.x = -.pi / 2
         seaNode.position.y = 0
         scene.rootNode.addChildNode(seaNode)
-        // 海面法线流动
-        let anim = CABasicAnimation(keyPath: "geometry.firstMaterial.normal.contentsTransform")
-        anim.fromValue = NSValue(scnMatrix4: SCNMatrix4MakeScale(60, 60, 1))
-        anim.toValue = NSValue(scnMatrix4: SCNMatrix4Mult(SCNMatrix4MakeScale(60, 60, 1), SCNMatrix4MakeTranslation(1, 0.5, 0)))
-        anim.duration = 40; anim.repeatCount = .infinity
-        seaNode.addAnimation(anim, forKey: "flow")
         // 波光粼粼
         let glitter = SCNParticleSystem()
-        glitter.birthRate = 60; glitter.particleLifeSpan = 1.2; glitter.particleSize = 0.12; glitter.particleSizeVariation = 0.08
+        glitter.birthRate = 25; glitter.particleLifeSpan = 1.2; glitter.particleSize = 0.12; glitter.particleSizeVariation = 0.08
         glitter.particleImage = Tex.dot(.white, size: 32)
         glitter.particleColor = UIColor(red: 1, green: 0.97, blue: 0.85, alpha: 0.9)
         glitter.emitterShape = SCNBox(width: 70, height: 0.01, length: 50, chamferRadius: 0)
@@ -143,21 +151,34 @@ final class ShipScene: NSObject {
         m.diffuse.contents = Tex.wake; m.transparent.contents = Tex.wake; m.blendMode = .alpha; m.writesToDepthBuffer = false
         m.diffuse.wrapT = .repeat; m.transparent.wrapT = .repeat
         wakeNode.geometry?.materials = [m]
-        wakeNode.eulerAngles = SCNVector3(-Float.pi / 2, 0, Float.pi / 2)
-        wakeNode.position = SCNVector3(ShipModel.sternX - 10.5, 0.03, 0)
-        let a = CABasicAnimation(keyPath: "geometry.firstMaterial.transparent.contentsTransform")
-        a.fromValue = NSValue(scnMatrix4: SCNMatrix4Identity); a.toValue = NSValue(scnMatrix4: SCNMatrix4MakeTranslation(0, 1, 0))
-        a.duration = 6; a.repeatCount = .infinity
-        wakeNode.addAnimation(a, forKey: "wake")
-        shipRoot.addChildNode(wakeNode)
-        // 船体四周的白色泡沫
-        let ring = SCNPlane(width: 12.5, height: 5.2)
-        let rm = SCNMaterial(); rm.lightingModel = .constant; rm.diffuse.contents = Tex.foamRing; rm.transparent.contents = Tex.foamRing
-        rm.blendMode = .alpha; rm.writesToDepthBuffer = false
-        ring.materials = [rm]
-        let rn = SCNNode(geometry: ring); rn.eulerAngles.x = -.pi / 2; rn.position = SCNVector3(0.2, 0.04, 0)
-        rn.runAction(.repeatForever(.sequence([.scale(to: 1.04, duration: 1.5), .scale(to: 0.98, duration: 1.5)])))
-        shipRoot.addChildNode(rn)
+        wakeNode.isHidden = true   // v4：尾浪与船体泡沫由海面着色器绘制
+        buildClouds()
+    }
+
+    /// 缓慢漂移的柔软云朵（手绘风贴图，带视差）
+    private func buildClouds() {
+        cloudRoot.name = "clouds"
+        scene.rootNode.addChildNode(cloudRoot)
+        let specs: [(Float, Float, Float, CGFloat, Int)] = [(-34, 22, -70, 26, 0), (8, 30, -82, 30, 1), (40, 19, -66, 22, 2),
+                                                            (-10, 15, -58, 16, 3), (26, 34, -95, 34, 4), (-48, 31, -90, 28, 1)]
+        for (x, y, z, w, k) in specs {
+            guard let img = UIImage(named: "Cloud_\(k).png") else { continue }
+            let pl = SCNPlane(width: w, height: w * img.size.height / img.size.width)
+            let m = SCNMaterial(); m.lightingModel = .constant
+            m.diffuse.contents = img; m.blendMode = .alpha; m.writesToDepthBuffer = false
+            m.multiply.contents = UIColor.white
+            pl.materials = [m]
+            let n = SCNNode(geometry: pl); n.position = SCNVector3(x, y, z)
+            n.constraints = [SCNBillboardConstraint()]
+            n.renderingOrder = -10
+            let speed = Double(0.35 + 0.15 * Float(k % 3))
+            let span: Float = 120
+            let dur = Double(span) / speed
+            let start = Double((x + 60) / span) * dur
+            n.runAction(.sequence([.moveBy(x: CGFloat(60 - x), y: 0, z: 0, duration: dur - start),
+                                   .repeatForever(.sequence([.moveBy(x: -CGFloat(span), y: 0, z: 0, duration: 0), .moveBy(x: CGFloat(span), y: 0, z: 0, duration: dur)]))]))
+            cloudRoot.addChildNode(n)
+        }
     }
     private func buildGulls() {
         for k in 0..<3 {
@@ -282,8 +303,16 @@ final class ShipScene: NSObject {
         sun.light?.color = p.lightColor; sun.light?.intensity = p.lightIntensity
         sun.eulerAngles = SCNVector3(-p.lightElevation, Float((0.5 - p.sunX) * 1.2), 0)
         ambient.light?.color = p.ambient; ambient.light?.intensity = p.ambientIntensity
-        seaMat.diffuse.contents = p.sea
-        seaMat.emission.contents = p.sea.mix(.black, night0 ? 0.8 : 0.62)
+        let ys = Float((p.sunX - 0.5) * 0.9), se: Float = night0 ? 0.35 : 0.12
+        let sunDir = SCNVector3(sin(ys) * cos(se), sin(se), -cos(ys) * cos(se))
+        let shallow = p.sea.mix(SkyPalette.rgb(0.80, 1.0, 0.92), night0 ? 0.15 : 0.42)
+        let deep = p.sea.mix(SkyPalette.rgb(0.12, 0.42, 0.58), night0 ? 0.3 : 0.18)
+        SeaShader.set(seaMat, shallow: shallow, deep: deep, sky: p.horizon.mix(p.mid, 0.3), foam: p.horizon.mix(.white, 0.75),
+                      sunDir: sunDir, yaw: state.phase == .docked ? 0 : 0.42, wake: state.phase == .sailing ? 1 : (state.phase == .fishing ? 0.3 : 0), night: night0 ? 0.35 : 0)
+        seaMat.setValue(NSNumber(value: weather == .storm || weather == .rain || weather == .fog ? 0.3 : 1.0), forKey: "causticAmt")
+        seaMat.setValue(NSNumber(value: night0 ? 0.6 : (weather == .storm || weather == .fog ? 0.2 : 1.0)), forKey: "sparkleAmt")
+        for n in cloudRoot.childNodes { n.geometry?.firstMaterial?.multiply.contents = p.cloud.mix(.white, 0.35) }
+        cloudRoot.isHidden = weather == .fog
         scene.fogColor = p.horizon
         scene.fogStartDistance = p.fogStart; scene.fogEndDistance = p.fogEnd; scene.fogDensityExponent = 1.3
         scene.lightingEnvironment.contents = p.environmentImage()
@@ -300,7 +329,7 @@ final class ShipScene: NSObject {
         scene.rootNode.childNode(withName: "glitter", recursively: false)?.isHidden = night || weather == .rain || weather == .storm || weather == .fog
         let docked = state.phase == .docked
         portNode.isHidden = !docked
-        wakeNode.isHidden = state.phase != .sailing
+        wakeNode.isHidden = true
         shipRoot.eulerAngles.y = docked ? 0 : 0.42
         startMotion(amp: weather == .storm ? 3.2 : (weather == .rain || weather == .breeze ? 1.6 : 1))
         scene.rootNode.removeAction(forKey: "lightning")
@@ -327,7 +356,7 @@ final class ShipScene: NSObject {
         let hHalf = tan(Float(48.0 / 2 * .pi / 180))
         let vHalf = hHalf / aspect
         let horizon = CGFloat(0.5 - 0.5 * tan(-pitch) / vHalf)
-        let img = palette.skyImage(size: CGSize(width: 512, height: 512 / CGFloat(aspect)), horizonAt: min(0.95, max(0.05, horizon)), seed: 3)
+        let img = palette.skyImage(size: CGSize(width: 1024, height: 1024 / CGFloat(aspect)), horizonAt: min(0.95, max(0.05, horizon)), seed: 3)
         scene.background.contents = img
     }
 }
