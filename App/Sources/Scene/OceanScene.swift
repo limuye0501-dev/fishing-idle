@@ -7,7 +7,7 @@ final class OceanScene {
     let scene = SCNScene()
     let cameraNode = SCNNode()
     private var boats: [UUID: SCNNode] = [:]
-    private let dockPosition = SCNVector3(0, 0, 6)
+    private let dockPosition = SCNVector3(0, 0, 4)
 
     init() {
         buildCamera()
@@ -15,6 +15,7 @@ final class OceanScene {
         buildWater()
         buildIsland()
         buildDock()
+        buildRocksAndBuoys()
     }
 
     // MARK: - 构建
@@ -25,9 +26,9 @@ final class OceanScene {
         cam.zFar = 250
         cameraNode.camera = cam
         // 固定俯视斜角：从港口后上方看向海面，港口在画面下部、渔场在上部
-        cameraNode.position = SCNVector3(0, 34, 40)
+        cameraNode.position = SCNVector3(0, 26, 27)
         let look = SCNNode()
-        look.position = SCNVector3(0, 0, -2)
+        look.position = SCNVector3(0, 0, 0)
         scene.rootNode.addChildNode(look)
         let c = SCNLookAtConstraint(target: look)
         c.isGimbalLockEnabled = true
@@ -70,6 +71,11 @@ final class OceanScene {
             float w = sin(_geometry.position.x * 0.35 + t) * 0.18
                     + cos(_geometry.position.y * 0.28 + t * 1.3) * 0.14;
             _geometry.position.z += w;
+            """,
+            // 海水渐变：近岸浅青绿 → 远海深蓝（纹理坐标 v：0 远、1 近）
+            .surface: """
+            float v = smoothstep(0.30, 0.85, _surface.diffuseTexcoord.y);
+            _surface.diffuse.rgb = mix(float3(0.10, 0.42, 0.78), float3(0.30, 0.85, 0.82), v);
             """
         ]
         plane.materials = [m]
@@ -87,23 +93,26 @@ final class OceanScene {
     }
 
     private func buildIsland() {
-        let sand = SCNCylinder(radius: 9, height: 1)
+        // 港口小岛：放在镜头前方，靠海一侧朝向远处
+        let sand = SCNCylinder(radius: 9, height: 0.8)
+        sand.radialSegmentCount = 48
         sand.materials = [mat(UIColor(red: 0.98, green: 0.88, blue: 0.64, alpha: 1))]
         let island = SCNNode(geometry: sand)
         island.position = SCNVector3(0, 0, 13)
         scene.rootNode.addChildNode(island)
 
-        let grass = SCNCylinder(radius: 7, height: 0.4)
+        let grass = SCNCylinder(radius: 7.6, height: 0.3)
+        grass.radialSegmentCount = 48
         grass.materials = [mat(UIColor(red: 0.55, green: 0.82, blue: 0.42, alpha: 1))]
         let g = SCNNode(geometry: grass)
-        g.position = SCNVector3(0, 0.65, 0.8)
+        g.position = SCNVector3(0, 0.5, 0.8)
         island.addChildNode(g)
 
-        // 圆滚滚的树
-        for (x, z) in [(-4.0, 2.0), (4.5, 1.0), (-2.0, 4.0), (2.5, 4.5)] {
+        // 圆滚滚的树（放在两侧和后方，不挡港口）
+        for (x, z) in [(-6.5, -1.5), (6.0, -1.0), (3.0, 3.5), (5.5, 2.5), (0.5, 5.5)] {
             let trunk = SCNNode(geometry: SCNCylinder(radius: 0.25, height: 1.2))
             trunk.geometry?.materials = [mat(UIColor.brown)]
-            trunk.position = SCNVector3(Float(x), 1.4, Float(z))
+            trunk.position = SCNVector3(Float(x), 1.2, Float(z))
             let crown = SCNNode(geometry: SCNSphere(radius: 1.0))
             crown.geometry?.materials = [mat(UIColor(red: 0.35, green: 0.70, blue: 0.35, alpha: 1))]
             crown.position = SCNVector3(0, 1.1, 0)
@@ -111,58 +120,178 @@ final class OceanScene {
             island.addChildNode(trunk)
         }
 
-        // 小房子
-        let house = SCNNode(geometry: SCNBox(width: 2, height: 1.6, length: 2, chamferRadius: 0.2))
+        // 鱼市场小屋 + 招牌
+        let house = SCNNode(geometry: SCNBox(width: 3.4, height: 2.0, length: 2.6, chamferRadius: 0.2))
         house.geometry?.materials = [mat(UIColor(red: 1, green: 0.95, blue: 0.85, alpha: 1))]
-        house.position = SCNVector3(0, 1.6, 2)
-        let roof = SCNNode(geometry: SCNPyramid(width: 2.6, height: 1.2, length: 2.6))
-        roof.geometry?.materials = [mat(UIColor(red: 0.95, green: 0.45, blue: 0.4, alpha: 1))]
-        roof.position = SCNVector3(0, 0.8, 0)
+        house.position = SCNVector3(-3.0, 1.6, 0.5)
+        let roof = SCNNode(geometry: SCNPyramid(width: 4.0, height: 1.4, length: 3.2))
+        roof.geometry?.materials = [mat(UIColor(red: 0.85, green: 0.62, blue: 0.30, alpha: 1))]
+        roof.position = SCNVector3(0, 1.0, 0)
         house.addChildNode(roof)
+        let awning = SCNNode(geometry: SCNBox(width: 3.4, height: 0.12, length: 0.9, chamferRadius: 0.05))
+        awning.geometry?.materials = [mat(UIColor(red: 1.0, green: 0.85, blue: 0.40, alpha: 1))]
+        awning.position = SCNVector3(0, 0.15, 1.7)
+        awning.eulerAngles.x = -0.3
+        house.addChildNode(awning)
+        let text = SCNText(string: "鱼市场", extrusionDepth: 0.05)
+        text.font = UIFont.systemFont(ofSize: 1, weight: .heavy)
+        text.flatness = 0.05
+        text.materials = [mat(UIColor(red: 0.45, green: 0.28, blue: 0.15, alpha: 1))]
+        let tn = SCNNode(geometry: text)
+        let (minB, maxB) = tn.boundingBox
+        tn.pivot = SCNMatrix4MakeTranslation((maxB.x - minB.x) / 2 + minB.x, 0, 0)
+        tn.scale = SCNVector3(0.75, 0.75, 0.75)
+        tn.position = SCNVector3(0, 0.45, 1.32)   // 招牌朝向镜头
+        house.addChildNode(tn)
         island.addChildNode(house)
     }
 
     private func buildDock() {
         let wood = mat(UIColor(red: 0.72, green: 0.52, blue: 0.33, alpha: 1))
-        let deck = SCNNode(geometry: SCNBox(width: 10, height: 0.3, length: 2, chamferRadius: 0.1))
+        let darkWood = mat(UIColor(red: 0.55, green: 0.38, blue: 0.24, alpha: 1))
+        // 码头平台：从小岛靠海边缘伸向海面，位于镜头正前方
+        let deck = SCNNode(geometry: SCNBox(width: 19, height: 0.35, length: 3.2, chamferRadius: 0.1))
         deck.geometry?.materials = [wood]
-        deck.position = SCNVector3(0, 0.4, dockPosition.z + 1.5)
+        deck.position = SCNVector3(0, 0.45, dockPosition.z + 1.6)
         scene.rootNode.addChildNode(deck)
-        for x in stride(from: -4.5, through: 4.5, by: 1.5) {
-            let post = SCNNode(geometry: SCNCylinder(radius: 0.15, height: 1.2))
-            post.geometry?.materials = [wood]
-            post.position = SCNVector3(Float(x), 0.1, dockPosition.z + 0.6)
+        // 木板缝
+        for x in stride(from: -9.0, through: 9.0, by: 1.0) {
+            let line = SCNNode(geometry: SCNBox(width: 0.05, height: 0.36, length: 3.2, chamferRadius: 0))
+            line.geometry?.materials = [darkWood]
+            line.position = SCNVector3(Float(x), 0.46, dockPosition.z + 1.6)
+            scene.rootNode.addChildNode(line)
+        }
+        // 前沿木桩 + 绳子
+        for x in stride(from: -9.0, through: 9.0, by: 3.0) {
+            let post = SCNNode(geometry: SCNCylinder(radius: 0.2, height: 1.6))
+            post.geometry?.materials = [darkWood]
+            post.position = SCNVector3(Float(x), 0.5, dockPosition.z + 0.1)
             scene.rootNode.addChildNode(post)
+        }
+        let rope = SCNNode(geometry: SCNCylinder(radius: 0.05, height: 18))
+        rope.geometry?.materials = [mat(UIColor(red: 0.85, green: 0.75, blue: 0.55, alpha: 1))]
+        rope.eulerAngles.z = Float.pi / 2
+        rope.position = SCNVector3(0, 1.1, dockPosition.z + 0.1)
+        scene.rootNode.addChildNode(rope)
+        // 木箱、木桶、路灯
+        for (x, dz) in [(7.0, 2.3), (7.9, 2.3), (7.45, 2.3)] {
+            let crate = SCNNode(geometry: SCNBox(width: 0.8, height: 0.8, length: 0.8, chamferRadius: 0.06))
+            crate.geometry?.materials = [wood]
+            crate.position = SCNVector3(Float(x), x == 7.45 ? 1.8 : 1.0, dockPosition.z + Float(dz))
+            scene.rootNode.addChildNode(crate)
+        }
+        let barrel = SCNNode(geometry: SCNCylinder(radius: 0.45, height: 1.0))
+        barrel.geometry?.materials = [darkWood]
+        barrel.position = SCNVector3(-7.5, 1.1, dockPosition.z + 2.3)
+        scene.rootNode.addChildNode(barrel)
+        let lamp = SCNNode(geometry: SCNCylinder(radius: 0.08, height: 2.2))
+        lamp.geometry?.materials = [mat(.darkGray)]
+        lamp.position = SCNVector3(9.0, 1.7, dockPosition.z + 1.0)
+        let bulb = SCNNode(geometry: SCNSphere(radius: 0.25))
+        let glow = SCNMaterial(); glow.diffuse.contents = UIColor.systemYellow; glow.emission.contents = UIColor.systemYellow
+        bulb.geometry?.materials = [glow]
+        bulb.position = SCNVector3(0, 1.2, 0)
+        lamp.addChildNode(bulb)
+        scene.rootNode.addChildNode(lamp)
+    }
+
+    private func buildRocksAndBuoys() {
+        let rockMat = mat(UIColor(red: 0.55, green: 0.52, blue: 0.50, alpha: 1))
+        let spots: [(Float, Float, Float, Bool)] = [(-9, -3, 1.6, true), (10, -9, 2.0, false),
+                                                    (-11, -16, 1.4, false), (9, -22, 1.8, true)]
+        for (x, z, r, green) in spots {
+            let sph = SCNSphere(radius: CGFloat(r))
+            sph.segmentCount = 7   // 低多边形，石头更有棱角
+            sph.materials = [rockMat]
+            let rock = SCNNode(geometry: sph)
+            rock.scale = SCNVector3(1.2, 0.6, 1.0)
+            rock.position = SCNVector3(x, 0, z)
+            scene.rootNode.addChildNode(rock)
+            if green {
+                let bush = SCNNode(geometry: SCNSphere(radius: CGFloat(r) * 0.5))
+                bush.geometry?.materials = [mat(UIColor(red: 0.45, green: 0.75, blue: 0.35, alpha: 1))]
+                bush.position = SCNVector3(x, r * 0.55, z)
+                scene.rootNode.addChildNode(bush)
+            }
+        }
+        for (i, p) in [(-4.5, -1.5), (4.5, -7.0), (-3.0, -13.0), (5.5, -19.0)].enumerated() {
+            let buoy = SCNNode()
+            let base = SCNNode(geometry: SCNCylinder(radius: 0.3, height: 0.6))
+            base.geometry?.materials = [mat(i % 2 == 0 ? .systemRed : .white)]
+            let top = SCNNode(geometry: SCNSphere(radius: 0.22))
+            top.geometry?.materials = [mat(i % 2 == 0 ? .white : .systemRed)]
+            top.position.y = 0.45
+            buoy.addChildNode(base); buoy.addChildNode(top)
+            buoy.position = SCNVector3(Float(p.0), 0.1, Float(p.1))
+            let bob = SCNAction.sequence([.moveBy(x: 0, y: 0.2, z: 0, duration: 1.3 + Double(i) * 0.2),
+                                          .moveBy(x: 0, y: -0.2, z: 0, duration: 1.3 + Double(i) * 0.2)])
+            bob.timingMode = .easeInEaseOut
+            buoy.runAction(.repeatForever(bob))
+            scene.rootNode.addChildNode(buoy)
         }
     }
 
-    /// 玩具风格小船：圆角船身 + 船舱 + 桅杆 + 帆
+    /// 玩具风格小船：圆角船身 + 船舱 + 桅杆 + 帆 + 圆滚滚的船长
     private func makeBoat(colorIndex: Int) -> SCNNode {
         let palette: [UIColor] = [.systemRed, .systemOrange, .systemPink, .systemPurple, .systemYellow, .systemGreen]
         let root = SCNNode()
+        let body = SCNNode()
+        root.addChildNode(body)
         let hull = SCNNode(geometry: SCNBox(width: 1.4, height: 0.6, length: 2.6, chamferRadius: 0.3))
-        hull.geometry?.materials = [mat(palette[colorIndex % palette.count])]
+        hull.geometry?.materials = [mat(UIColor(red: 0.70, green: 0.48, blue: 0.30, alpha: 1))]
         hull.position.y = 0.3
-        root.addChildNode(hull)
-        let cabin = SCNNode(geometry: SCNBox(width: 0.9, height: 0.6, length: 0.9, chamferRadius: 0.15))
+        body.addChildNode(hull)
+        let stripe = SCNNode(geometry: SCNBox(width: 1.45, height: 0.15, length: 2.5, chamferRadius: 0.07))
+        stripe.geometry?.materials = [mat(palette[colorIndex % palette.count])]
+        stripe.position.y = 0.5
+        body.addChildNode(stripe)
+        let cabin = SCNNode(geometry: SCNBox(width: 0.9, height: 0.7, length: 0.8, chamferRadius: 0.12))
         cabin.geometry?.materials = [mat(.white)]
-        cabin.position = SCNVector3(0, 0.9, 0.5)
-        root.addChildNode(cabin)
-        let mast = SCNNode(geometry: SCNCylinder(radius: 0.06, height: 1.8))
+        cabin.position = SCNVector3(0, 0.95, 0.75)
+        let cabinRoof = SCNNode(geometry: SCNBox(width: 1.05, height: 0.12, length: 0.95, chamferRadius: 0.05))
+        cabinRoof.geometry?.materials = [mat(palette[colorIndex % palette.count])]
+        cabinRoof.position.y = 0.4
+        cabin.addChildNode(cabinRoof)
+        body.addChildNode(cabin)
+        let mast = SCNNode(geometry: SCNCylinder(radius: 0.06, height: 1.6))
         mast.geometry?.materials = [mat(.brown)]
-        mast.position = SCNVector3(0, 1.5, -0.4)
-        root.addChildNode(mast)
-        let sail = SCNNode(geometry: SCNPyramid(width: 0.05, height: 1.3, length: 1.0))
-        sail.geometry?.materials = [mat(UIColor(white: 0.97, alpha: 1))]
-        sail.position = SCNVector3(0, 0.9, -0.9)
-        root.addChildNode(sail)
-        // 上下浮动
+        mast.position = SCNVector3(0, 1.4, -0.7)
+        body.addChildNode(mast)
+        let flag = SCNNode(geometry: SCNBox(width: 0.02, height: 0.3, length: 0.45, chamferRadius: 0))
+        flag.geometry?.materials = [mat(palette[colorIndex % palette.count])]
+        flag.position = SCNVector3(0, 2.05, -0.5)
+        body.addChildNode(flag)
+        // 船长：身体 + 大圆头 + 白帽
+        let captain = SCNNode()
+        let torso = SCNNode(geometry: SCNCapsule(capRadius: 0.22, height: 0.6))
+        torso.geometry?.materials = [mat(UIColor(red: 0.15, green: 0.25, blue: 0.55, alpha: 1))]
+        captain.addChildNode(torso)
+        let head = SCNNode(geometry: SCNSphere(radius: 0.3))
+        head.geometry?.materials = [mat(UIColor(red: 0.95, green: 0.78, blue: 0.55, alpha: 1))]
+        head.position.y = 0.48
+        captain.addChildNode(head)
+        let cap = SCNNode(geometry: SCNCylinder(radius: 0.26, height: 0.14))
+        cap.geometry?.materials = [mat(.white)]
+        cap.position.y = 0.76
+        captain.addChildNode(cap)
+        let brim = SCNNode(geometry: SCNCylinder(radius: 0.12, height: 0.04))
+        brim.geometry?.materials = [mat(UIColor(red: 0.15, green: 0.2, blue: 0.4, alpha: 1))]
+        brim.position = SCNVector3(0, 0.7, -0.24)
+        captain.addChildNode(brim)
+        captain.position = SCNVector3(0, 0.9, -0.1)
+        body.addChildNode(captain)
+        body.scale = SCNVector3(1.8, 1.8, 1.8)
+        // 上下浮动 + 轻微摇摆
         let bob = SCNAction.sequence([
             .moveBy(x: 0, y: 0.15, z: 0, duration: 1.1),
             .moveBy(x: 0, y: -0.15, z: 0, duration: 1.1)
         ])
         bob.timingMode = .easeInEaseOut
-        hull.runAction(.repeatForever(bob))
+        body.runAction(.repeatForever(bob))
+        let rock = SCNAction.sequence([.rotateBy(x: 0, y: 0, z: 0.06, duration: 1.4),
+                                       .rotateBy(x: 0, y: 0, z: -0.06, duration: 1.4)])
+        rock.timingMode = .easeInEaseOut
+        body.runAction(.repeatForever(rock))
         return root
     }
 
@@ -170,13 +299,13 @@ final class OceanScene {
 
     /// 每个海域在画面中的渔场位置（越远越靠上）
     private func fishingSpot(for areaIndex: Int, lane: Int) -> SCNVector3 {
-        let z = -6.0 - Double(areaIndex) * 9
-        let x = Double(lane - 2) * 3.2
+        let z = -4.0 - Double(areaIndex) * 7
+        let x = Double(Self.laneX(lane))
         return SCNVector3(Float(x), 0, Float(z))
     }
 
     private func berth(lane: Int) -> SCNVector3 {
-        SCNVector3(Float(lane - 2) * 3.2, 0, dockPosition.z - 1)
+        SCNVector3(Self.laneX(lane), 0, dockPosition.z - 2.2)
     }
 
     func sync(state: GameState, config: EconomyConfig) {
@@ -227,6 +356,12 @@ final class OceanScene {
             node.eulerAngles.y = heading
             SCNTransaction.commit()
         }
+    }
+
+    /// 泊位横向位置：从中间向两侧排开
+    private static func laneX(_ lane: Int) -> Float {
+        let order: [Float] = [0, -3, 3, -6, 6, -8.5]
+        return order[lane % order.count]
     }
 
     private func smooth(_ t: Float) -> Float { t * t * (3 - 2 * t) }
