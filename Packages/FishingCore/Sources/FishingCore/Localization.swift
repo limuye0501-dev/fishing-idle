@@ -51,3 +51,10 @@ public func displayCaptainName(_ name: String) -> String {
     }
     return name
 }
+
+extension CoreEN {
+    public static let extraFish: [String: String] = [
+        "snowcrab": "Snow Crab", "polarcod": "Polar Cod", "halibut": "Greenland Halibut", "greenlandshark": "Greenland Shark",
+        "krill": "Antarctic Krill", "icefish": "Mackerel Icefish", "toothfish": "Antarctic Toothfish",
+    ]
+}

@@ -382,5 +382,89 @@
    "Thought extinct since the age of dinosaurs until rediscovered off South Africa's Chalumna River in December 1938",
    "Studies suggest it may live about 100 years"
   ]
+ },
+ "greenlandshark": {
+  "aliases": "grey shark, gurry shark",
+  "size": "Adults about 4–5 m; max confirmed length about 6.4 m",
+  "distribution": "Cold, deep waters of the North Atlantic and Arctic Oceans",
+  "diet": "Fish, seals and carrion",
+  "behavior": "One of the slowest-swimming fish in the world, cruising through near-freezing water",
+  "season": "Year-round",
+  "facts": [
+   "The longest-lived vertebrate known, estimated at 272–510 years",
+   "Its metabolism is so slow it is thought to grow only about 1 cm a year"
+  ]
+ },
+ "polarcod": {
+  "aliases": "Arctic cod",
+  "size": "Average about 25 cm; max about 40 cm",
+  "distribution": "The Arctic Ocean and nearby cold seas, often under sea ice",
+  "diet": "Zooplankton (copepods, amphipods)",
+  "behavior": "Hides in cracks in the sea ice; a keystone of the Arctic food web",
+  "season": "Year-round",
+  "facts": [
+   "Antifreeze glycoproteins in its blood keep it from freezing below 0 °C",
+   "Seals, belugas and seabirds depend on it"
+  ]
+ },
+ "halibut": {
+  "aliases": "Greenland turbot",
+  "size": "Usually 80–100 cm; max about 1.2 m and 45 kg",
+  "distribution": "Cold deep waters of the North Atlantic, North Pacific and Arctic, mostly 500–1,000 m",
+  "diet": "Fish and shrimp",
+  "behavior": "A flatfish that often leaves the bottom to hunt in mid-water",
+  "season": "Year-round",
+  "facts": [
+   "As it grows, its left eye migrates to the right side of its head",
+   "It is the only species in its genus, Reinhardtius"
+  ]
+ },
+ "snowcrab": {
+  "aliases": "opilio crab, queen crab",
+  "size": "Carapace about as long as it is wide, with long slender legs",
+  "distribution": "Cold continental shelves of the northwest Atlantic and North Pacific",
+  "diet": "Shellfish, worms and small crustaceans",
+  "behavior": "Lives on muddy-sandy shelf bottoms in cold water; caught with traps or trawls",
+  "season": "Winter",
+  "facts": [
+   "In Japan it is the prized winter crab “matsuba-gani”",
+   "Prefers very cold water of around 0–2 °C"
+  ]
+ },
+ "krill": {
+  "aliases": "krill",
+  "size": "Up to about 6 cm long and 2 g",
+  "distribution": "The Southern Ocean around Antarctica",
+  "diet": "Phytoplankton (mainly diatoms)",
+  "behavior": "Forms vast swarms of 10,000–30,000 animals per cubic metre; can live about 6 years",
+  "season": "Densest in summer",
+  "facts": [
+   "Its total biomass is about 500 million tonnes — one of the most abundant animals on Earth",
+   "The staple food of whales, penguins, seals and seabirds"
+  ]
+ },
+ "toothfish": {
+  "aliases": "Antarctic cod (misnomer)",
+  "size": "Up to about 1.7 m and 135 kg",
+  "distribution": "Frigid waters of the Southern Ocean around Antarctica",
+  "diet": "Smaller fish and crustaceans",
+  "behavior": "The largest bony fish of the Southern Ocean; has antifreeze proteins and grows slowly",
+  "season": "Year-round",
+  "facts": [
+   "Sold as “Chilean sea bass” along with its sister species, the Patagonian toothfish",
+   "Preyed on by orcas and seals"
+  ]
+ },
+ "icefish": {
+  "aliases": "icefish",
+  "size": "Max about 66 cm; usually about 35 cm",
+  "distribution": "Southern Ocean and the far South Atlantic, around South Georgia, Kerguelen and other islands, 0–700 m",
+  "diet": "Krill and other small crustaceans",
+  "behavior": "Lives in near-freezing water, usually 30–250 m deep",
+  "season": "Year-round",
+  "facts": [
+   "Icefishes have no haemoglobin — their blood is almost clear",
+   "They survive thanks to oxygen-rich polar water and a large heart"
+  ]
  }
 }

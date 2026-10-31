@@ -702,5 +702,159 @@
   "photoLicense": "CC BY 4.0",
   "photoSource": "https://commons.wikimedia.org/wiki/File:Coelacanth_off_Pumula_on_the_KwaZulu-Natal_South_Coast,_South_Africa,_on_22_November_2019.png",
   "reference": "https://en.wikipedia.org/wiki/West_Indian_Ocean_coelacanth"
+ },
+ {
+  "id": "greenlandshark",
+  "name": "小头睡鲨",
+  "englishName": "Greenland shark",
+  "scientificName": "Somniosus microcephalus",
+  "aliases": "格陵兰睡鲨、格陵兰鲨",
+  "size": "成体约4–5米，最大确认长度约6.4米",
+  "distribution": "北大西洋和北冰洋的冷水深处",
+  "diet": "鱼类、海豹等，也吃动物尸体",
+  "behavior": "全世界游得最慢的鱼之一，在接近冰点的海水里慢悠悠地巡游",
+  "season": "全年",
+  "facts": [
+   "是已知寿命最长的脊椎动物，估计可活272–510年",
+   "代谢极慢，被认为每年只长约1厘米"
+  ],
+  "iucn": "VU",
+  "photo": "fish_greenlandshark",
+  "photoAuthor": "NOAA Okeanos Explorer Program",
+  "photoLicense": "Public domain",
+  "photoSource": "https://commons.wikimedia.org/wiki/File:Somniosus_microcephalus_okeanos.jpg",
+  "reference": "https://en.wikipedia.org/wiki/Greenland_shark"
+ },
+ {
+  "id": "polarcod",
+  "name": "极地鳕",
+  "englishName": "Polar cod",
+  "scientificName": "Boreogadus saida",
+  "aliases": "北极鳕",
+  "size": "平均约25厘米，最大约40厘米",
+  "distribution": "北冰洋及周边冷水，常在海冰下活动",
+  "diet": "浮游动物（桡足类、端足类）",
+  "behavior": "在海冰缝隙中躲避天敌，是北极食物网的关键物种",
+  "season": "全年",
+  "facts": [
+   "血液里有抗冻糖蛋白，能在冰点以下的海水中不结冰",
+   "海豹、白鲸、海鸟都以它为主食"
+  ],
+  "iucn": "NE",
+  "photo": "fish_polarcod",
+  "photoAuthor": "H. L. Todd",
+  "photoLicense": "Public domain",
+  "photoSource": "https://commons.wikimedia.org/wiki/File:Boreogadus_saida.jpg",
+  "reference": "https://en.wikipedia.org/wiki/Boreogadus"
+ },
+ {
+  "id": "halibut",
+  "name": "马舌鲽",
+  "englishName": "Greenland halibut",
+  "scientificName": "Reinhardtius hippoglossoides",
+  "aliases": "格陵兰比目鱼、格陵兰大比目鱼",
+  "size": "常见80–100厘米，最大约1.2米、45千克",
+  "distribution": "北大西洋、北太平洋和北冰洋的寒冷深水，多在500–1000米",
+  "diet": "鱼类和虾类",
+  "behavior": "比目鱼的一种，但常离开海底到中层水域捕食",
+  "season": "全年",
+  "facts": [
+   "幼鱼时左眼会“搬家”到头的右侧",
+   "“格陵兰比目鱼”和“马舌鲽”是同一种鱼；它是马舌鲽属唯一的物种"
+  ],
+  "iucn": "NT",
+  "photo": "fish_halibut",
+  "photoAuthor": "Unknown",
+  "photoLicense": "Public domain",
+  "photoSource": "https://commons.wikimedia.org/wiki/File:Reinhardtius_hippoglossoides.jpg",
+  "reference": "https://en.wikipedia.org/wiki/Greenland_halibut"
+ },
+ {
+  "id": "snowcrab",
+  "name": "灰眼雪蟹",
+  "englishName": "Snow crab",
+  "scientificName": "Chionoecetes opilio",
+  "aliases": "雪蟹、松叶蟹",
+  "size": "头胸甲长宽相近，足细长",
+  "distribution": "西北大西洋和北太平洋的大陆架冷水",
+  "diet": "贝类、蠕虫、小型甲壳类",
+  "behavior": "生活在冷水大陆架的泥沙海底，常用蟹笼或拖网捕捞",
+  "season": "冬季",
+  "facts": [
+   "在日本被称为“松叶蟹”，是冬季名贵食材",
+   "喜欢0–2℃左右的冷水"
+  ],
+  "iucn": "NE",
+  "photo": "fish_snowcrab",
+  "photoAuthor": "Totti",
+  "photoLicense": "CC BY-SA 4.0",
+  "photoSource": "https://commons.wikimedia.org/wiki/File:Chionoecetes_opilio_Kanikkokan.jpg",
+  "reference": "https://en.wikipedia.org/wiki/Chionoecetes_opilio"
+ },
+ {
+  "id": "krill",
+  "name": "南极大磷虾",
+  "englishName": "Antarctic krill",
+  "scientificName": "Euphausia superba",
+  "aliases": "南极磷虾",
+  "size": "体长可达约6厘米，重约2克",
+  "distribution": "南大洋，环绕南极洲",
+  "diet": "浮游植物（硅藻等）",
+  "behavior": "结成巨大的虾群，密度可达每立方米1–3万只，可活约6年",
+  "season": "夏季最密集",
+  "facts": [
+   "全球总生物量约5亿吨，是地球上数量最多的动物之一",
+   "鲸、企鹅、海豹和海鸟的主要食物"
+  ],
+  "iucn": "NE",
+  "photo": "fish_krill",
+  "photoAuthor": "Uwe Kils",
+  "photoLicense": "CC BY-SA 3.0",
+  "photoSource": "https://commons.wikimedia.org/wiki/File:Antarctic_krill_(Euphausia_superba).jpg",
+  "reference": "https://en.wikipedia.org/wiki/Antarctic_krill"
+ },
+ {
+  "id": "toothfish",
+  "name": "莫氏犬牙南极鱼",
+  "englishName": "Antarctic toothfish",
+  "scientificName": "Dissostichus mawsoni",
+  "aliases": "南极犬牙鱼、南极鳕（俗）",
+  "size": "可达约1.7米、135千克",
+  "distribution": "南极洲周围南大洋的极冷海水",
+  "diet": "小型鱼类和甲壳类",
+  "behavior": "南大洋最大的硬骨鱼；体内有抗冻蛋白，生长缓慢",
+  "season": "全年",
+  "facts": [
+   "市场上与巴塔哥尼亚犬牙鱼一起以“智利海鲈”的名字出售",
+   "是虎鲸、海豹的猎物"
+  ],
+  "iucn": "NE",
+  "photo": "fish_toothfish",
+  "photoAuthor": "Pcziko (assumed)",
+  "photoLicense": "CC BY 2.5",
+  "photoSource": "https://commons.wikimedia.org/wiki/File:Dmawsoni_Head_shot.jpg",
+  "reference": "https://en.wikipedia.org/wiki/Antarctic_toothfish"
+ },
+ {
+  "id": "icefish",
+  "name": "裘氏鳄头冰鱼",
+  "englishName": "Mackerel icefish",
+  "scientificName": "Champsocephalus gunnari",
+  "aliases": "冰鱼、白血鱼",
+  "size": "最大约66厘米，常见约35厘米",
+  "distribution": "南大洋及南大西洋最南部，南乔治亚岛、凯尔盖朗群岛等周边，0–700米",
+  "diet": "磷虾等小型甲壳类",
+  "behavior": "生活在接近冰点的海水中，常在30–250米深处",
+  "season": "全年",
+  "facts": [
+   "冰鱼科的鱼血液里没有血红蛋白，血是近乎透明的",
+   "靠极冷海水中溶解的大量氧气和大心脏生存"
+  ],
+  "iucn": "NE",
+  "photo": "fish_icefish",
+  "photoAuthor": "Ryan Somma",
+  "photoLicense": "CC BY-SA 2.0",
+  "photoSource": "https://commons.wikimedia.org/wiki/File:Mackerel_Icefish_(Champsocephalus_gunnari).jpg",
+  "reference": "https://en.wikipedia.org/wiki/Mackerel_icefish"
  }
 ]

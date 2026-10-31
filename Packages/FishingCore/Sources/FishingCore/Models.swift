@@ -62,7 +62,7 @@ public struct FishType: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     /// 中文名（存储）；`name` 为当前语言的显示名
     public let zhName: String
-    public var name: String { CoreLang.english ? (CoreEN.fish[id] ?? zhName) : zhName }
+    public var name: String { CoreLang.english ? (CoreEN.fish[id] ?? CoreEN.extraFish[id] ?? zhName) : zhName }
     public let emoji: String
     public let value: Int
     /// 相对出现权重
