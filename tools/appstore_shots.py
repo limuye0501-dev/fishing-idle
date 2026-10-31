@@ -6,11 +6,11 @@ src, out = sys.argv[1], sys.argv[2]; os.makedirs(out, exist_ok=True)
 W, H = 1320, 2868
 F = "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
 SHOTS = [
- ("demo-tab0.png", "小熊船长自己出海打鱼", "Bear captains fish on their own"),
- ("demo-offline.png", "离线也在赚，回来收钱", "Earn while you're away"),
- ("demo-tab2.png", "解锁 8 片真实海域", "Explore 8 real-world seas"),
- ("ency-sardine.png", "收集 32 种真实鱼类", "Collect 32 real fish species"),
- ("demo-tab4.png", "打造你的私人鱼缸", "Build your own aquarium"),
+ ("main-dusk.png", "小船长自己出海打鱼", "Your little captain fishes on their own"),
+ ("offline.png", "离线也在赚，回来收钱", "Earn while you're away"),
+ ("panel-chart.png", "解锁 8 片真实海域", "Explore 8 real-world seas"),
+ ("ency-sardine.png", "收集 39 种 3D 萌鱼", "Collect 39 cute 3D fish"),
+ ("panel-tank.png", "打造你的 3D 鱼缸", "Build your own 3D aquarium"),
 ]
 def grad():
     g = Image.new("RGB", (W, H))
