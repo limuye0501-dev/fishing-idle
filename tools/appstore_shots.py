@@ -21,7 +21,7 @@ def grad():
     return g
 for lang in ("zh", "en"):
     for i, (f, zh, en) in enumerate(SHOTS):
-        p = os.path.join(src, f)
+        p = os.path.join(src, f if lang == "zh" else "en-" + f)
         if not os.path.exists(p): continue
         img = grad(); d = ImageDraw.Draw(img)
         cap = zh if lang == "zh" else en

@@ -70,11 +70,21 @@ jobs:
             sleep 12
             xcrun simctl io "$UDID" screenshot screens/demo-$EXTRA.png
           done
-          # 英文界面
+          # 英文界面：各分页、离线收益、小百科
+          for TAB in 0 1 2 3 4; do
+            xcrun simctl terminate "$UDID" com.example.fishingidle || true
+            xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab $TAB -AppleLanguages "(en)" -AppleLocale en_US
+            sleep 12
+            xcrun simctl io "$UDID" screenshot screens/en-demo-tab$TAB.png
+          done
           xcrun simctl terminate "$UDID" com.example.fishingidle || true
-          xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab 0 -AppleLanguages "(en)" -AppleLocale en_US
+          xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab 0 -offline -AppleLanguages "(en)" -AppleLocale en_US
           sleep 12
-          xcrun simctl io "$UDID" screenshot screens/demo-en.png
+          xcrun simctl io "$UDID" screenshot screens/en-demo-offline.png
+          xcrun simctl terminate "$UDID" com.example.fishingidle || true
+          xcrun simctl launch "$UDID" com.example.fishingidle -demo -tab 3 -ency sardine -AppleLanguages "(en)" -AppleLocale en_US
+          sleep 12
+          xcrun simctl io "$UDID" screenshot screens/en-ency-sardine.png
           # 小百科：已解锁与未解锁条目
           for FISH in sardine coelacanth; do
             xcrun simctl terminate "$UDID" com.example.fishingidle || true
