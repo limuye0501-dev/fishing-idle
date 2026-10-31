@@ -296,12 +296,14 @@ public struct CodexEntry: Codable, Hashable, Sendable {
     public var count: Int
     public var bestKg: Double
     public var firstCaught: Date
+    public init(count: Int, bestKg: Double, firstCaught: Date) { self.count = count; self.bestKg = bestKg; self.firstCaught = firstCaught }
 }
 
 /// 事件日志
 public struct EventRecord: Codable, Hashable, Sendable {
     public let date: Date
     public let text: String
+    public init(date: Date, text: String) { self.date = date; self.text = text }
 }
 
 /// 一次出海的收获记录
