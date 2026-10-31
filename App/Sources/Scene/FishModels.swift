@@ -127,10 +127,15 @@ struct Aquarium3D: UIViewRepresentable {
             let span: Float = 3.6
             let dur = 5.0 + Double(i % 5) * 0.9
             holder.position = SCNVector3(-span + Float(i * 37 % 7), y, z)
-            let goR = SCNAction.group([.moveTo(x: CGFloat(span), y: CGFloat(y), z: CGFloat(z), duration: dur), .rotateTo(x: 0, y: 0, z: 0, duration: 0.5)])
-            let goL = SCNAction.group([.moveTo(x: CGFloat(-span), y: CGFloat(y), z: CGFloat(z), duration: dur), .rotateTo(x: 0, y: .pi, z: 0, duration: 0.5)])
-            goR.timingMode = .easeInEaseOut; goL.timingMode = .easeInEaseOut
-            holder.runAction(.sequence([.wait(duration: Double(i) * 0.3), .repeatForever(.sequence([goR, goL]))]))
+            let mR: SCNAction = SCNAction.move(to: SCNVector3(span, y, z), duration: dur)
+            let mL: SCNAction = SCNAction.move(to: SCNVector3(-span, y, z), duration: dur)
+            let tR: SCNAction = SCNAction.rotateTo(x: 0, y: 0, z: 0, duration: 0.5, usesShortestUnitArc: true)
+            let tL: SCNAction = SCNAction.rotateTo(x: 0, y: CGFloat.pi, z: 0, duration: 0.5, usesShortestUnitArc: true)
+            let goR: SCNAction = SCNAction.group([mR, tR])
+            let goL: SCNAction = SCNAction.group([mL, tL])
+            mR.timingMode = SCNActionTimingMode.easeInEaseOut; mL.timingMode = SCNActionTimingMode.easeInEaseOut
+            let loop: SCNAction = SCNAction.repeatForever(SCNAction.sequence([goR, goL]))
+            holder.runAction(SCNAction.sequence([SCNAction.wait(duration: Double(i) * 0.3), loop]))
             s.rootNode.addChildNode(holder)
         }
         let bubbles = SCNParticleSystem(); bubbles.birthRate = 6; bubbles.particleLifeSpan = 4
