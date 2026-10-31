@@ -1,7 +1,7 @@
 # 生成 String Catalog（Localizable.xcstrings）：源语言 zh-Hans，英文翻译
 import json
 T={
-"船长":"Captains","渔具":"Gear","海图":"Sea Map","图鉴":"Codex","鱼缸":"Aquarium","日志":"Log",
+"船长":"Captains","渔具":"Gear","海图":"Sea Map","图鉴":"Codex","鱼缸":"Tank","日志":"Log",
 "收起 ▼":"Hide ▼","港口管理 ▲":"Harbor ▲","免费版":"Free","🔓 完整版":"🔓 Full Version",
 "出海中":"Sailing out","捕鱼中":"Fishing","返航中":"Returning","卸货中":"Unloading",
 "经验":"XP","换渔具":"Change gear","可捕：":"Catches: ","装备":"Equip","使用中":"In use","已满级":"Max level",
