@@ -4,3 +4,4 @@ build/
 .build/
 DerivedData/
 .swiftpm/
+__pycache__/
