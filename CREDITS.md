@@ -47,7 +47,7 @@ All 3D models are by **Kenney (www.kenney.nl)**, licensed **Creative Commons Zer
 
 | Pack | Source | Models used (converted to `App/Resources/Models/*.mesh`) |
 |---|---|---|
-| Pirate Kit | https://kenney.nl/assets/pirate-kit | structure-platform, structure-platform-dock(-small), platform-planks, structure, structure-roof, structure-fence, rocks-a/b/c, rocks-sand-a, barrel, crate, crate-bottles, palm-bend, patch-grass-foliage |
+| Pirate Kit | https://kenney.nl/assets/pirate-kit | palm-detailed-bend, palm-detailed-straight, structure-platform, structure-platform-dock(-small), platform-planks, structure, structure-roof, structure-fence, rocks-a/b/c, rocks-sand-a, barrel, crate, crate-bottles, palm-bend, patch-grass-foliage |
 | Watercraft Kit | https://kenney.nl/assets/watercraft-kit | boat-row-large, boat-fishing-small, buoy, buoy-flag |
 | Survival Kit | https://kenney.nl/assets/survival-kit | fish, box-large, barrel, bucket, signpost-single, rock-flat-grass, resource-planks |
 | Nature Kit | https://kenney.nl/assets/nature-kit | path_stone, path_stoneCircle, plant_bush, plant_bushLarge, plant_flatShort, flower_yellowA, flower_redA, grass_large, tree_default, stone_largeA, stone_tallA |

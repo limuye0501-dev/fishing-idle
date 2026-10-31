@@ -35,6 +35,7 @@ def prim(kind,size,color):
     out=[]
     for t in tris:
         n=np.cross(t[1]-t[0],t[2]-t[0]); n=n/(np.linalg.norm(n)+1e-9)
+        if np.dot(n,t.mean(0))<0: n=-n
         for v in t: out.append([*v,*n,*c])
     return np.array(out,dtype="f4")
 def xf(a,pos,ry,s,tint=None):
@@ -69,7 +70,13 @@ def render(layout,extra,out,W=470,H=640):
     col=A[:,6:9]*(0.55+0.6*nd[:,None])
     img=np.zeros((H,W,3),"f4"); img[:]=np.array([0.24,0.75,0.82])
     # 海面渐变
-    for yy in range(H): img[yy]=np.array([0.10,0.52,0.72])*(1-yy/H)+np.array([0.30,0.82,0.84])*(yy/H)
+    import water
+    gx,gy=np.meshgrid(np.arange(W)+0.5,np.arange(H)+0.5)
+    dx=(gx-W/2)/(fy*H/2); dy=-(gy-H/2)/(fy*H/2)
+    ray=f[None,None,:]+dx[...,None]*r+dy[...,None]*u
+    tt=-eye[1]/ray[...,1]
+    hx=eye[0]+tt*ray[...,0]; hz=eye[2]+tt*ray[...,2]
+    img[:]=water.color(hx,hz)
     zb=np.full((H,W),1e9,"f4")
     n=len(A)//3
     for i in range(n):

@@ -80,26 +80,42 @@ final class OceanScene {
         m.lightingModel = .constant   // 直接输出鲜艳的绿松石色，不被光照压暗
         m.shaderModifiers = [
             .geometry: """
-            float t = scn_frame.time * 0.8;
-            float w = sin(_geometry.position.x * 0.35 + t) * 0.12
-                    + cos(_geometry.position.y * 0.28 + t * 1.3) * 0.10;
+            float t = scn_frame.time * 0.6;
+            float w = sin(_geometry.position.x * 0.35 + t) * 0.05
+                    + cos(_geometry.position.y * 0.28 + t * 1.3) * 0.04;
             _geometry.position.z += w;
             """,
             // 绿松石海水：近岸浅、远海深；叠加两层流动的白色浪花纹
             .surface: """
+            // 动森风格：按到岸/礁石/码头的距离做浅→深柔和渐变 + 贴边白色泡沫线
             float2 uv = _surface.diffuseTexcoord;
-            float v = smoothstep(0.25, 0.75, uv.y);
-            float3 deep = float3(0.012, 0.36, 0.58);
-            float3 shallow = float3(0.06, 0.72, 0.70);
-            float3 col = mix(deep, shallow, v);
+            float x = -70.0 + 140.0 * uv.x;
+            float z = -90.0 + 140.0 * uv.y;
             float t = scn_frame.time;
-            float2 p = uv * 70.0;
-            float a = sin(p.x * 1.10 + sin(p.y * 0.9 + t * 0.6) * 1.6 + t * 0.7);
-            float b = sin(p.y * 1.35 + sin(p.x * 0.7 - t * 0.5) * 1.8 - t * 0.55);
-            float cell = a * b;
-            col = mix(col, col * 1.18 + 0.03, smoothstep(0.45, 0.85, cell));
-            float foam = smoothstep(0.94, 0.99, cell);
-            col = mix(col, float3(0.92, 0.97, 0.97), foam * 0.45);
+            float2 q;
+            q = max(max(float2(-10.5, 4.8) - float2(x, z), float2(x, z) - float2(11.3, 13.0)), float2(0.0));
+            float d = length(q);
+            q = max(max(float2(7.7, -0.3) - float2(x, z), float2(x, z) - float2(10.3, 4.8)), float2(0.0));
+            d = min(d, length(q));
+            d = min(d, max(length(float2(x + 9.0, z + 12.0)) - 2.6, 0.0));
+            d = min(d, max(length(float2(x + 10.0, z + 3.0)) - 2.2, 0.0));
+            d = min(d, max(length(float2(x - 7.0, z + 8.0)) - 2.8, 0.0));
+            d = min(d, max(length(float2(x - 8.5, z + 19.0)) - 2.0, 0.0));
+            d = min(d, max(length(float2((x + 13.0) / 3.0, (z - 7.0) / 3.9)) - 1.0, 0.0) * 3.0);
+            d = min(d, max(length(float2((x - 12.6) / 2.8, (z - 1.5) / 3.7)) - 1.0, 0.0) * 2.8);
+            d += 0.35 * sin(x * 1.3 + z * 0.9 + t * 0.4) * sin(z * 1.1 - x * 0.4);
+            // sRGB → 线性：A6EBDD / 8FE3D6 / 5CC8D0 / 4AA6D8
+            float3 c0 = float3(0.381, 0.831, 0.723);
+            float3 c1 = float3(0.274, 0.768, 0.672);
+            float3 c2 = float3(0.107, 0.578, 0.630);
+            float3 c3 = float3(0.069, 0.381, 0.686);
+            float3 col = mix(c0, c1, smoothstep(0.3, 2.0, d));
+            col = mix(col, c2, smoothstep(2.0, 7.0, d));
+            col = mix(col, c3, smoothstep(7.0, 16.0, d));
+            float hl = sin(x * 0.9 + sin(z * 0.7 + t * 0.3) * 1.5 + t * 0.5) * sin(z * 1.2 - sin(x * 0.5) - t * 0.4);
+            col = mix(col, float3(1.0), 0.10 * smoothstep(0.92, 0.99, hl));
+            float foam = smoothstep(0.0, 0.12, d) * (1.0 - smoothstep(0.45, 0.75, d));
+            col = mix(col, float3(1.0), 0.92 * foam);
             _surface.diffuse.rgb = col;
             _surface.emission.rgb = float3(0.0);
             """
@@ -219,11 +235,8 @@ final class OceanScene {
         guard let layout else { return }
         for n in layout.nodes {
             scene.rootNode.addChildNode(makeNode(n))
-            if let r = n.foam, let p = n.p { addFoam(at: p, radius: r) }
         }
         // 码头前沿一条长泡沫带
-        for x in stride(from: -9.0, through: 6.0, by: 1.5) { addFoam(at: [Float(x), 0, 4.9], radius: 1.1) }
-        for z in stride(from: -1.0, through: 4.0, by: 1.5) { addFoam(at: [7.6, 0, Float(z)], radius: 1.0); addFoam(at: [10.4, 0, Float(z)], radius: 1.0) }
         // 招牌文字
         let text = SCNText(string: "鱼市场", extrusionDepth: 0.03)
         text.font = UIFont.systemFont(ofSize: 1, weight: .heavy)

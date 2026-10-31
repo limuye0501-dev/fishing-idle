@@ -66,6 +66,16 @@ rock("pirate_rocks_a",-9,-12,1.0,30)
 rock("pirate_rocks_c",-10,-3,0.85,0)
 rock("pirate_rocks_c",7,-8,1.1,200,True)
 rock("pirate_rocks_b",8.5,-19,0.7,90)
+# 沙滩：码头两侧的柔和沙丘，缓坡入水
+SAND=[0.98,0.90,0.72]
+for (x,z,rx,rz) in ((-13.0,7.0,3.4,4.4),(12.6,1.5,3.2,4.2)):
+    add(k="sphere",size=[1.0],c=SAND,p=[x,-0.55,z],s=[rx,1.2,rz])
+    add(k="sphere",size=[1.0],c=[1.0,0.93,0.78],p=[x,-0.45,z],s=[rx*0.8,1.18,rz*0.8])
+# 椰子树（Kenney Pirate Kit，CC0）
+for (m,x,z,ry,sc) in (("pirate_palm_detailed_bend",-11.6,5.0,60,0.75),("pirate_palm_detailed_straight",-13.4,8.0,0,0.7),
+                      ("pirate_palm_detailed_bend",12.2,0.0,220,0.7),("pirate_palm_detailed_straight",13.2,3.2,0,0.65),
+                      ("pirate_palm_detailed_bend",-7.6,10.6,120,0.55)):
+    add(m=m,p=[x,0.45 if abs(x)>10 else 0.68,z],ry=ry,s=sc)
 # 浮标
 for i,(x,z) in enumerate([(-5.5,-1.0),(4.5,-9.0),(-4,-16)]):
     add(m="watercraft_buoy_flag" if i%2 else "watercraft_buoy",p=[x,0,z],s=0.6,bob=1)
