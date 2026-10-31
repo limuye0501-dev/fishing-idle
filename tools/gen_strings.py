@@ -49,7 +49,7 @@ T={
 "探索真实海域":"Explore real seas","解锁新海域、升级船和渔具，收集 32 种真实鱼类的图鉴。四季轮换，不同季节有不同的鱼。":"Unlock new seas, upgrade boats and gear, and collect 32 real fish species. Seasons rotate, and each brings different fish.",
 "你的私人鱼缸":"Your private aquarium","把喜欢的鱼留进鱼缸慢慢欣赏，点一下就能看小百科。":"Keep your favourite fish in the aquarium and tap one to read about it.",
 "下一步":"Next","开船啦！":"Set sail!","金币":"Coins","宝石":"Gems","海上趣事":"Sea stories",
-"你离开了 %@":"You were away for %@",
+"游戏中":"In game","中文名":"Chinese name","你离开了 %@":"You were away for %@",
 "%lld 条":"%lld fish","%lld 种":"%lld species","%lld海里":"%lld nm",
 "%@ 带回 %lld 条鱼 %@%@  +%lld":"%1$@ brought back %2$lld fish %3$@%4$@  +%5$lld",
 "解锁 %lld":"Unlock %lld","购买 %lld":"Buy %lld","购买 %lld💎":"Buy %lld💎",

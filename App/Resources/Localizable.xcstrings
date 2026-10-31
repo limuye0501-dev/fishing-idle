@@ -1222,6 +1222,26 @@
         }
       }
     },
+    "游戏中": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In game"
+          }
+        }
+      }
+    },
+    "中文名": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chinese name"
+          }
+        }
+      }
+    },
     "你离开了 %@": {
       "localizations": {
         "en": {

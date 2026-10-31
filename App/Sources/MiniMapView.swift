@@ -20,6 +20,11 @@ enum SeaRoutes {
         "bay": "舟山外海", "mangrove": "海南东寨港", "reef": "冲绳庆良间", "kelp": "加州蒙特雷",
         "deep": "北太平洋", "ice": "白令海", "trench": "马里亚纳海沟", "legend": "百慕大三角"
     ]
+    static let placeNamesEN: [String: String] = [
+        "bay": "Off Zhoushan", "mangrove": "Dongzhai Harbor, Hainan", "reef": "Kerama Islands, Okinawa", "kelp": "Monterey, California",
+        "deep": "North Pacific", "ice": "Bering Sea", "trench": "Mariana Trench", "legend": "Bermuda Triangle"
+    ]
+    static func place(_ id: String) -> String { (CoreLang.english ? placeNamesEN[id] : placeNames[id]) ?? "" }
     // 地图图片范围（与 WorldMap.png 生成参数一致）
     static let lon0 = 95.0, lon1 = 300.0, lat0 = -8.0, lat1 = 72.0
 
@@ -83,7 +88,7 @@ struct MiniMapView: View {
                             .frame(width: expanded ? 12 : 8, height: expanded ? 12 : 8)
                             .position(pos)
                         if expanded {
-                            Text("\(c.name) · \(SeaRoutes.placeNames[c.areaID] ?? "")")
+                            Text("\(displayCaptainName(c.name)) · \(SeaRoutes.place(c.areaID))")
                                 .font(.caption2.bold()).padding(.horizontal, 6).padding(.vertical, 2)
                                 .background(.white.opacity(0.85), in: Capsule())
                                 .position(x: pos.x, y: pos.y - 14)

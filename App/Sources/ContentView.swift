@@ -12,6 +12,8 @@ struct ContentView: View {
             ZStack(alignment: .top) {
                 SeaSceneView(state: game.state, config: game.config)
                     .ignoresSafeArea(edges: .top)
+                    .accessibilityElement()
+                    .accessibilityLabel(tr("港口与海面：船长们正在出海捕鱼", "Harbor and sea: your captains are out fishing"))
                 VStack(spacing: 8) {
                     HStack(alignment: .top, spacing: 8) {
                         HUDView(coins: game.state.coins, gems: game.state.gems, fish: game.state.totalFishCaught,
@@ -41,7 +43,7 @@ struct ContentView: View {
                                 withAnimation { game.eventBanner = nil }
                             }
                     } else if let c = game.state.recentCatches.first {
-                        Text("\(c.captainName) 带回 \(c.count) 条鱼 \(c.fishEmoji)\(c.fishName)  +\(c.coins)")
+                        Text(tr("\(c.captainName) 带回 \(c.count) 条鱼 \(c.fishEmoji)\(c.fishName)  +\(c.coins)", "\(displayCaptainName(c.captainName)) brought back \(c.count) fish \(c.fishEmoji) \(game.fishName(c))  +\(c.coins)"))
                             .font(.footnote.bold())
                             .padding(.horizontal, 12).padding(.vertical, 6)
                             .background(.ultraThinMaterial, in: Capsule())
@@ -52,6 +54,10 @@ struct ContentView: View {
                             MiniMapView(state: game.state, config: game.config)
                                 .frame(width: 150)
                                 .onTapGesture { showMap = true }
+                                .accessibilityElement()
+                                .accessibilityLabel(tr("世界地图：船长们的位置", "World map: where the captains are"))
+                                .accessibilityAddTraits(.isButton)
+                                .accessibilityAction { showMap = true }
                             Spacer()
                         }
                     }
@@ -107,7 +113,7 @@ struct ContentView: View {
 
 func formatDuration(_ s: Double) -> String {
     let m = Int(s) / 60
-    return m >= 60 ? "\(m / 60)小时\(m % 60)分" : "\(m)分钟"
+    return m >= 60 ? tr("\(m / 60)小时\(m % 60)分", "\(m / 60)h \(m % 60)m") : tr("\(m)分钟", "\(m) min")
 }
 
 struct FishRef: Identifiable { let id: String }
@@ -125,21 +131,24 @@ struct HUDView: View {
                 Label("\(coins)", systemImage: "dollarsign.circle.fill").foregroundStyle(.yellow)
                 Label("\(gems)", systemImage: "diamond.fill").foregroundStyle(.purple)
                 Spacer()
-                Label("\(fish) 条", systemImage: "fish.fill").foregroundStyle(.white)
+                Label(tr("\(fish) 条", "\(fish) fish"), systemImage: "fish.fill").foregroundStyle(.white)
             }
             .font(.headline)
             HStack {
-                Text("\(season.emoji) \(season.name)季").font(.subheadline.bold()).foregroundStyle(.white)
+                Text(tr("\(season.emoji) \(season.name)季", "\(season.emoji) \(season.name)")).font(.subheadline.bold()).foregroundStyle(.white)
                 if !full {
                     Text("免费版").font(.caption2.bold()).foregroundStyle(.orange)
                 }
-                Text("距\(Season(rawValue: (season.rawValue + 1) % 4)!.name)季 \(formatDuration(secondsLeft))")
+                Text(tr("距\(Season(rawValue: (season.rawValue + 1) % 4)!.name)季 \(formatDuration(secondsLeft))", "\(Season(rawValue: (season.rawValue + 1) % 4)!.name) in \(formatDuration(secondsLeft))"))
                     .font(.caption).foregroundStyle(.white.opacity(0.85))
                 Spacer()
             }
         }
         .padding(.horizontal, 16).padding(.vertical, 8)
         .background(.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 16))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(tr("金币 \(coins)，宝石 \(gems)，累计 \(fish) 条鱼，\(season.name)季，\(formatDuration(secondsLeft))后换季",
+                               "\(coins) coins, \(gems) gems, \(fish) fish caught, \(season.name), next season in \(formatDuration(secondsLeft))"))
     }
 }
 
@@ -179,7 +188,7 @@ struct ControlPanel: View {
             ForEach(game.state.captains) { c in CaptainRow(captain: c) }
             if let cost = game.state.nextHireCost(config: game.config) {
                 Button { game.hire() } label: {
-                    Label("雇佣新船长（\(cost) 金币）", systemImage: "person.badge.plus").frame(maxWidth: .infinity)
+                    Label(tr("雇佣新船长（\(cost) 金币）", "Hire a new captain (\(cost) coins)"), systemImage: "person.badge.plus").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(game.state.coins < cost)
@@ -206,7 +215,7 @@ struct ControlPanel: View {
 }
 
 func seasonText(_ f: FishType) -> String {
-    f.seasons.isEmpty ? "四季" : f.seasons.map { $0.emoji + $0.name }.joined(separator: "")
+    f.seasons.isEmpty ? tr("四季", "All year") : f.seasons.map { $0.emoji + $0.name }.joined(separator: "")
 }
 
 func gearText(_ f: FishType) -> String {
@@ -225,14 +234,18 @@ struct CodexView: View {
                     HStack {
                         Text(area.name).font(.headline)
                         Spacer()
-                        Text(done ? "🏆 已集齐 · 收益+\(Int(game.config.codexAreaBonus * 100))%"
-                                  : "\(p.caught)/\(p.total) · 集齐奖 \(game.config.codexReward(for: area)) 金币")
+                        Text(done ? tr("🏆 已集齐 · 收益+\(Int(game.config.codexAreaBonus * 100))%", "🏆 Complete · income +\(Int(game.config.codexAreaBonus * 100))%")
+                                  : tr("\(p.caught)/\(p.total) · 集齐奖 \(game.config.codexReward(for: area)) 金币", "\(p.caught)/\(p.total) · reward \(game.config.codexReward(for: area)) coins"))
                             .font(.caption).foregroundStyle(done ? .orange : .secondary)
                     }
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
                         ForEach(area.fish) { f in
                             FishCard(fish: f, entry: game.state.codex[f.id], season: game.season)
                                 .onTapGesture { game.encyclopediaFish = f.id }
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(game.state.codex[f.id] != nil ? f.name : tr("未知鱼种", "Unknown species"))
+                                .accessibilityAddTraits(.isButton)
+                                .accessibilityAction { game.encyclopediaFish = f.id }
                         }
                     }
                 }
@@ -279,7 +292,7 @@ struct FishCard: View {
 }
 
 func formatKg(_ kg: Double) -> String {
-    kg >= 1000 ? String(format: "%.1f吨", kg / 1000) : (kg >= 10 ? String(format: "%.0fkg", kg) : String(format: "%.2fkg", kg))
+    kg >= 1000 ? String(format: tr("%.1f吨", "%.1f t"), kg / 1000) : (kg >= 10 ? String(format: "%.0fkg", kg) : String(format: "%.2fkg", kg))
 }
 
 struct CaptainRow: View {
@@ -293,7 +306,7 @@ struct CaptainRow: View {
         let pool = area?.candidates(gear: boat.equipped, season: game.season) ?? []
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("⛵️ \(captain.name)").font(.headline)
+                Text("⛵️ \(displayCaptainName(captain.name))").font(.headline)
                 Text("Lv\(captain.level)").font(.caption.bold())
                     .padding(.horizontal, 6).padding(.vertical, 2)
                     .background(Color.orange.opacity(0.25), in: Capsule())
@@ -310,12 +323,12 @@ struct CaptainRow: View {
             HStack(spacing: 6) {
                 Text("经验").font(.caption2)
                 ProgressView(value: Double(captain.xp), total: Double(captain.xpToNext(cfg))).tint(.purple)
-                Text("收益×\(String(format: "%.2f", game.state.valueMultiplier(captain, config: cfg, season: game.season)))")
+                Text(tr("收益×", "Income ×") + String(format: "%.2f", game.state.valueMultiplier(captain, config: cfg, season: game.season)))
                     .font(.caption2).foregroundStyle(.secondary)
             }
             HStack(spacing: 4) {
                 Text("\(boat.equipped.emoji) \(boat.equipped.name) Lv\(boat.gearLevel(boat.equipped))").font(.caption.bold())
-                Text(pool.isEmpty ? "⚠️ 当季此渔具钓不到鱼" : "可捕：" + pool.map(\.emoji).joined())
+                Text(pool.isEmpty ? "⚠️ 当季此渔具钓不到鱼" : tr("可捕：", "Catches: ") + pool.map(\.emoji).joined())
                     .font(.caption2).foregroundStyle(pool.isEmpty ? Color.red : Color.secondary).lineLimit(1)
                 Spacer()
                 Button("换渔具") { game.gearCaptainID = captain.id; game.panelTab = 1 }.font(.caption2)
@@ -329,10 +342,10 @@ struct CaptainRow: View {
             }
             HStack {
                 let sc = cfg.speedUpgradeCost(level: boat.speedLevel)
-                Button("航速 Lv\(boat.speedLevel) ↑\(sc)") { game.upgradeSpeed(captain.id) }
+                Button(tr("航速 Lv\(boat.speedLevel) ↑\(sc)", "Speed Lv\(boat.speedLevel) ↑\(sc)")) { game.upgradeSpeed(captain.id) }
                     .disabled(game.state.coins < sc)
                 let cc = cfg.capacityUpgradeCost(level: boat.capacityLevel)
-                Button("鱼舱 \(boat.capacity(cfg)) ↑\(cc)") { game.upgradeCapacity(captain.id) }
+                Button(tr("鱼舱 \(boat.capacity(cfg)) ↑\(cc)", "Hold \(boat.capacity(cfg)) ↑\(cc)")) { game.upgradeCapacity(captain.id) }
                     .disabled(game.state.coins < cc)
             }
             .buttonStyle(.bordered).font(.caption)
@@ -344,10 +357,10 @@ struct CaptainRow: View {
     private func phaseText(_ c: Captain) -> String {
         let ev = c.tripEvent.map { " \($0.emoji)" } ?? ""
         switch c.phase {
-        case .sailingOut: return "出海中"
-        case .fishing: return "捕鱼中" + ev
-        case .returning: return "返航中" + ev
-        case .unloading: return "卸货中"
+        case .sailingOut: return tr("出海中", "Sailing out")
+        case .fishing: return tr("捕鱼中", "Fishing") + ev
+        case .returning: return tr("返航中", "Returning") + ev
+        case .unloading: return tr("卸货中", "Unloading")
         }
     }
 }

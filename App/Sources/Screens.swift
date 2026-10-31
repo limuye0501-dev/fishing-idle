@@ -117,7 +117,7 @@ struct OnboardingView: View {
                 TabView(selection: $page) {
                     ForEach(pages.indices, id: \.self) { i in
                         VStack(spacing: 18) {
-                            Text(pages[i].emoji).font(.system(size: 88))
+                            Text(pages[i].emoji).font(.system(size: 88)).accessibilityHidden(true)
                             Text(LocalizedStringKey(pages[i].title)).font(.system(.title, design: .rounded).bold())
                             Text(LocalizedStringKey(pages[i].text))
                                 .font(.system(.body, design: .rounded))

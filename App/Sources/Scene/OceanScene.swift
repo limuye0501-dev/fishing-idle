@@ -240,25 +240,27 @@ final class OceanScene {
         }
         // 码头前沿一条长泡沫带
         // 招牌文字
-        let text = SCNText(string: "鱼市场", extrusionDepth: 0.03)
+        let text = SCNText(string: tr("鱼市场", "MARKET"), extrusionDepth: 0.03)
         text.font = UIFont.systemFont(ofSize: 1, weight: .heavy)
         text.flatness = 0.02
         text.materials = [mat(UIColor(red: 1, green: 0.95, blue: 0.82, alpha: 1))]
         let tn = SCNNode(geometry: text)
         let (minB, maxB) = tn.boundingBox
         tn.pivot = SCNMatrix4MakeTranslation((minB.x + maxB.x) / 2, (minB.y + maxB.y) / 2, 0)
-        tn.scale = SCNVector3(0.78, 0.78, 0.78)
+        let ts: Float = CoreLang.english ? 0.55 : 0.78
+        tn.scale = SCNVector3(ts, ts, ts)
         tn.position = SCNVector3(-5.2, 4.86, 8.98)
         scene.rootNode.addChildNode(tn)
         // 黑板上的“今日渔获”
-        let chalk = SCNText(string: "今日渔获", extrusionDepth: 0.01)
+        let chalk = SCNText(string: tr("今日渔获", "TODAY"), extrusionDepth: 0.01)
         chalk.font = UIFont.systemFont(ofSize: 1, weight: .bold)
         chalk.flatness = 0.03
         chalk.materials = [mat(.white)]
         let cn = SCNNode(geometry: chalk)
         let (cmin, cmax) = cn.boundingBox
         cn.pivot = SCNMatrix4MakeTranslation((cmin.x + cmax.x) / 2, (cmin.y + cmax.y) / 2, 0)
-        cn.scale = SCNVector3(0.22, 0.22, 0.22)
+        let cs: Float = CoreLang.english ? 0.17 : 0.22
+        cn.scale = SCNVector3(cs, cs, cs)
         cn.position = SCNVector3(0.8, 1.75, 7.47)
         cn.eulerAngles.x = -12 * Float.pi / 180
         scene.rootNode.addChildNode(cn)

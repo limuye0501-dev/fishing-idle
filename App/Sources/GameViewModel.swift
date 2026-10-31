@@ -41,6 +41,7 @@ final class GameViewModel: ObservableObject {
     private var ticksSinceSave = 0
 
     init() {
+        CoreLang.english = (Bundle.main.preferredLocalizations.first ?? "zh-Hans").hasPrefix("en")
         state = SaveStore.defaultStore().load() ?? GameState(config: EconomyConfig())
         let args = ProcessInfo.processInfo.arguments
         if let i = args.firstIndex(of: "-tab"), i + 1 < args.count, let t = Int(args[i + 1]) { panelTab = t }
@@ -208,6 +209,8 @@ final class GameViewModel: ObservableObject {
 
     var season: Season { state.season(at: Date(), config: config) }
     func fish(_ id: String) -> FishType? { GameState.fish(id, config: config) }
+    /// 渔获记录里的鱼名（存档存的是捕获时语言的名字，优先按 id 取当前语言）
+    func fishName(_ r: CatchRecord) -> String { r.fishID.flatMap { fish($0)?.name } ?? r.fishName }
     func area(of fishID: String) -> SeaArea? { config.areas.first { $0.fish.contains { $0.id == fishID } } }
 
     func resetGame() {
