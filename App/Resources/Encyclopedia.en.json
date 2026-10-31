@@ -1,0 +1,386 @@
+{
+ "sardine": {
+  "aliases": "pilchard, sardine",
+  "size": "Usually 15–25 cm; max about 27.5 cm",
+  "distribution": "Northeast Atlantic, Mediterranean and Black Sea coasts, mostly in near-shore mid-to-surface waters",
+  "diet": "Zooplankton (small crustaceans) and phytoplankton",
+  "behavior": "Migrates in huge schools of thousands; rises at night and sinks by day",
+  "season": "Year-round",
+  "facts": [
+   "Many of the “sardines” in European tins are this species",
+   "Its vast schools feed tuna, dolphins and seabirds"
+  ]
+ },
+ "mackerel": {
+  "aliases": "Pacific mackerel, blue mackerel",
+  "size": "Usually 20–36 cm",
+  "distribution": "Temperate and subtropical Indo-Pacific coasts; common along China's coast",
+  "diet": "Small fish, krill and copepods",
+  "behavior": "Fast-swimming schooling fish; juveniles stay near beaches and seaweed beds, adults over deeper banks; can live about 18 years",
+  "season": "Comes inshore in spring and autumn",
+  "facts": [
+   "The dark wavy lines on its back give it its Chinese name “blue-patterned fish”",
+   "Rich in omega-3, but forms histamine quickly if not kept fresh"
+  ]
+ },
+ "crab": {
+  "aliases": "horse crab, Japanese blue crab",
+  "size": "Carapace can exceed 15 cm wide",
+  "distribution": "Shallow sandy-muddy seabeds off China, Japan and Korea",
+  "diet": "Small fish, shellfish, worms and carrion",
+  "behavior": "Its last pair of legs are flattened like paddles for swimming; often buries itself in sand by day",
+  "season": "Year-round",
+  "facts": [
+   "Three wart-like bumps on its shell give it its Chinese name",
+   "One of China's most-landed marine crabs"
+  ]
+ },
+ "seabream": {
+  "aliases": "madai, Japanese sea bream",
+  "size": "Usually 30–70 cm; up to about 1.2 m",
+  "distribution": "Northwest Pacific: coasts of China, Japan and Korea",
+  "diet": "Bottom crustaceans, shellfish and small fish",
+  "behavior": "Adults live alone over reefs 30–200 m deep; typically live 20–40 years",
+  "season": "Spring",
+  "facts": [
+   "A symbol of celebration and good luck in Japan",
+   "Bright red with small blue spots"
+  ]
+ },
+ "mudskipper": {
+  "aliases": "mudskipper",
+  "size": "About 10 cm",
+  "distribution": "Mudflats, estuaries and mangroves of the Northwest Pacific coast",
+  "diet": "Small crustaceans, insects and algae",
+  "behavior": "“Walks” and hops across mud on its pectoral fins, breathing through moist skin and mouth",
+  "season": "Year-round",
+  "facts": [
+   "One of the few fish that can stay out of water for long periods",
+   "Its eyes sit on top of its head like periscopes"
+  ]
+ },
+ "tigerprawn": {
+  "aliases": "black tiger shrimp, grass shrimp",
+  "size": "Females up to about 33 cm (usually 25–30 cm); males slightly smaller",
+  "distribution": "Coasts, estuaries and mangroves of the Indo-West Pacific",
+  "diet": "Algal detritus and small bottom animals",
+  "behavior": "Larvae grow up in sandy estuaries and mangroves; adults move to deeper (0–110 m) muddy or rocky seabeds",
+  "season": "Year-round",
+  "facts": [
+   "One of the world's most important farmed shrimps",
+   "Its dark and light bands look like tiger stripes"
+  ]
+ },
+ "mudcrab": {
+  "aliases": "giant mud crab, mangrove crab",
+  "size": "Carapace up to about 26 cm wide; up to about 3.5 kg",
+  "distribution": "Mangroves and estuarine mudflats of the Indo-West Pacific",
+  "diet": "Shellfish, crustaceans, small fish and carrion",
+  "behavior": "Digs burrows in the mud; its claws are very powerful",
+  "season": "Year-round",
+  "facts": [
+   "Mature females full of roe are prized in Chinese cuisine",
+   "Its Chinese name refers to the saw-toothed edge of its shell"
+  ]
+ },
+ "barramundi": {
+  "aliases": "Asian sea bass, giant perch",
+  "size": "Usually under 1 m; can reach 1.8 m (rarely recorded)",
+  "distribution": "Indo-West Pacific, from the Persian Gulf to northern Australia: coasts, estuaries and rivers",
+  "diet": "Fish and crustaceans",
+  "behavior": "Migrates between fresh and salt water; many start life male and become female as they grow",
+  "season": "Year-round",
+  "facts": [
+   "Its male-to-female sex change is famous",
+   "A prized sport fish in Australia"
+  ]
+ },
+ "clown": {
+  "aliases": "false clownfish, clown anemonefish",
+  "size": "About 8–11 cm",
+  "distribution": "Coral reefs of the eastern Indian Ocean and western Pacific",
+  "diet": "Zooplankton and algae",
+  "behavior": "Lives with sea anemones; a mucus coat protects it from their stings",
+  "season": "Year-round",
+  "facts": [
+   "The largest fish in a group is female; if she dies, the biggest male becomes female",
+   "Nemo from Finding Nemo is this species"
+  ]
+ },
+ "squid": {
+  "aliases": "oval squid",
+  "size": "Mantle up to about 38 cm",
+  "distribution": "Coral reefs and seagrass beds of the Indo-West Pacific",
+  "diet": "Small fish and crustaceans",
+  "behavior": "Changes colour and pattern in an instant to hide and communicate; often schools in shallow water",
+  "season": "Year-round",
+  "facts": [
+   "Short-lived, usually under a year",
+   "Its fins run almost the full length of its body and ripple as it swims"
+  ]
+ },
+ "lobster": {
+  "aliases": "tropical rock lobster",
+  "size": "A large lobster; farmed ones reach 1 kg in about 18 months",
+  "distribution": "Indo-West Pacific, usually on reefs shallower than 50 m",
+  "diet": "Shellfish, sea urchins and other bottom invertebrates",
+  "behavior": "Matures after 1–2 years on the reef and makes a yearly mass migration to breed",
+  "season": "Year-round",
+  "facts": [
+   "A “spiny lobster” with no big claws",
+   "Its shell is ornately patterned in blue-green, yellow and black"
+  ]
+ },
+ "coraltrout": {
+  "aliases": "leopard coral trout, spotted coral grouper",
+  "size": "Usually about 35 cm; max about 1.2 m and 23.6 kg",
+  "distribution": "Western Pacific coral reefs, 3–100 m deep",
+  "diet": "Mainly fish",
+  "behavior": "An ambush predator; starts female and turns male at about 42 cm on average",
+  "season": "Year-round",
+  "facts": [
+   "A luxury live seafood in Hong Kong and southern China",
+   "Covered in small blue spots like a leopard"
+  ]
+ },
+ "urchin": {
+  "aliases": "purple urchin",
+  "size": "A small-to-medium sea urchin",
+  "distribution": "Pacific coast of North America (Alaska to Mexico), intertidal zones and kelp forests",
+  "diet": "Kelp and other large algae",
+  "behavior": "Moves slowly on tube feet and spines; population booms can strip kelp forests into “urchin barrens”",
+  "season": "Year-round",
+  "facts": [
+   "Sea otters love to eat it, so kelp grows thicker where otters are common",
+   "A model organism in developmental biology; its genome was sequenced in 2006"
+  ]
+ },
+ "abalone": {
+  "aliases": "Japanese abalone",
+  "size": "A medium-to-large abalone (exact size not verified)",
+  "distribution": "Northwest Pacific: Korea, northeast Honshu and western Hokkaido; farmed in northern China",
+  "diet": "Kelp, wakame and other brown algae",
+  "behavior": "Lives on wave-swept rocky shores 1–5 m deep, clinging to rock with its strong foot",
+  "season": "Summer",
+  "facts": [
+   "A row of small holes along its shell lets out water for breathing",
+   "The photo shows the nominate subspecies Haliotis discus discus"
+  ]
+ },
+ "yellowtail": {
+  "aliases": "buri, hamachi, yellowtail",
+  "size": "Usually about 1 m; max about 1.5 m",
+  "distribution": "Northwest Pacific: coasts of Japan, Korea and China",
+  "diet": "Small fish and squid",
+  "behavior": "A fast, open-water fish with a yellow stripe along its body and a yellow tail",
+  "season": "Fattest in autumn and winter",
+  "facts": [
+   "Japan has different names for it at each size — a “promotion fish”",
+   "Hamachi in Japanese cuisine usually means this fish"
+  ]
+ },
+ "seadragon": {
+  "aliases": "leafy sea dragon, Glauert's seadragon",
+  "size": "About 20–24 cm",
+  "distribution": "Only southern and western Australian coasts, around weedy rocks and seagrass within 50 m depth",
+  "diet": "Mysid shrimp and other tiny crustaceans",
+  "behavior": "Covered in leaf-like flaps that look like drifting seaweed; the male carries the eggs on his tail",
+  "season": "Year-round",
+  "facts": [
+   "The marine emblem of South Australia",
+   "Its leafy flaps are only for camouflage, not swimming"
+  ]
+ },
+ "tuna": {
+  "aliases": "ahi",
+  "size": "Recorded up to about 2.4 m and 200 kg",
+  "distribution": "Tropical and subtropical open oceans worldwide",
+  "diet": "Fish, squid and crustaceans",
+  "behavior": "Extremely fast; often travels with dolphin pods or under floating objects",
+  "season": "Year-round",
+  "facts": [
+   "Its second dorsal and anal fins are bright yellow",
+   "A major source of canned tuna"
+  ]
+ },
+ "mahimahi": {
+  "aliases": "common dolphinfish, dorado",
+  "size": "Usually about 1 m",
+  "distribution": "Surface waters of tropical and subtropical seas worldwide",
+  "diet": "Flying fish, small fish and squid",
+  "behavior": "An open-ocean surface fish that gathers around floating debris; can spawn at only about 20 cm",
+  "season": "Summer",
+  "facts": [
+   "Males have a tall, blunt forehead",
+   "Golden sides with brilliant blue and green on the back"
+  ]
+ },
+ "puffer": {
+  "aliases": "tiger puffer, torafugu",
+  "size": "A medium-to-large puffer (often cited at 70–80 cm max; not fully verified)",
+  "distribution": "Northwest Pacific: Yellow Sea, East China Sea and Japanese coasts",
+  "diet": "Shellfish, crustaceans and small fish",
+  "behavior": "Inflates by gulping water when alarmed; its organs contain tetrodotoxin",
+  "season": "Winter",
+  "facts": [
+   "Some organs hold deadly tetrodotoxin (TTX); chefs in Japan need a special licence to prepare it",
+   "Its teeth are fused into a hard “beak” that crushes shells"
+  ]
+ },
+ "swordfish": {
+  "aliases": "broadbill",
+  "size": "Can exceed 4 m",
+  "distribution": "Tropical to temperate oceans worldwide",
+  "diet": "Fish and squid",
+  "behavior": "Slashes at schools of fish with its flat bill; dives deep by day and rises at night",
+  "season": "Year-round",
+  "facts": [
+   "A special heater organ warms its eyes and brain 10–15 °C above the water for sharper vision",
+   "Adults lose all their teeth and scales"
+  ]
+ },
+ "cod": {
+  "aliases": "cod, codling",
+  "size": "Usually about 1 m; up to 2 m",
+  "distribution": "Cold continental shelves on both sides of the North Atlantic",
+  "diet": "Fish, crustaceans and other invertebrates",
+  "behavior": "Uses a chin barbel to feel for food on the seabed",
+  "season": "Winter",
+  "facts": [
+   "Canada closed its cod fishery in 1992 after a collapse; stocks have still not fully recovered",
+   "The classic fish in British fish and chips"
+  ]
+ },
+ "salmon": {
+  "aliases": "salmon",
+  "size": "Usually 70–80 cm; max about 1.5 m",
+  "distribution": "North Atlantic and the rivers that flow into it",
+  "diet": "Fish and crustaceans at sea; insects as juveniles",
+  "behavior": "Born in rivers, grows up at sea, and returns to its home river to spawn",
+  "season": "Autumn",
+  "facts": [
+   "Can leap waterfalls several metres high",
+   "Unlike Pacific salmon, some survive spawning and return again"
+  ]
+ },
+ "charr": {
+  "aliases": "Arctic charr",
+  "size": "Usually about 50–70 cm",
+  "distribution": "Arctic and subarctic lakes, rivers and coasts",
+  "diet": "Insects, crustaceans and small fish",
+  "behavior": "Some populations migrate to sea, others stay in fresh water; the belly turns bright red when breeding",
+  "season": "Winter",
+  "facts": [
+   "One of the most northerly freshwater fish",
+   "Thrives in water close to 0 °C"
+  ]
+ },
+ "kingcrab": {
+  "aliases": "Kamchatka crab, Alaskan king crab",
+  "size": "Leg span up to about 1.8 m, carapace about 28 cm, weight up to about 12.7 kg",
+  "distribution": "North Pacific (Bering and Okhotsk Seas); introduced to the Barents Sea",
+  "diet": "Shellfish, sea urchins, worms and more",
+  "behavior": "Lives in cold water of about −1.8 to 12.8 °C and migrates seasonally",
+  "season": "Winter",
+  "facts": [
+   "Strictly speaking it is closer to hermit crabs than to true crabs",
+   "It seems to have 8 legs; the tiny fifth pair is tucked under its shell"
+  ]
+ },
+ "monkfish": {
+  "aliases": "anglerfish, monkfish",
+  "size": "A large bottom-dwelling fish (maximum size not verified)",
+  "distribution": "Northwest Pacific: muddy and sandy bottoms of the Yellow Sea, East China Sea and off Japan",
+  "diet": "Fish and crustaceans",
+  "behavior": "Lies on the seabed and lures prey with a “fishing rod” grown from its dorsal fin",
+  "season": "Year-round",
+  "facts": [
+   "Its huge mouth can swallow prey nearly its own size",
+   "Its liver is a delicacy known as “the foie gras of the sea”"
+  ]
+ },
+ "octopus": {
+  "aliases": "North Pacific giant octopus",
+  "size": "Adults usually about 15 kg, arm span up to about 4.3 m",
+  "distribution": "North Pacific, from the intertidal zone to about 2,000 m in cold water",
+  "diet": "Crabs, shellfish and fish",
+  "behavior": "Very intelligent — can open jars and solve mazes; the female guards her eggs until they hatch, then dies",
+  "season": "Year-round",
+  "facts": [
+   "One of the largest octopuses; its biggest suckers are about 6.4 cm across",
+   "Like other octopuses it has three hearts and blue blood"
+  ]
+ },
+ "giantsquid": {
+  "aliases": "giant squid",
+  "size": "Females estimated at 12–13 m total length, males about 10 m",
+  "distribution": "Deep seas worldwide, usually 300–1,000 m",
+  "diet": "Deep-sea fish and other squid",
+  "behavior": "Rarely seen alive; first photographed in the wild in 2004",
+  "season": "Year-round",
+  "facts": [
+   "Its eyes are at least 27 cm across — among the largest of any living animal",
+   "A Japanese team took the first photos of a live one in the wild in 2004"
+  ]
+ },
+ "oarfish": {
+  "aliases": "king of herrings",
+  "size": "Recorded at 7–8 m (possibly 11 m) — the longest bony fish in the world",
+  "distribution": "Mid-depth waters of temperate to tropical seas worldwide",
+  "diet": "Krill and other zooplankton",
+  "behavior": "Hangs vertically in the water and swims by rippling its dorsal fin",
+  "season": "Year-round",
+  "facts": [
+   "Nicknamed the “earthquake fish”, but there is no scientific evidence it predicts quakes",
+   "Thought to be one source of sea-serpent legends"
+  ]
+ },
+ "bluefin": {
+  "aliases": "northern bluefin tuna",
+  "size": "Mature fish average about 2–2.5 m and 225–250 kg",
+  "distribution": "North Atlantic and Mediterranean",
+  "diet": "Fish and squid",
+  "behavior": "A warm-blooded fish that migrates across the Atlantic",
+  "season": "Summer and autumn",
+  "facts": [
+   "One of the most expensive food fish",
+   "In 2021 the IUCN moved it from Endangered to Least Concern thanks to fishery management"
+  ]
+ },
+ "sunfish": {
+  "aliases": "common mola",
+  "size": "Adults mostly 247–1,000 kg, some heavier",
+  "distribution": "Tropical and temperate oceans worldwide",
+  "diet": "Jellyfish, zooplankton and small fish",
+  "behavior": "Sometimes lies flat at the surface so seabirds can pick off parasites; spends most time feeding deeper",
+  "season": "Summer",
+  "facts": [
+   "One of the heaviest bony fish",
+   "Feeds mainly on jellyfish and other gelatinous plankton"
+  ]
+ },
+ "megamouth": {
+  "aliases": "megamouth",
+  "size": "A large filter-feeding shark (several metres)",
+  "distribution": "Tropical and temperate seas worldwide; rare",
+  "diet": "Krill, jellyfish and other plankton",
+  "behavior": "A filter feeder that stays deep by day and rises at night following plankton",
+  "season": "Year-round (extremely rare)",
+  "facts": [
+   "First discovered near Hawaii in 1976",
+   "As of March 2025, only about 296 captures or sightings had been recorded"
+  ]
+ },
+ "coelacanth": {
+  "aliases": "coelacanth, “living fossil”",
+  "size": "About 2 m and 90 kg",
+  "distribution": "Western Indian Ocean: deep water off South Africa, Comoros, Kenya, Tanzania, Mozambique and Madagascar",
+  "diet": "Fish and cephalopods",
+  "behavior": "Hides in seabed caves by day and feeds slowly at night; moves its fleshy fins alternately like limbs",
+  "season": "Year-round (extremely rare)",
+  "facts": [
+   "Thought extinct since the age of dinosaurs until rediscovered off South Africa's Chalumna River in December 1938",
+   "Studies suggest it may live about 100 years"
+  ]
+ }
+}
