@@ -141,7 +141,7 @@ struct Aquarium3D: UIViewRepresentable {
         for (i, id) in ids.enumerated() {
             guard let f = FishModels.node(id) else { continue }
             let holder = SCNNode(); holder.name = "fish:\(id)"
-            f.scale = SCNVector3(0.55, 0.55, 0.55); holder.addChildNode(f)
+            f.scale = SCNVector3(0.85, 0.85, 0.85); holder.addChildNode(f)
             let y = Float(i % 4) * 0.8 - 1.0
             let z = Float(i % 3) * -0.8
             let span: Float = 3.6
@@ -174,12 +174,14 @@ struct FishTurntable: UIViewRepresentable {
         let v = SCNView(); v.antialiasingMode = .multisampling4X; v.isPlaying = true; v.allowsCameraControl = true
         v.backgroundColor = .clear
         let s = SCNScene()
-        let cam = SCNNode(); let c = SCNCamera(); c.fieldOfView = 34; cam.camera = c; cam.position = SCNVector3(0, 0.5, 5.2)
+        let cam = SCNNode(); let c = SCNCamera(); c.fieldOfView = 34; cam.camera = c; cam.position = SCNVector3(0, 0.4, 4.4)
         cam.look(at: SCNVector3(0, 0, 0)); s.rootNode.addChildNode(cam)
         FishModels.softLights(s.rootNode)
         if let f = FishModels.node(id) {
             let spin = SCNNode(); spin.addChildNode(f); f.eulerAngles.y = 0.3
-            spin.runAction(.repeatForever(.rotateBy(x: 0, y: .pi * 2, z: 0, duration: 9)))
+            let a1 = SCNAction.rotateTo(x: 0.15, y: 0.7, z: 0, duration: 3.5); a1.timingMode = .easeInEaseOut
+            let a2 = SCNAction.rotateTo(x: -0.1, y: -0.7, z: 0, duration: 3.5); a2.timingMode = .easeInEaseOut
+            spin.runAction(.repeatForever(.sequence([a1, a2])))
             s.rootNode.addChildNode(spin)
         }
         v.scene = s; v.pointOfView = cam
