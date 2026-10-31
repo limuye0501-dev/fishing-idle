@@ -28,8 +28,6 @@ public struct GameState: Codable, Sendable {
     /// 生态鱼缸
     public var tank: [TankFish]
     public var tankLevel: Int
-    /// 鱼缸门票收入的小数累积
-    public var tankIncomeCarry: Double
     /// 是否已解锁完整版。所有付费内容只看这一个开关，下一轮接入 StoreKit 2 时由购买结果写入。
     public var isFullVersion: Bool
 
@@ -49,13 +47,12 @@ public struct GameState: Codable, Sendable {
         eventCounter = 0
         tank = []
         tankLevel = 0
-        tankIncomeCarry = 0
         isFullVersion = false
     }
 
     enum CodingKeys: String, CodingKey {
         case coins, gems, captains, unlockedAreaIDs, lastUpdate, totalFishCaught, rngState, recentCatches
-        case codex, completedAreaIDs, eventLog, eventCounter, tank, tankLevel, tankIncomeCarry, isFullVersion
+        case codex, completedAreaIDs, eventLog, eventCounter, tank, tankLevel, isFullVersion
     }
 
     /// 兼容旧存档：新字段缺失时取默认值
@@ -75,7 +72,6 @@ public struct GameState: Codable, Sendable {
         eventCounter = try c.decodeIfPresent(Int.self, forKey: .eventCounter) ?? 0
         tank = try c.decodeIfPresent([TankFish].self, forKey: .tank) ?? []
         tankLevel = try c.decodeIfPresent(Int.self, forKey: .tankLevel) ?? 0
-        tankIncomeCarry = try c.decodeIfPresent(Double.self, forKey: .tankIncomeCarry) ?? 0
         // 老存档：已经玩到免费范围之外的内容（解锁了第 3 片以后的海域）的玩家视为完整版，避免已得内容被锁
         let freeIDs = Set(EconomyConfig().areas.prefix(EconomyConfig().freeAreaCount).map(\.id))
         isFullVersion = try c.decodeIfPresent(Bool.self, forKey: .isFullVersion)
@@ -153,7 +149,6 @@ public struct GameState: Codable, Sendable {
                 earned += completePhase(i, config: config, date: start.addingTimeInterval(dt - remaining))
             }
         }
-        earned += tankIncome(seconds: dt, config: config)
         coins += earned
         return earned
     }
@@ -174,9 +169,8 @@ public struct GameState: Codable, Sendable {
         return 0
     }
 
-    /// 生效季节：免费版永远是春天（季节系统属于完整版）
     public func season(at date: Date, config: EconomyConfig) -> Season {
-        isFullVersion ? Season.at(date, seasonSeconds: config.seasonSeconds) : config.freeSeason
+        Season.at(date, seasonSeconds: config.seasonSeconds)
     }
 
     /// 到达渔场时抽取海上事件
@@ -184,7 +178,8 @@ public struct GameState: Codable, Sendable {
         let r = nextRandom()
         let se = season(at: date, config: config)
         let luck = captains[i].trait == .lucky ? 2.0 : 1.0
-        let t = config.treasureChance * luck * (se == .spring ? config.springTreasureMultiplier : 1)
+        let crowd = captains.count >= 3 ? config.crowdTreasureFactor : 1
+        let t = config.treasureChance * luck * crowd * (se == .spring ? config.springTreasureMultiplier : 1)
         let school = config.fishSchoolChance * (se == .summer ? config.summerSchoolMultiplier : 1)
         let storm = config.stormChance * (se == .winter ? config.winterStormMultiplier : 1)
         let ev: SeaEvent?
@@ -455,20 +450,6 @@ public struct GameState: Codable, Sendable {
 
     /// 鱼缸中不同物种
     public var tankSpecies: Set<String> { Set(tank.map(\.fishID)) }
-
-    /// 游客门票：每秒收入（物种越多越赚，同种重复不加成）
-    public func tankIncomePerSecond(config: EconomyConfig) -> Double {
-        let values = Dictionary(uniqueKeysWithValues: config.areas.flatMap(\.fish).map { ($0.id, $0.value) })
-        return tankSpecies.reduce(0) { $0 + Double(values[$1] ?? 0) } * config.tankIncomePerValuePerSecond
-    }
-
-    private mutating func tankIncome(seconds: Double, config: EconomyConfig) -> Int {
-        guard !tank.isEmpty else { return 0 }
-        tankIncomeCarry += tankIncomePerSecond(config: config) * seconds
-        let whole = Int(tankIncomeCarry)
-        tankIncomeCarry -= Double(whole)
-        return whole
-    }
 
     /// 留下某次渔获里最好的那条鱼：退还已卖出的钱（从金币扣除）并放进鱼缸
     public mutating func keepCatch(at index: Int, config: EconomyConfig, now: Date) throws {

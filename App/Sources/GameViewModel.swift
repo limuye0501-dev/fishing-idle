@@ -64,12 +64,11 @@ final class GameViewModel: ObservableObject {
         s.applyElapsed(now: Date().addingTimeInterval(-1.5 * 3600), config: config)
         try? s.equipGear(.trap, captain: ids[0])
         s.applyElapsed(now: Date(), config: config)
-        // 留几条鱼进鱼缸
-        var kept = Set<String>()
-        for i in s.recentCatches.indices {
-            if let f = s.recentCatches[i].fishID, !kept.contains(f) {
-                if (try? s.keepCatch(at: i, config: config, now: Date())) != nil { kept.insert(f) }
-            }
+        // 鱼缸：先升级两次，再放进几种不同的鱼（截图演示用）
+        try? s.upgradeTank(config: config); try? s.upgradeTank(config: config)
+        for (id, kg) in [("clown", 0.06), ("seadragon", 0.12), ("crab", 0.35), ("seabream", 1.8),
+                         ("lobster", 2.1), ("squid", 0.9), ("mudskipper", 0.02), ("urchin", 0.1)] {
+            s.tank.append(TankFish(id: UUID(), fishID: id, kg: kg, caughtAt: Date()))
         }
         return s
     }

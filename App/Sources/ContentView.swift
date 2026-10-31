@@ -97,11 +97,10 @@ struct HUDView: View {
             HStack {
                 Text("\(season.emoji) \(season.name)季").font(.subheadline.bold()).foregroundStyle(.white)
                 if !full {
-                    Text("免费版·四季轮换需完整版").font(.caption).foregroundStyle(.white.opacity(0.85))
-                } else {
+                    Text("免费版").font(.caption2.bold()).foregroundStyle(.orange)
+                }
                 Text("距\(Season(rawValue: (season.rawValue + 1) % 4)!.name)季 \(formatDuration(secondsLeft))")
                     .font(.caption).foregroundStyle(.white.opacity(0.85))
-                }
                 Spacer()
             }
         }

@@ -124,6 +124,23 @@ final class ProgressionTests: XCTestCase {
         XCTAssertThrowsError(try s.rushTrip(captain: id, config: cfg, now: t))
     }
 
+    func testCrowdReducesTreasure() {
+        var cfg = EconomyConfig()
+        cfg.fishSchoolChance = 0; cfg.stormChance = 0; cfg.treasureChance = 0.2
+        func chests(_ boats: Int) -> Int {
+            var s = GameState(config: cfg, now: date(in: .summer)); s.isFullVersion = true
+            s.coins = 10_000_000
+            for _ in 1..<boats { try! s.hireCaptain(config: cfg) }
+            for i in s.captains.indices { s.captains[i].trait = .veteran }
+            s.advance(by: 19 * 3000, config: cfg, now: date(in: .summer).addingTimeInterval(19 * 3000))
+            return s.eventLog.count >= 0 ? s.gems : 0
+        }
+        // 每船平均宝石：3 船应约为 2 船的 0.7
+        let per2 = Double(chests(2)) / 2, per3 = Double(chests(3)) / 3
+        XCTAssertLessThan(per3, per2 * 0.85)
+        XCTAssertGreaterThan(per3, per2 * 0.55)
+    }
+
     func testTraitsAndEvents() {
         let cfg = quietConfig()
         var c = GameState(config: cfg, now: date(in: .spring)).captains[0]
@@ -206,18 +223,28 @@ final class AquariumTests: XCTestCase {
         XCTAssertEqual(s.tank.count, 4)
     }
 
-    func testTankIncomeRewardsVariety() {
-        var cfg = quietConfig()
-        cfg.tankIncomePerValuePerSecond = 0.01
+    func testTankIsPersonalNoIncome() throws {
+        let cfg = quietConfig()
         let t = date(in: .spring)
         var s = plainState(cfg, at: t)
-        s.captains = []   // 只看鱼缸
+        s.captains = []
         s.tank = [TankFish(id: UUID(), fishID: "seabream", kg: 1, caughtAt: t),
-                  TankFish(id: UUID(), fishID: "seabream", kg: 2, caughtAt: t)]
-        XCTAssertEqual(s.tankIncomePerSecond(config: cfg), 0.15, accuracy: 1e-9) // 同种不叠加
-        s.tank.append(TankFish(id: UUID(), fishID: "crab", kg: 0.3, caughtAt: t))
-        XCTAssertEqual(s.tankIncomePerSecond(config: cfg), 0.23, accuracy: 1e-9)
-        let earned = s.advance(by: 100, config: cfg, now: t.addingTimeInterval(100))
-        XCTAssertEqual(earned, 23)
+                  TankFish(id: UUID(), fishID: "crab", kg: 0.3, caughtAt: t)]
+        XCTAssertEqual(s.advance(by: 3600, config: cfg, now: t.addingTimeInterval(3600)), 0, "鱼缸不产生收入")
+        // 鱼缸随存档保留
+        let e = JSONEncoder(), d = JSONDecoder()
+        let back = try d.decode(GameState.self, from: e.encode(s))
+        XCTAssertEqual(back.tank, s.tank)
+    }
+
+    func testDecodesSaveWithOldTankIncomeField() throws {
+        // 上一版存档里有 tankIncomeCarry，新版应忽略
+        let json = """
+        {"coins":1,"captains":[],"unlockedAreaIDs":["bay"],"lastUpdate":1000000,"totalFishCaught":0,"rngState":1,
+         "recentCatches":[],"tank":[],"tankLevel":2,"tankIncomeCarry":0.7}
+        """
+        let d = JSONDecoder(); d.dateDecodingStrategy = .secondsSince1970
+        let s = try d.decode(GameState.self, from: Data(json.utf8))
+        XCTAssertEqual(s.tankLevel, 2)
     }
 }

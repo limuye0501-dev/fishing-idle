@@ -14,10 +14,11 @@ public struct EconomyConfig: Codable, Sendable {
     public var captainHireBase = 150.0
     public var captainHireGrowth = 2.2
     public var maxCaptains = 6
-    // 免费版范围：前两片海域、只有鱼竿、固定春季、鱼缸不能扩容；宝石永不出售
+    // 免费版范围：前两片海域、鱼竿+笼捕、真实季节轮换、鱼缸不能扩容；宝石永不出售
     public var freeAreaCount = 2
-    public var freeGear: [GearType] = [.rod]
-    public var freeSeason: Season = .spring
+    public var freeGear: [GearType] = [.rod, .trap]
+    /// 三条船及以上时宝箱概率打折（避免多船宝石过多）
+    public var crowdTreasureFactor = 0.7
     public var maxOfflineSeconds: Double = 8 * 3600
     public var areas: [SeaArea]
     // 船长成长
@@ -66,8 +67,6 @@ public struct EconomyConfig: Codable, Sendable {
     public var tankBaseCapacity = 4
     public var tankCapacityPerLevel = 2
     public func tankUpgradeCost(level: Int) -> Int { Int((500.0 * pow(2.0, Double(level))).rounded()) }
-    /// 游客门票收入：每种不同鱼每秒 = 鱼价 × 该系数（物种越多越赚）
-    public var tankIncomePerValuePerSecond = 0.002
 
     public var captainNames = ["老王", "阿海", "小渔", "大胡子", "珍珠", "阿浪"]
 

@@ -178,14 +178,13 @@ struct AquariumView: View {
             HStack {
                 Text("🐠 生态鱼缸 \(game.state.tank.count)/\(cap)").font(.headline)
                 Spacer()
-                Text("游客门票 +\(String(format: "%.2f", game.state.tankIncomePerSecond(config: cfg)))/秒")
-                    .font(.caption).foregroundStyle(.orange)
+                Text("\(game.state.tankSpecies.count) 种").font(.caption).foregroundStyle(.secondary)
             }
             TankScene(tank: game.state.tank) { game.encyclopediaFish = $0 }
                 .frame(height: 150)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             HStack {
-                Text("物种越多游客越多（同种不叠加）。点鱼看小百科。").font(.caption2).foregroundStyle(.secondary)
+                Text("你的私人鱼缸。点鱼看小百科。").font(.caption2).foregroundStyle(.secondary)
                 Spacer()
                 let cost = cfg.tankUpgradeCost(level: game.state.tankLevel)
                 if !game.isFullVersion { FullVersionBadge() } else {

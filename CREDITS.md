@@ -36,3 +36,7 @@
 | 翻车鲀 | *Mola mola* | U.S. National Oceanic and Atmospheric Administration | Public domain | https://commons.wikimedia.org/wiki/File:Mola_mola.jpg |
 | 巨口鲨 | *Megachasma pelagios* | opencage | CC BY-SA 2.5 | https://commons.wikimedia.org/wiki/File:Megamouth_shark_Megachasma_pelagios.jpg |
 | 西印度洋矛尾鱼 | *Latimeria chalumnae* | Bruce A.S. Henderson | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Coelacanth_off_Pumula_on_the_KwaZulu-Natal_South_Coast,_South_Africa,_on_22_November_2019.png |
+
+## 百科核对说明（第七轮）
+体型、分布、习性与冷知识已对照英文维基百科物种条目（其数据多引自 FishBase / IUCN）逐条复核并修正。
+以下资料未能找到可靠来源核实，已在条目中模糊化处理：皱纹盘鲍与黄鮟鱇的具体最大尺寸、红鳍东方鲀最大体长（标注“未逐条核实”）、锦绣龙虾体长（改为生长速度描述）、紫球海胆寿命（已删除）、翻车鲀产卵数（已删除）。
