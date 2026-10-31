@@ -305,8 +305,8 @@ final class ShipScene: NSObject {
         ambient.light?.color = p.ambient; ambient.light?.intensity = p.ambientIntensity
         let ys = Float((p.sunX - 0.5) * 0.9), se: Float = night0 ? 0.35 : 0.12
         let sunDir = SCNVector3(sin(ys) * cos(se), sin(se), -cos(ys) * cos(se))
-        let shallow = p.sea.mix(SkyPalette.rgb(0.80, 1.0, 0.92), night0 ? 0.15 : 0.42)
-        let deep = p.sea.mix(SkyPalette.rgb(0.12, 0.42, 0.58), night0 ? 0.3 : 0.18)
+        let shallow = p.sea.mix(SkyPalette.rgb(0.36, 0.80, 0.77), night0 ? 0.2 : 0.6)
+        let deep = p.sea.mix(SkyPalette.rgb(0.10, 0.50, 0.56), night0 ? 0.3 : 0.6)
         SeaShader.set(seaMat, shallow: shallow, deep: deep, sky: p.horizon.mix(p.mid, 0.3), foam: p.horizon.mix(.white, 0.75),
                       sunDir: sunDir, yaw: state.phase == .docked ? 0 : 0.42, wake: state.phase == .sailing ? 1 : (state.phase == .fishing ? 0.3 : 0), night: night0 ? 0.35 : 0)
         seaMat.setValue(NSNumber(value: weather == .storm || weather == .rain || weather == .fog ? 0.3 : 1.0), forKey: "causticAmt")

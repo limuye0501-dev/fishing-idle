@@ -45,7 +45,7 @@ float3 col = mix(shallowColor, deepColor, depthT);
 // —— 柔和焦散（近处更明显）——
 float2 q = p * 0.85;
 float v1 = sin(q.x * 1.7 + t * 0.55 + sin(q.y * 1.3 + t * 0.40) * 1.6) * sin(q.y * 1.9 - t * 0.45 + sin(q.x * 1.1 - t * 0.35) * 1.6);
-float caus = pow(1.0 - abs(v1), 10.0) * 0.22;
+float caus = pow(1.0 - abs(v1), 14.0) * 0.10;
 col += float3(1.0, 0.98, 0.9) * caus * causticAmt * (1.0 - smoothstep(4.0, 26.0, r));
 
 // —— 柔和菲涅尔：掠射角处映出天空色 ——

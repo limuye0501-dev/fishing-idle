@@ -17,38 +17,46 @@ float fishHalf;
 float x = (_geometry.position.x - fishCX) / fishHalf;
 float k = clamp((1.0 - x) * 0.5, 0.0, 1.0);
 float ph = scn_frame.time * swimSpeed - x * 2.6;
-_geometry.position.z += sin(ph) * swimAmp * k * k * fishHalf;
-_geometry.position.y += sin(scn_frame.time * swimSpeed * 0.5) * swimAmp * 0.15 * fishHalf;
+_geometry.position.y += sin(ph) * swimAmp * k * k * fishHalf;
+_geometry.position.z += sin(scn_frame.time * swimSpeed * 0.5) * swimAmp * 0.15 * fishHalf;
 """
 
     static func prototype(_ id: String) -> SCNNode? {
-        // 返回长度为 2、居中的鱼
+        // 返回长度为 2、居中、头朝 +X 的鱼
         if let c = cache[id] { return c }
         let url = Bundle.main.url(forResource: "Fish_\(id)", withExtension: "usdz", subdirectory: "Fish")
             ?? Bundle.main.url(forResource: "Fish_\(id)", withExtension: "usdz")
         guard let url, let s = try? SCNScene(url: url, options: [.checkConsistency: false]) else { return nil }
         let holder = SCNNode()
         for c in s.rootNode.childNodes { holder.addChildNode(c) }
-        let flat = holder.flattenedClone()
-        let (lo, hi) = flat.boundingBox
-        let half = max(Float(hi.x - lo.x) / 2, 0.0001)
-        let cx = Float(hi.x + lo.x) / 2
         let amp: Float = stiff.contains(where: { id.contains($0) }) ? 0.02 : 0.16
-        for m in flat.geometry?.materials ?? [] {
-            m.lightingModel = .physicallyBased
-            m.metalness.contents = 0.0
-            m.roughness.contents = 0.38
-            m.isDoubleSided = true
-            m.shaderModifiers = [.geometry: swim]
-            m.setValue(NSNumber(value: amp), forKey: "swimAmp")
-            m.setValue(NSNumber(value: 5.0), forKey: "swimSpeed")
-            m.setValue(NSNumber(value: cx), forKey: "fishCX")
-            m.setValue(NSNumber(value: half), forKey: "fishHalf")
+        var lo = SCNVector3(Float.greatestFiniteMagnitude, Float.greatestFiniteMagnitude, Float.greatestFiniteMagnitude)
+        var hi = SCNVector3(-Float.greatestFiniteMagnitude, -Float.greatestFiniteMagnitude, -Float.greatestFiniteMagnitude)
+        holder.enumerateHierarchy { n, _ in
+            guard let g = n.geometry else { return }
+            let (a, b) = g.boundingBox
+            // 网格保存的是 Blender 坐标（X 长度、Y 侧向、Z 向上），所以摆尾沿局部 Y
+            for m in g.materials {
+                m.lightingModel = .physicallyBased
+                m.metalness.contents = 0.0
+                m.roughness.contents = 0.38
+                m.isDoubleSided = true
+                m.shaderModifiers = [.geometry: swim]
+                m.setValue(NSNumber(value: amp), forKey: "swimAmp")
+                m.setValue(NSNumber(value: 5.0), forKey: "swimSpeed")
+                m.setValue(NSNumber(value: Float(a.x + b.x) / 2), forKey: "fishCX")
+                m.setValue(NSNumber(value: max(Float(b.x - a.x) / 2, 0.0001)), forKey: "fishHalf")
+            }
+            for x in [a.x, b.x] { for y in [a.y, b.y] { for z in [a.z, b.z] {
+                let q = n.convertPosition(SCNVector3(x, y, z), to: holder)
+                lo = SCNVector3(min(lo.x, q.x), min(lo.y, q.y), min(lo.z, q.z)); hi = SCNVector3(max(hi.x, q.x), max(hi.y, q.y), max(hi.z, q.z))
+            } } }
         }
-        let wrap = SCNNode(); wrap.addChildNode(flat)
+        let half = max(max(hi.x - lo.x, hi.z - lo.z) / 2, 0.0001)
         let sc = 1 / half
-        flat.scale = SCNVector3(sc, sc, sc)
-        flat.position = SCNVector3(-cx * sc, -Float(hi.y + lo.y) / 2 * sc, -Float(hi.z + lo.z) / 2 * sc)
+        holder.scale = SCNVector3(sc, sc, sc)
+        holder.position = SCNVector3(-(hi.x + lo.x) / 2 * sc, -(hi.y + lo.y) / 2 * sc, -(hi.z + lo.z) / 2 * sc)
+        let wrap = SCNNode(); wrap.addChildNode(holder)
         cache[id] = wrap
         return wrap
     }
