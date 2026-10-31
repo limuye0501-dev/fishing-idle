@@ -316,4 +316,8 @@ public struct TankFish: Codable, Hashable, Identifiable, Sendable {
     public let fishID: String
     public let kg: Double
     public let caughtAt: Date
+
+    public init(id: UUID = UUID(), fishID: String, kg: Double, caughtAt: Date) {
+        self.id = id; self.fishID = fishID; self.kg = kg; self.caughtAt = caughtAt
+    }
 }
