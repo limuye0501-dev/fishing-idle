@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Combine
 import FishingCore
 
@@ -14,6 +15,8 @@ struct OfflineReport {
 final class GameViewModel: ObservableObject {
     @Published private(set) var state: GameState
     @Published var offlineReport: OfflineReport?
+    @Published var showPanel = true
+    @Published var showMap = false
     @Published var toast: String?
     /// 面板当前分页：0 船长 1 渔具 2 海图 3 图鉴 4 鱼缸 5 日志
     @Published var panelTab = 0
@@ -55,6 +58,7 @@ final class GameViewModel: ObservableObject {
         let onboarded = UserDefaults.standard.bool(forKey: "onboarded")
         showOnboarding = (!onboarded && !args.contains("-demo") && !args.contains("-skipOnboarding")) || args.contains("-onboarding")
         if args.contains("-settings") { showSettings = true }
+        if args.contains("-tour") { runTour() }
         if args.contains("-offline") {
             offlineReport = OfflineReport(seconds: 3 * 3600 + 25 * 60, coins: 3200, gems: 3, events: 7)
         }
@@ -216,5 +220,36 @@ final class GameViewModel: ObservableObject {
     func resetGame() {
         state = GameState(config: config)
         save()
+    }
+
+    // MARK: - 演示视频用自动导览（-demo -tour）
+    private func runTour() {
+        let steps: [(Double, (GameViewModel) -> Void)] = [
+            (0, { $0.showPanel = false }),
+            (10, { $0.showMap = true }),
+            (17, { $0.showMap = false }),
+            (19, { $0.offlineReport = OfflineReport(seconds: 2 * 3600 + 40 * 60, coins: 2850, gems: 2, events: 5) }),
+            (25, { $0.collectOffline() }),
+            (28, { $0.panelTab = 0; $0.showPanel = true }),
+            (32, { vm in if let c = vm.state.captains.first { vm.upgradeSpeed(c.id) } }),
+            (35, { vm in if let c = vm.state.captains.first { vm.upgradeCapacity(c.id) } }),
+            (38, { $0.panelTab = 1 }),
+            (45, { $0.panelTab = 2 }),
+            (51, { $0.panelTab = 3 }),
+            (55, { $0.encyclopediaFish = "sardine" }),
+            (63, { $0.encyclopediaFish = nil }),
+            (65, { $0.panelTab = 4 }),
+            (72, { $0.showSettings = true }),
+            (79, { $0.showSettings = false }),
+            (81, { $0.showPanel = false }),
+        ]
+        Task { @MainActor [weak self] in
+            var t = 0.0
+            for (at, action) in steps {
+                try? await Task.sleep(for: .seconds(at - t)); t = at
+                guard let self else { return }
+                withAnimation(.spring) { action(self) }
+            }
+        }
     }
 }

@@ -3,8 +3,6 @@ import FishingCore
 
 struct ContentView: View {
     @EnvironmentObject var game: GameViewModel
-    @State private var showPanel = true
-    @State private var showMap = false
 
     var body: some View {
         // 场景与面板上下分区：面板展开时 3D 画面自动缩到面板上方，港口不被遮挡
@@ -53,30 +51,30 @@ struct ContentView: View {
                         HStack {
                             MiniMapView(state: game.state, config: game.config)
                                 .frame(width: 150)
-                                .onTapGesture { showMap = true }
+                                .onTapGesture { game.showMap = true }
                                 .accessibilityElement()
                                 .accessibilityLabel(tr("世界地图：船长们的位置", "World map: where the captains are"))
                                 .accessibilityAddTraits(.isButton)
-                                .accessibilityAction { showMap = true }
+                                .accessibilityAction { game.showMap = true }
                             Spacer()
                         }
                     }
-                    Button(showPanel ? "收起 ▼" : "港口管理 ▲") {
-                        withAnimation(.spring) { showPanel.toggle() }
+                    Button(game.showPanel ? "收起 ▼" : "港口管理 ▲") {
+                        withAnimation(.spring) { game.showPanel.toggle() }
                         AudioManager.shared.play(.tap); AudioManager.shared.haptic()
                     }
                     .buttonStyle(.borderedProminent).tint(.orange)
                 }
                 .padding()
             }
-            if showPanel {
+            if game.showPanel {
                 ControlPanel()
                     .padding(.horizontal).padding(.bottom, 4)
                     .transition(.move(edge: .bottom))
             }
         }
         .background(Color(red: 0.55, green: 0.82, blue: 0.95))
-        .sheet(isPresented: $showMap) {
+        .sheet(isPresented: $game.showMap) {
             VStack(alignment: .leading, spacing: 12) {
                 Text("船长们在哪儿？").font(.title3.bold())
                 MiniMapView(state: game.state, config: game.config, expanded: true)

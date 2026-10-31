@@ -92,6 +92,25 @@ jobs:
             sleep 12
             xcrun simctl io "$UDID" screenshot screens/ency-$FISH.png
           done
+      - name: Record gameplay video (zh)
+        continue-on-error: true
+        run: |
+          UDID=$(xcrun simctl list devices booted -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print([x['udid'] for v in d.values() for x in v][0])")
+          mkdir -p video
+          xcrun simctl terminate "$UDID" com.example.fishingidle || true
+          xcrun simctl launch "$UDID" com.example.fishingidle -demo -tour -AppleLanguages "(zh-Hans)"
+          sleep 3
+          xcrun simctl io "$UDID" recordVideo --codec=h264 --force video/gameplay-zh.mov &
+          REC=$!
+          sleep 88
+          kill -INT $REC
+          wait $REC || true
+          ls -la video
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gameplay-video
+          path: video/
       - uses: actions/upload-artifact@v4
         if: always()
         with:
