@@ -28,7 +28,7 @@ final class OceanScene {
 
     private func buildCamera() {
         let cam = SCNCamera()
-        let c = layout?.camera ?? PortCamera(pos: [7, 27, 31], look: [0, 0, -3], fov: 42)
+        let c = layout?.camera ?? PortCamera(pos: [14, 30, 28], look: [-2, 0, -1], fov: 42)
         cam.fieldOfView = CGFloat(c.fov)
         cam.zFar = 250
         cameraNode.camera = cam
@@ -77,7 +77,7 @@ final class OceanScene {
         plane.heightSegmentCount = 140
         let m = SCNMaterial()
         m.diffuse.contents = UIColor(red: 0.25, green: 0.75, blue: 0.82, alpha: 1)
-        m.lightingModel = .lambert
+        m.lightingModel = .constant   // 直接输出鲜艳的绿松石色，不被光照压暗
         m.shaderModifiers = [
             .geometry: """
             float t = scn_frame.time * 0.8;
@@ -89,18 +89,19 @@ final class OceanScene {
             .surface: """
             float2 uv = _surface.diffuseTexcoord;
             float v = smoothstep(0.25, 0.75, uv.y);
-            float3 deep = float3(0.02, 0.27, 0.50);
-            float3 shallow = float3(0.07, 0.62, 0.62);
+            float3 deep = float3(0.012, 0.36, 0.58);
+            float3 shallow = float3(0.06, 0.72, 0.70);
             float3 col = mix(deep, shallow, v);
             float t = scn_frame.time;
             float2 p = uv * 70.0;
             float a = sin(p.x * 1.10 + sin(p.y * 0.9 + t * 0.6) * 1.6 + t * 0.7);
             float b = sin(p.y * 1.35 + sin(p.x * 0.7 - t * 0.5) * 1.8 - t * 0.55);
             float cell = a * b;
-            col = mix(col, col * 1.12 + 0.02, smoothstep(0.45, 0.85, cell));
+            col = mix(col, col * 1.18 + 0.03, smoothstep(0.45, 0.85, cell));
             float foam = smoothstep(0.94, 0.99, cell);
             col = mix(col, float3(0.92, 0.97, 0.97), foam * 0.45);
             _surface.diffuse.rgb = col;
+            _surface.emission.rgb = float3(0.0);
             """
         ]
         plane.materials = [m]
@@ -127,7 +128,13 @@ final class OceanScene {
     private func makeNode(_ n: PortNode) -> SCNNode {
         let node: SCNNode
         if let m = n.m {
-            node = SCNNode(geometry: ModelLibrary.shared.geometry(m, tint: n.tint))
+            let g = ModelLibrary.shared.geometry(m, tint: n.tint)
+            if let t = n.tex, let base = g?.copy() as? SCNGeometry {
+                base.materials = [Self.texturedMaterial(t)]
+                node = SCNNode(geometry: base)
+            } else {
+                node = SCNNode(geometry: g)
+            }
         } else if let pf = n.prefab {
             node = SCNNode()
             for child in layout?.prefabs[pf] ?? [] { node.addChildNode(makeNode(child)) }
@@ -138,7 +145,7 @@ final class OceanScene {
             case "cyl":
                 geo = SCNCylinder(radius: CGFloat(sz[0]), height: CGFloat(sz.count > 1 ? sz[1] : 1))
             case "sphere":
-                let s = SCNSphere(radius: CGFloat(sz[0])); s.segmentCount = 20; geo = s
+                let s = SCNSphere(radius: CGFloat(sz[0])); s.segmentCount = 36; geo = s
             default:
                 let w = CGFloat(sz[0]), h = CGFloat(sz.count > 1 ? sz[1] : sz[0]), l = CGFloat(sz.count > 2 ? sz[2] : sz[0])
                 geo = SCNBox(width: w, height: h, length: l, chamferRadius: min(w, h, l) * 0.12)
@@ -159,6 +166,33 @@ final class OceanScene {
             node.runAction(.repeatForever(.sequence([up, down])))
         }
         return node
+    }
+
+    /// 程序化纹理：木纹 / 石块明暗（在模型本地坐标里计算，不需要贴图）
+    private static func texturedMaterial(_ kind: String) -> SCNMaterial {
+        let m = SCNMaterial()
+        m.diffuse.contents = UIColor.white
+        m.lightingModel = .lambert
+        let wood = """
+        float3 mp = (scn_node.inverseModelViewTransform * float4(_surface.position, 1.0)).xyz;
+        float plank = floor(mp.x * 2.2);
+        float h = fract(sin(plank * 12.9898) * 43758.5453);
+        float grain = sin(mp.z * 9.0 + sin(mp.x * 31.0 + h * 6.0) * 1.6 + h * 20.0);
+        float seam = smoothstep(0.0, 0.06, fract(mp.x * 2.2)) * smoothstep(1.0, 0.94, fract(mp.x * 2.2));
+        float k = (0.86 + 0.18 * h) * (0.93 + 0.07 * grain) * mix(0.55, 1.0, seam);
+        _surface.diffuse.rgb *= k;
+        """
+        let stone = """
+        float3 mp = (scn_node.inverseModelViewTransform * float4(_surface.position, 1.0)).xyz;
+        float2 c = floor(mp.xz * 3.0);
+        float h = fract(sin(dot(c, float2(12.9898, 78.233))) * 43758.5453);
+        float2 f = fract(mp.xz * 3.0);
+        float edge = smoothstep(0.0, 0.10, min(min(f.x, f.y), min(1.0 - f.x, 1.0 - f.y)));
+        float3 tint = mix(float3(0.92, 0.88, 0.82), float3(1.08, 1.04, 0.98), h);
+        _surface.diffuse.rgb *= tint * mix(0.7, 1.0, edge);
+        """
+        m.shaderModifiers = [.surface: kind == "stone" ? stone : wood]
+        return m
     }
 
     private func addFoam(at p: [Float], radius: Float) {
@@ -355,6 +389,30 @@ final class OceanScene {
             node.eulerAngles.y = heading
             SCNTransaction.commit()
             updateBubble(node, captain: c, state: state, config: config)
+        }
+        deOverlapBubbles(state: state)
+    }
+
+    /// 气泡互相靠近时向上错开（按离镜头远近排序，近处的保持原高度）
+    private func deOverlapBubbles(state: GameState) {
+        var placed: [(x: Float, z: Float, y: Float)] = []
+        let nodes = state.captains.compactMap { boats[$0.id] }.sorted { $0.position.z > $1.position.z }
+        for n in nodes {
+            guard let b = n.childNode(withName: "bubble", recursively: false), !b.isHidden else { continue }
+            var y: Float = 4.6
+            var moved = true
+            while moved {
+                moved = false
+                for p in placed where abs(p.x - n.position.x) < 4.6 && abs(p.z - n.position.z) < 4.0 && abs(p.y - y) < 1.7 {
+                    y = p.y + 1.8; moved = true
+                }
+            }
+            placed.append((n.position.x, n.position.z, y))
+            if abs(b.position.y - y) > 0.01 {
+                SCNTransaction.begin(); SCNTransaction.animationDuration = 0.25
+                b.position = SCNVector3(0, y, 0)
+                SCNTransaction.commit()
+            }
         }
     }
 

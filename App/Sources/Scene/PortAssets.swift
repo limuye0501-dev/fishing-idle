@@ -17,8 +17,9 @@ struct PortNode: Decodable {
     var bob: Int?
     var prefab: String?
     var name: String?
+    var tex: String?
 
-    enum CodingKeys: String, CodingKey { case m, k, size, c, p, ry, rx, s, tint, glow, foam, bob, prefab, name }
+    enum CodingKeys: String, CodingKey { case m, k, size, c, p, ry, rx, s, tint, glow, foam, bob, prefab, name, tex }
 
     init(from decoder: Decoder) throws {
         let d = try decoder.container(keyedBy: CodingKeys.self)
@@ -35,6 +36,7 @@ struct PortNode: Decodable {
         bob = try d.decodeIfPresent(Int.self, forKey: .bob)
         prefab = try d.decodeIfPresent(String.self, forKey: .prefab)
         name = try d.decodeIfPresent(String.self, forKey: .name)
+        tex = try d.decodeIfPresent(String.self, forKey: .tex)
         // s 可以是一个数，也可以是 [x, y, z]
         if let one = try? d.decode(Float.self, forKey: .s) {
             s = [one, one, one]
