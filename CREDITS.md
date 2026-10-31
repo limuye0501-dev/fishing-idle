@@ -55,3 +55,7 @@ All 3D models are by **Kenney (www.kenney.nl)**, licensed **Creative Commons Zer
 Conversion: `tools/conv.py` reads Kenney's OBJ+MTL and bakes the palette texture (`colormap.png`) / material Kd into per-vertex colours, writing a compact binary (float32 position, normal, colour per vertex). Total ≈1.7 MB. Layout: `tools/gen_layout.py` → `App/Resources/PortLayout.json`.
 
 Procedural (made in code, no external asset): bear captains, boat cabins, market walls/awning/sign text, dock posts/rope, lantern, foam rings, water shader, fish bubble and timer pill. No CC0 low-poly bear captain matching the style was found, so the bears are built from primitives.
+
+## 世界地图（小地图）
+
+`App/Resources/WorldMap.png` is rendered by us from **Natural Earth** 1:110m land polygons (https://www.naturalearthdata.com, public domain), via https://github.com/nvkelso/natural-earth-vector.

@@ -4,6 +4,7 @@ import FishingCore
 struct ContentView: View {
     @EnvironmentObject var game: GameViewModel
     @State private var showPanel = true
+    @State private var showMap = false
 
     var body: some View {
         // 场景与面板上下分区：面板展开时 3D 画面自动缩到面板上方，港口不被遮挡
@@ -33,6 +34,14 @@ struct ContentView: View {
                             .background(.ultraThinMaterial, in: Capsule())
                     }
                     Spacer()
+                    if game.state.captains.contains(where: { $0.phase != .unloading }) {
+                        HStack {
+                            MiniMapView(state: game.state, config: game.config)
+                                .frame(width: 150)
+                                .onTapGesture { showMap = true }
+                            Spacer()
+                        }
+                    }
                     Button(showPanel ? "收起 ▼" : "港口管理 ▲") {
                         withAnimation(.spring) { showPanel.toggle() }
                     }
@@ -47,6 +56,16 @@ struct ContentView: View {
             }
         }
         .background(Color(red: 0.55, green: 0.82, blue: 0.95))
+        .sheet(isPresented: $showMap) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("船长们在哪儿？").font(.title3.bold())
+                MiniMapView(state: game.state, config: game.config, expanded: true)
+                Text("每片海域对应一处真实海区，母港在舟山。底图：Natural Earth（公有领域）。")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            .padding()
+            .presentationDetents([.medium])
+        }
         .sheet(item: Binding(get: { game.encyclopediaFish.map(FishRef.init) },
                              set: { game.encyclopediaFish = $0?.id })) { ref in
             EncyclopediaView(fishID: ref.id).environmentObject(game)
