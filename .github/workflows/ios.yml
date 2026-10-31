@@ -10,7 +10,7 @@ jobs:
   logic-tests:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Swift test (FishingCore)
         working-directory: Packages/FishingCore
         run: swift test
@@ -19,7 +19,7 @@ jobs:
     runs-on: macos-latest
     needs: logic-tests
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate Xcode project
@@ -69,7 +69,7 @@ jobs:
   #   needs: build-simulator
   #   if: github.ref == 'refs/heads/main'
   #   steps:
-  #     - uses: actions/checkout@v4
+  #     - uses: actions/checkout@v5
   #     - run: brew install xcodegen && xcodegen generate
   #     - name: Install signing certificate & profile
   #       env:

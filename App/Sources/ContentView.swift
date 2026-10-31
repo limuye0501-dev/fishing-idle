@@ -6,30 +6,34 @@ struct ContentView: View {
     @State private var showPanel = true
 
     var body: some View {
-        ZStack(alignment: .top) {
-            SeaSceneView(state: game.state, config: game.config)
-                .ignoresSafeArea()
-
-            VStack(spacing: 8) {
-                HUDView(coins: game.state.coins, fish: game.state.totalFishCaught)
-                if let c = game.state.recentCatches.first {
-                    Text("\(c.captainName) 带回 \(c.count) 条鱼 \(c.fishEmoji)\(c.fishName)  +\(c.coins)")
-                        .font(.footnote.bold())
-                        .padding(.horizontal, 12).padding(.vertical, 6)
-                        .background(.ultraThinMaterial, in: Capsule())
+        // 场景与面板上下分区：面板展开时 3D 画面自动缩到面板上方，港口不被遮挡
+        VStack(spacing: 0) {
+            ZStack(alignment: .top) {
+                SeaSceneView(state: game.state, config: game.config)
+                    .ignoresSafeArea(edges: .top)
+                VStack(spacing: 8) {
+                    HUDView(coins: game.state.coins, fish: game.state.totalFishCaught)
+                    if let c = game.state.recentCatches.first {
+                        Text("\(c.captainName) 带回 \(c.count) 条鱼 \(c.fishEmoji)\(c.fishName)  +\(c.coins)")
+                            .font(.footnote.bold())
+                            .padding(.horizontal, 12).padding(.vertical, 6)
+                            .background(.ultraThinMaterial, in: Capsule())
+                    }
+                    Spacer()
+                    Button(showPanel ? "收起 ▼" : "港口管理 ▲") {
+                        withAnimation(.spring) { showPanel.toggle() }
+                    }
+                    .buttonStyle(.borderedProminent).tint(.orange)
                 }
-                Spacer()
-                if showPanel {
-                    ControlPanel()
-                        .transition(.move(edge: .bottom))
-                }
-                Button(showPanel ? "收起 ▼" : "港口管理 ▲") {
-                    withAnimation(.spring) { showPanel.toggle() }
-                }
-                .buttonStyle(.borderedProminent).tint(.orange)
+                .padding()
             }
-            .padding()
+            if showPanel {
+                ControlPanel()
+                    .padding(.horizontal).padding(.bottom, 4)
+                    .transition(.move(edge: .bottom))
+            }
         }
+        .background(Color(red: 0.55, green: 0.82, blue: 0.95))
         .alert("欢迎回来！", isPresented: Binding(
             get: { game.offlineReport != nil },
             set: { if !$0 { game.offlineReport = nil } })) {
@@ -82,7 +86,7 @@ struct ControlPanel: View {
             ScrollView {
                 if tab == 0 { captainList } else { areaList }
             }
-            .frame(maxHeight: 280)
+            .frame(maxHeight: 200)
         }
         .padding(12)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))

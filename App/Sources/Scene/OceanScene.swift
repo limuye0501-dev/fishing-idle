@@ -21,11 +21,17 @@ final class OceanScene {
 
     private func buildCamera() {
         let cam = SCNCamera()
-        cam.fieldOfView = 50
-        cam.zFar = 200
+        cam.fieldOfView = 55
+        cam.zFar = 250
         cameraNode.camera = cam
-        cameraNode.position = SCNVector3(0, 22, 22)
-        cameraNode.eulerAngles = SCNVector3(-Float.pi / 4.2, 0, 0) // 固定俯视角
+        // 固定俯视斜角：从港口后上方看向海面，港口在画面下部、渔场在上部
+        cameraNode.position = SCNVector3(0, 34, 40)
+        let look = SCNNode()
+        look.position = SCNVector3(0, 0, -2)
+        scene.rootNode.addChildNode(look)
+        let c = SCNLookAtConstraint(target: look)
+        c.isGimbalLockEnabled = true
+        cameraNode.constraints = [c]
         scene.rootNode.addChildNode(cameraNode)
     }
 
@@ -64,10 +70,6 @@ final class OceanScene {
             float w = sin(_geometry.position.x * 0.35 + t) * 0.18
                     + cos(_geometry.position.y * 0.28 + t * 1.3) * 0.14;
             _geometry.position.z += w;
-            """,
-            .fragment: """
-            float glint = step(0.985, fract(sin(dot(floor(_surface.diffuseTexcoord * 160.0), float2(12.9898, 78.233))) * 43758.5453 + scn_frame.time * 0.15));
-            _output.color.rgb = mix(_output.color.rgb, float3(1.0), glint * 0.35);
             """
         ]
         plane.materials = [m]
@@ -194,22 +196,30 @@ final class OceanScene {
             let spot = fishingSpot(for: areaIndex, lane: lane)
             let p = Float(state.phaseProgress(c, config: config))
             let pos: SCNVector3
-            var heading: Float = 0 // 0 = 朝 -z（出海方向）
+            let dir: (x: Float, z: Float)   // 当前行进方向
             switch c.phase {
             case .sailingOut:
                 pos = lerp(home, spot, smooth(p))
+                dir = (spot.x - home.x, spot.z - home.z)
             case .fishing:
-                // 渔场里绕小圈
+                // 渔场里绕小椭圆，朝向取切线方向
                 let a = p * Float.pi * 2
                 pos = SCNVector3(spot.x + sin(a) * 0.8, 0, spot.z + cos(a) * 0.4)
-                heading = -a
+                dir = (cos(a) * 0.8, -sin(a) * 0.4)
             case .returning:
                 pos = lerp(spot, home, smooth(p))
-                heading = Float.pi
+                dir = (home.x - spot.x, home.z - spot.z)
             case .unloading:
                 pos = home
-                heading = Float.pi
+                dir = (home.x - spot.x, home.z - spot.z)
             }
+            // 船头朝 -z：绕 y 轴旋转 θ 后船头为 (-sinθ, -cosθ)
+            let target = atan2(-dir.x, -dir.z)
+            // 选取与当前角度最近的等价角，避免插值时整圈打转
+            var heading = target
+            let cur = node.eulerAngles.y
+            while heading - cur > Float.pi { heading -= 2 * Float.pi }
+            while heading - cur < -Float.pi { heading += 2 * Float.pi }
             // 隐式动画平滑 0.1s 的 tick 间隔
             SCNTransaction.begin()
             SCNTransaction.animationDuration = 0.12
