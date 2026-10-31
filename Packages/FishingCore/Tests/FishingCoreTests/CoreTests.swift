@@ -125,3 +125,23 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(s2.tankLevel, 0)
     }
 }
+
+final class LocalizationTests: XCTestCase {
+    func testEnglishNames() {
+        CoreLang.english = true
+        defer { CoreLang.english = false }
+        let cfg = EconomyConfig()
+        XCTAssertEqual(cfg.area("bay")?.name, "Quiet Bay")
+        XCTAssertEqual(cfg.area("bay")?.fish.first?.name, "European Pilchard")
+        for a in cfg.areas {
+            XCTAssertNotNil(CoreEN.area[a.id]); XCTAssertNotNil(CoreEN.blurb[a.id])
+            for f in a.fish { XCTAssertNotNil(CoreEN.fish[f.id], f.id) }
+        }
+        XCTAssertEqual(GearType.trawl.name, "Trawl")
+        XCTAssertEqual(Season.winter.name, "Winter")
+        XCTAssertEqual(displayCaptainName("老王"), "Old Wang")
+    }
+    func testChineseDefault() {
+        XCTAssertEqual(EconomyConfig().area("bay")?.name, "宁静海湾")
+    }
+}

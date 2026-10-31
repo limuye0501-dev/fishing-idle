@@ -191,11 +191,11 @@ public struct GameState: Codable, Sendable {
         if let ev {
             let extra: String
             switch ev {
-            case .fishSchool: extra = "渔获 ×\(config.fishSchoolMultiplier)"
-            case .storm: extra = captains[i].trait == .stormRider ? "弄潮儿毫不在意，多钓几条" : "被困海上，回港推迟"
-            case .treasure: extra = "回港后开箱"
+            case .fishSchool: extra = tr("渔获 ×\(config.fishSchoolMultiplier)", "catch ×\(config.fishSchoolMultiplier)")
+            case .storm: extra = captains[i].trait == .stormRider ? tr("弄潮儿毫不在意，多钓几条", "the Storm Rider shrugs it off and lands a few extra") : tr("被困海上，回港推迟", "stuck at sea, return delayed")
+            case .treasure: extra = tr("回港后开箱", "will open it back at port")
             }
-            log("\(ev.emoji) \(captains[i].name) \(ev.name)：\(extra)", date)
+            log(tr("\(ev.emoji) \(displayCaptainName(captains[i].name)) \(ev.name)：\(extra)", "\(ev.emoji) \(displayCaptainName(captains[i].name)) \(ev.name): \(extra)"), date)
         }
     }
 
@@ -220,7 +220,7 @@ public struct GameState: Codable, Sendable {
         let mult = valueMultiplier(c, config: config, season: se)
         var total = Int((Double(raw) * mult).rounded())
         if pool.isEmpty && c.tripEvent != .treasure {
-            log("🫙 \(c.name) 在\(area.name)用\(c.boat.equipped.name)\(se.name)季钓不到鱼，空手而归", date)
+            log(tr("🫙 \(c.name) 在\(area.name)用\(c.boat.equipped.name)\(se.name)季钓不到鱼，空手而归", "🫙 \(displayCaptainName(c.name)) caught nothing in \(area.name) with the \(c.boat.equipped.name) this \(se.name) and came back empty-handed"), date)
         }
 
         if c.tripEvent == .treasure {
@@ -228,7 +228,7 @@ public struct GameState: Codable, Sendable {
             let chestGems = 1 + (c.trait == .lucky ? Int(nextRandom() * 2) : 0) + max(0, config.treasureGemsMax - 1)
             total += chestCoins
             gems += chestGems
-            log("🎁 \(c.name) 打开宝箱：+\(chestCoins) 金币，+\(chestGems) 💎", date)
+            log(tr("🎁 \(c.name) 打开宝箱：+\(chestCoins) 金币，+\(chestGems) 💎", "🎁 \(displayCaptainName(c.name)) opened a chest: +\(chestCoins) coins, +\(chestGems) 💎"), date)
         }
 
         captains[i].tripsCompleted += 1
@@ -257,7 +257,7 @@ public struct GameState: Codable, Sendable {
             codex[f.id] = e
         } else {
             codex[f.id] = CodexEntry(count: 1, bestKg: kg, firstCaught: date)
-            log("📖 新图鉴：\(f.emoji)\(f.name)", date)
+            log(tr("📖 新图鉴：\(f.emoji)\(f.name)", "📖 New in the Codex: \(f.emoji) \(f.name)"), date)
         }
     }
 
@@ -267,7 +267,7 @@ public struct GameState: Codable, Sendable {
               area.fish.allSatisfy({ codex[$0.id] != nil }) else { return 0 }
         completedAreaIDs.append(area.id)
         let reward = config.codexReward(for: area)
-        log("🏆 集齐「\(area.name)」图鉴！+\(reward) 金币，该海域收益永久 +\(Int(config.codexAreaBonus * 100))%", date)
+        log(tr("🏆 集齐「\(area.name)」图鉴！+\(reward) 金币，该海域收益永久 +\(Int(config.codexAreaBonus * 100))%", "🏆 Completed the \(area.name) Codex! +\(reward) coins and +\(Int(config.codexAreaBonus * 100))% income there forever"), date)
         return reward
     }
 
@@ -276,7 +276,7 @@ public struct GameState: Codable, Sendable {
         while captains[i].xp >= captains[i].xpToNext(config) {
             captains[i].xp -= captains[i].xpToNext(config)
             captains[i].level += 1
-            log("⭐️ \(captains[i].name) 升到 Lv\(captains[i].level)", date)
+            log(tr("⭐️ \(captains[i].name) 升到 Lv\(captains[i].level)", "⭐️ \(displayCaptainName(captains[i].name)) reached Lv\(captains[i].level)"), date)
         }
     }
 
@@ -343,7 +343,7 @@ public struct GameState: Codable, Sendable {
         let traits = Trait.allCases
         let trait = traits[min(traits.count - 1, Int(nextRandom() * Double(traits.count)))]
         captains.append(Captain(name: name, areaID: unlockedAreaIDs.last ?? config.areas[0].id, trait: trait))
-        log("🧑‍✈️ 新船长 \(name) 入伙（\(trait.name)）", lastUpdate)
+        log(tr("🧑‍✈️ 新船长 \(name) 入伙（\(trait.name)）", "🧑‍✈️ New captain \(displayCaptainName(name)) joined (\(trait.name))"), lastUpdate)
     }
 
     public mutating func unlockArea(_ areaID: String, config: EconomyConfig) throws {
@@ -404,7 +404,7 @@ public struct GameState: Codable, Sendable {
         coins -= price.coins
         gems -= price.gems
         captains[i].boat.gearLevels[g.rawValue] = 1
-        log("\(g.emoji) \(captains[i].name) 的船添置了\(g.name)", lastUpdate)
+        log(tr("\(g.emoji) \(captains[i].name) 的船添置了\(g.name)", "\(g.emoji) \(displayCaptainName(captains[i].name))'s boat got a \(g.name)"), lastUpdate)
     }
 
     public mutating func upgradeGear(_ g: GearType, captain id: UUID, config: EconomyConfig) throws {
@@ -461,7 +461,7 @@ public struct GameState: Codable, Sendable {
         try spend(refund)
         recentCatches[index].kept = true
         tank.append(TankFish(id: UUID(), fishID: fid, kg: kg, caughtAt: now))
-        log("🐠 \(recentCatches[index].fishEmoji)\(recentCatches[index].fishName) 被放进了生态鱼缸", now)
+        log(tr("🐠 \(recentCatches[index].fishEmoji)\(recentCatches[index].fishName) 被放进了生态鱼缸", "🐠 \(recentCatches[index].fishEmoji) \(recentCatches[index].fishName) went into the aquarium"), now)
     }
 
     public mutating func releaseFish(_ id: UUID) throws {
