@@ -24,7 +24,7 @@ targets:
     info:
       path: App/Info.plist
       properties:
-        CFBundleDisplayName: 悠闲钓鱼港
+        CFBundleDisplayName: 船长别回来
         CFBundleDevelopmentRegion: zh-Hans
         UILaunchScreen: {}
         UIRequiredDeviceCapabilities: [metal]

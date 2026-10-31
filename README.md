@@ -1,4 +1,4 @@
-# 悠闲钓鱼港（FishingIdle）— iOS 放置钓鱼游戏原型
+# 船长别回来（FishingIdle）— iOS 放置钓鱼游戏原型
 
 SwiftUI + SceneKit，iOS 17+，Swift 5.9+。Q 版轻 3D 风格、固定俯视斜角镜头。
 
