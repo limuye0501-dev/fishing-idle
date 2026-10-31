@@ -59,3 +59,17 @@ Procedural (made in code, no external asset): bear captains, boat cabins, market
 ## 世界地图（小地图）
 
 `App/Resources/WorldMap.png` is rendered by us from **Natural Earth** 1:110m land polygons (https://www.naturalearthdata.com, public domain), via https://github.com/nvkelso/natural-earth-vector.
+
+## 音频
+
+| File | Source | License |
+|---|---|---|
+| sfx_tap / sfx_upgrade / sfx_open / sfx_coin / sfx_error (`App/Resources/Audio`) | Kenney Interface Sounds (click_002, confirmation_002, maximize_006, drop_002, error_004), https://kenney.nl/assets/interface-sounds | CC0 |
+| sfx_catch | Kenney Music Jingles (jingles_PIZZI01), https://kenney.nl/assets/music-jingles | CC0 |
+| bgm_harbor | Original, procedurally synthesized for this game (tools/bgm.py) | Ours |
+
+Converted OGG → AAC (m4a, mono 64 kbps) with ffmpeg.
+
+## App 图标 / 启动图
+
+The app icon and launch logo were generated for this project with Grok Bot's image generation (original artwork, no third-party assets).

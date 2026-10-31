@@ -25,6 +25,16 @@ final class GameViewModel: ObservableObject {
     /// 渔具页当前选中的船长
     @Published var gearCaptainID: UUID?
 
+    /// 首次启动新手引导
+    @Published var showOnboarding = false
+    @Published var showSettings = false
+    private var lastCatchCount = 0
+    lazy var storeManager: StoreManager = StoreManager { [weak self] in
+        guard let self, !self.state.isFullVersion else { return }
+        self.state.grantFullVersion(); self.save()
+        self.toast = "已解锁完整版，谢谢支持！"
+    }
+
     let config = EconomyConfig()
     private let store = SaveStore.defaultStore()
     private var timer: AnyCancellable?
@@ -40,6 +50,19 @@ final class GameViewModel: ObservableObject {
         if let i = args.firstIndex(of: "-ency"), i + 1 < args.count { encyclopediaFish = args[i + 1] }
         #endif
         seenEventCounter = state.eventCounter
+        lastCatchCount = state.totalFishCaught
+        let onboarded = UserDefaults.standard.bool(forKey: "onboarded")
+        showOnboarding = (!onboarded && !args.contains("-demo") && !args.contains("-skipOnboarding")) || args.contains("-onboarding")
+        if args.contains("-settings") { showSettings = true }
+        if args.contains("-offline") {
+            offlineReport = OfflineReport(seconds: 3 * 3600 + 25 * 60, coins: 3200, gems: 3, events: 7)
+        }
+    }
+
+    func finishOnboarding() {
+        UserDefaults.standard.set(true, forKey: "onboarded")
+        showOnboarding = false
+        AudioManager.shared.play(.open)
     }
 
     #if DEBUG
@@ -75,6 +98,8 @@ final class GameViewModel: ObservableObject {
     #endif
 
     func resume() {
+        AudioManager.shared.startMusic()
+        _ = storeManager
         let gemsBefore = state.gems, eventsBefore = state.eventCounter
         let r = state.applyElapsed(now: Date(), config: config)
         if r.seconds > 60, r.coins > 0 {
@@ -91,6 +116,7 @@ final class GameViewModel: ObservableObject {
     }
 
     func pauseAndSave() {
+        AudioManager.shared.stopMusic()
         timer?.cancel(); timer = nil
         state.applyElapsed(now: Date(), config: config)
         save()
@@ -102,6 +128,13 @@ final class GameViewModel: ObservableObject {
             seenEventCounter = state.eventCounter
             eventBanner = state.eventLog.first?.text
         }
+        if state.totalFishCaught != lastCatchCount {
+            if state.totalFishCaught > lastCatchCount {
+                AudioManager.shared.play(.coin, volume: 0.5)
+                AudioManager.shared.haptic(.soft)
+            }
+            lastCatchCount = state.totalFishCaught
+        }
         ticksSinceSave += 1
         if ticksSinceSave >= 50 { ticksSinceSave = 0; save() }   // 每 5 秒存档
     }
@@ -109,7 +142,19 @@ final class GameViewModel: ObservableObject {
     private func save() { try? store.save(state) }
 
     private func perform(_ action: (inout GameState) throws -> Void) {
-        do { try action(&state); save() }
+        do {
+            try action(&state); save()
+            AudioManager.shared.play(.upgrade, volume: 0.5)
+            AudioManager.shared.haptic(.medium)
+        } catch {
+            AudioManager.shared.play(.error, volume: 0.5)
+            AudioManager.shared.notify(.warning)
+            report(error)
+        }
+    }
+
+    private func report(_ error: Error) {
+        do { throw error }
         catch GameError.notEnoughCoins { toast = "金币不足" }
         catch GameError.maxCaptains { toast = "船长已满员" }
         catch GameError.areaLocked { toast = "海域未解锁" }
@@ -139,13 +184,26 @@ final class GameViewModel: ObservableObject {
     /// 唯一的付费开关（下一轮由 StoreKit 2 的交易结果驱动）
     var isFullVersion: Bool { state.isFullVersion }
 
-    /// 「解锁完整版」入口。StoreKit 2 接入前：DEBUG 直接授予，Release 提示即将上线
+    /// 「解锁完整版」：StoreKit 2 购买；成功后由 StoreManager 回调授予 isFullVersion
     func purchaseFullVersion() {
-        #if DEBUG
-        state.grantFullVersion(); save(); toast = "已解锁完整版（调试）"
-        #else
-        toast = "内购即将上线"
-        #endif
+        Task {
+            let ok = await storeManager.purchase()
+            if ok { AudioManager.shared.play(.catchFish); AudioManager.shared.notify(.success) }
+            else if !state.isFullVersion { toast = "购买未完成" }
+        }
+    }
+
+    func restorePurchases() {
+        Task {
+            let ok = await storeManager.restore()
+            toast = ok ? "已恢复购买" : "没有找到可恢复的购买"
+        }
+    }
+
+    func collectOffline() {
+        offlineReport = nil
+        AudioManager.shared.play(.catchFish)
+        AudioManager.shared.notify(.success)
     }
 
     var season: Season { state.season(at: Date(), config: config) }

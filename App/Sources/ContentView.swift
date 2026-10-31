@@ -13,9 +13,22 @@ struct ContentView: View {
                 SeaSceneView(state: game.state, config: game.config)
                     .ignoresSafeArea(edges: .top)
                 VStack(spacing: 8) {
-                    HUDView(coins: game.state.coins, gems: game.state.gems, fish: game.state.totalFishCaught,
-                            season: game.season, secondsLeft: Season.secondsUntilNext(Date(), seasonSeconds: game.config.seasonSeconds),
-                            full: game.isFullVersion)
+                    HStack(alignment: .top, spacing: 8) {
+                        HUDView(coins: game.state.coins, gems: game.state.gems, fish: game.state.totalFishCaught,
+                                season: game.season, secondsLeft: Season.secondsUntilNext(Date(), seasonSeconds: game.config.seasonSeconds),
+                                full: game.isFullVersion)
+                        Button {
+                            AudioManager.shared.play(.open); AudioManager.shared.haptic()
+                            game.showSettings = true
+                        } label: {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(Color(red: 0.35, green: 0.25, blue: 0.15))
+                                .frame(width: 40, height: 40)
+                                .background(.ultraThinMaterial, in: Circle())
+                        }
+                        .accessibilityLabel("设置")
+                    }
                     if let banner = game.eventBanner {
                         Text(banner)
                             .font(.footnote.bold()).multilineTextAlignment(.center)
@@ -44,6 +57,7 @@ struct ContentView: View {
                     }
                     Button(showPanel ? "收起 ▼" : "港口管理 ▲") {
                         withAnimation(.spring) { showPanel.toggle() }
+                        AudioManager.shared.play(.tap); AudioManager.shared.haptic()
                     }
                     .buttonStyle(.borderedProminent).tint(.orange)
                 }
@@ -70,16 +84,17 @@ struct ContentView: View {
                              set: { game.encyclopediaFish = $0?.id })) { ref in
             EncyclopediaView(fishID: ref.id).environmentObject(game)
         }
-        .alert("船长们还在海上！", isPresented: Binding(
-            get: { game.offlineReport != nil },
-            set: { if !$0 { game.offlineReport = nil } })) {
-            Button("收下") { game.offlineReport = nil }
-        } message: {
+        .overlay {
             if let r = game.offlineReport {
-                Text("你离开的 \(formatDuration(r.seconds)) 里，船长们根本没打算回来：\n赚了 \(r.coins) 金币 🪙" +
-                     (r.gems > 0 ? "、\(r.gems) 宝石 💎" : "") + "，经历 \(r.events) 件海上趣事（见日志）")
+                ZStack {
+                    Color.black.opacity(0.35).ignoresSafeArea()
+                    OfflineSummaryView(report: r) { withAnimation(.spring) { game.collectOffline() } }
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.9)))
             }
         }
+        .fullScreenCover(isPresented: $game.showOnboarding) { OnboardingView().environmentObject(game) }
+        .sheet(isPresented: $game.showSettings) { SettingsView(store: game.storeManager).environmentObject(game) }
         .overlay(alignment: .center) {
             if let t = game.toast {
                 Text(t).font(.headline).padding().background(.black.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
@@ -141,6 +156,7 @@ struct ControlPanel: View {
                 Text("鱼缸").tag(4)
                 Text("日志").tag(5)
             }.pickerStyle(.segmented)
+            .onChange(of: game.panelTab) { _, _ in AudioManager.shared.play(.tap, volume: 0.4); AudioManager.shared.haptic(.light) }
             ScrollView {
                 switch game.panelTab {
                 case 0: captainList
@@ -152,6 +168,7 @@ struct ControlPanel: View {
                 }
             }
             .frame(maxHeight: 250)
+            .animation(.easeInOut(duration: 0.2), value: game.panelTab)
         }
         .padding(12)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))

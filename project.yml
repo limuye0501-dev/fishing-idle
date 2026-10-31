@@ -26,7 +26,9 @@ targets:
       properties:
         CFBundleDisplayName: 船长别回来
         CFBundleDevelopmentRegion: zh-Hans
-        UILaunchScreen: {}
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+          UIImageName: LaunchLogo
         UIRequiredDeviceCapabilities: [metal]
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
@@ -44,5 +46,8 @@ schemes:
     build:
       targets:
         FishingIdle: all
+    run:
+      config: Debug
+      storeKitConfiguration: App/FishingIdle.storekit
     test:
       targets: []

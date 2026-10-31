@@ -1,0 +1,21 @@
+{
+  "identifier" : "6C0F2A4E",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "12.0",
+      "familyShareable" : true,
+      "internalID" : "6740000001",
+      "localizations" : [
+        { "description" : "解锁全部海域、全部渔具与鱼缸扩容。一次购买，永久有效。", "displayName" : "解锁完整版", "locale" : "zh_CN" },
+        { "description" : "Unlock all seas, all fishing gear and aquarium upgrades. One-time purchase.", "displayName" : "Full Version", "locale" : "en_US" }
+      ],
+      "productID" : "com.example.fishingidle.fullversion",
+      "referenceName" : "Full Version",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : { "_failTransactionsEnabled" : false, "_locale" : "zh_CN", "_storefront" : "CHN" },
+  "subscriptionGroups" : [],
+  "version" : { "major" : 4, "minor" : 0 }
+}
