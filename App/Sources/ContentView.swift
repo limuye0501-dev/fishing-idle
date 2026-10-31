@@ -72,6 +72,7 @@ struct ContentView: View {
 
 struct HUDLayer: View {
     @EnvironmentObject var game: GameViewModel
+    @State private var railOpen = false
 
     var body: some View {
         let s = game.state
@@ -104,20 +105,31 @@ struct HUDLayer: View {
             Spacer()
             HStack(alignment: .bottom) {
                 MiniMapView(state: s)
-                    .frame(width: 150)
+                    .frame(width: 92)
+                    .opacity(0.92)
                     .onTapGesture { game.showMap = true }
                     .accessibilityElement()
                     .accessibilityLabel(tr("世界地图：船的位置", "World map: where the ship is"))
                     .accessibilityAddTraits(.isButton)
                     .accessibilityAction { game.showMap = true }
                 Spacer()
-                VStack(spacing: 10) {
-                    RoundButton(icon: "map.fill", title: tr("海图", "Chart")) { game.panel = .chart }
-                    RoundButton(icon: "circle.grid.cross.fill", title: tr("渔具", "Gear")) { game.panel = .gear }
-                    RoundButton(icon: "wrench.and.screwdriver.fill", title: tr("船坞", "Dock"), badge: s.skillPoints > 0) { game.panel = .dock }
-                    RoundButton(icon: "book.fill", title: tr("图鉴", "Codex")) { game.panel = .codex }
-                    RoundButton(icon: "fish.fill", title: tr("鱼缸", "Tank")) { game.panel = .tank }
-                    RoundButton(icon: "scroll.fill", title: tr("日志", "Log")) { game.panel = .log }
+                // v5：可折叠侧栏，默认只露出一个菜单按钮，画面更干净
+                VStack(spacing: 8) {
+                    if railOpen {
+                        Group {
+                            RoundButton(icon: "map.fill", title: tr("海图", "Chart")) { game.panel = .chart }
+                            RoundButton(icon: "circle.grid.cross.fill", title: tr("渔具", "Gear")) { game.panel = .gear }
+                            RoundButton(icon: "wrench.and.screwdriver.fill", title: tr("船坞", "Dock"), badge: s.skillPoints > 0) { game.panel = .dock }
+                            RoundButton(icon: "book.fill", title: tr("图鉴", "Codex")) { game.panel = .codex }
+                            RoundButton(icon: "fish.fill", title: tr("鱼缸", "Tank")) { game.panel = .tank }
+                            RoundButton(icon: "scroll.fill", title: tr("日志", "Log")) { game.panel = .log }
+                        }
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                    }
+                    RoundButton(icon: railOpen ? "xmark" : "line.3.horizontal", title: railOpen ? tr("收起", "Close") : tr("菜单", "Menu"),
+                                badge: !railOpen && s.skillPoints > 0) {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { railOpen.toggle() }
+                    }
                 }
             }
             BottomBar()

@@ -33,22 +33,22 @@ struct SkyPalette: Equatable {
         switch part {
         case .dusk, .dawn:
             // 参考图：粉金色晚霞
-            p = SkyPalette(zenith: rgb(0.93, 0.70, 0.74), mid: rgb(0.99, 0.80, 0.72), horizon: rgb(0.97, 0.87, 0.80),
-                           sun: rgb(1.0, 0.93, 0.70), sunVisible: true, sunX: part == .dusk ? 0.62 : 0.38,
+            p = SkyPalette(zenith: rgb(0.86, 0.62, 0.78), mid: rgb(0.99, 0.72, 0.66), horizon: rgb(0.99, 0.80, 0.68),
+                           sun: rgb(1.0, 0.88, 0.60), sunVisible: true, sunX: part == .dusk ? 0.30 : 0.70,
                            cloud: rgb(1.0, 0.80, 0.80), cloudShade: rgb(0.90, 0.62, 0.70), mountains: rgb(0.78, 0.66, 0.78),
-                           sea: rgb(0.33, 0.74, 0.76), lightColor: rgb(1.0, 0.82, 0.68), lightIntensity: 1500,
-                           ambient: rgb(1.0, 0.84, 0.82), ambientIntensity: 650, lightElevation: 0.22, stars: false, cloudCount: 7,
+                           sea: rgb(0.16, 0.70, 0.74), lightColor: rgb(1.0, 0.78, 0.56), lightIntensity: 1900,
+                           ambient: rgb(1.0, 0.80, 0.78), ambientIntensity: 620, lightElevation: 0.22, stars: false, cloudCount: 7,
                            fogStart: 45, fogEnd: 170)
         case .day:
             p = SkyPalette(zenith: rgb(0.48, 0.74, 0.93), mid: rgb(0.66, 0.85, 0.96), horizon: rgb(0.88, 0.94, 0.97),
                            sun: rgb(1.0, 0.98, 0.88), sunVisible: false, sunX: 0.8,
                            cloud: rgb(1.0, 1.0, 1.0), cloudShade: rgb(0.80, 0.86, 0.94), mountains: rgb(0.64, 0.76, 0.86),
-                           sea: rgb(0.28, 0.72, 0.78), lightColor: rgb(1.0, 0.97, 0.90), lightIntensity: 1800,
+                           sea: rgb(0.10, 0.70, 0.82), lightColor: rgb(1.0, 0.97, 0.90), lightIntensity: 1900,
                            ambient: rgb(0.86, 0.92, 1.0), ambientIntensity: 700, lightElevation: 0.75, stars: false, cloudCount: 6,
                            fogStart: 50, fogEnd: 190)
         case .night:
-            p = SkyPalette(zenith: rgb(0.08, 0.10, 0.26), mid: rgb(0.18, 0.18, 0.40), horizon: rgb(0.58, 0.47, 0.70),
-                           sun: rgb(0.98, 0.96, 0.85), sunVisible: true, sunX: 0.72,
+            p = SkyPalette(zenith: rgb(0.08, 0.10, 0.26), mid: rgb(0.18, 0.18, 0.40), horizon: rgb(0.24, 0.24, 0.46),
+                           sun: rgb(0.98, 0.96, 0.85), sunVisible: true, sunX: 0.30,
                            cloud: rgb(0.36, 0.34, 0.55), cloudShade: rgb(0.24, 0.22, 0.42), mountains: rgb(0.22, 0.22, 0.40),
                            sea: rgb(0.13, 0.32, 0.42), lightColor: rgb(0.70, 0.76, 1.0), lightIntensity: 500,
                            ambient: rgb(0.50, 0.52, 0.80), ambientIntensity: 420, lightElevation: 0.5, stars: true, cloudCount: 4,
@@ -93,7 +93,11 @@ struct SkyPalette: Equatable {
             // 高度至少覆盖地平线以上区域；宽度按比例，居中裁切
             let h = max(hy / artHorizon, size.width / art.size.width * art.size.height * 1.0)
             let w = h * art.size.width / art.size.height
-            let rect = CGRect(x: (size.width - w) / 2 + (artFlip ? 0 : -w * 0.08), y: hy - h * artHorizon, width: w, height: h)
+            // 太阳/月亮在贴图中的横向位置 → 对齐到屏幕约 30% 处
+            let artSun: CGFloat? = art.size.width > 0 ? (self.art == "dusk" ? 0.205 : (self.art == "night" ? 0.265 : nil)) : nil
+            var x0 = (size.width - w) / 2
+            if let a = artSun { x0 = min(0, max(size.width - w, size.width * 0.30 - w * a)) }
+            let rect = CGRect(x: x0, y: hy - h * artHorizon, width: w, height: h)
             if artFlip {
                 cg.saveGState(); cg.translateBy(x: size.width, y: 0); cg.scaleBy(x: -1, y: 1)
                 art.draw(in: rect); cg.restoreGState()

@@ -69,7 +69,7 @@ final class ShipScene: NSObject {
         lanternLight.light = l; lanternLight.position = SCNVector3(-0.5, 2.6, 1.6)
         shipNode.addChildNode(lanternLight)
         scene.rootNode.addChildNode(shipRoot)
-        shipRoot.eulerAngles.y = 0.42   // 船头偏向右前方，露出右舷
+        shipRoot.eulerAngles.y = 0.55   // 船头偏向右前方，露出右舷
         buildWake()
         buildGulls()
         buildRain()
@@ -90,16 +90,16 @@ final class ShipScene: NSObject {
         c.exposureOffset = 0.0
         c.whitePoint = 1.0
         c.minimumExposure = -1; c.maximumExposure = 1
-        c.contrast = 0.06
-        c.saturation = 1.04
-        c.bloomIntensity = 0.35
-        c.bloomThreshold = 0.95
+        c.contrast = 0.12
+        c.saturation = 1.18
+        c.bloomIntensity = 0.55
+        c.bloomThreshold = 0.85
         c.bloomBlurRadius = 14
-        c.vignettingIntensity = 0.45
+        c.vignettingIntensity = 0.30
         c.vignettingPower = 0.9
         if let lut = UIImage(named: "GradeLUT.png") { c.colorGrading.contents = lut; c.colorGrading.intensity = 0.6 }
         c.wantsDepthOfField = true
-        c.focusDistance = 13.2
+        c.focusDistance = 10.6
         c.fStop = 4.5
         c.apertureBladeCount = 6
         c.focalBlurSampleCount = 6
@@ -109,7 +109,7 @@ final class ShipScene: NSObject {
         c.screenSpaceAmbientOcclusionNormalThreshold = 0.3
         c.screenSpaceAmbientOcclusionDepthThreshold = 0.2
         cameraNode.camera = c
-        cameraNode.position = SCNVector3(0.4, 5.6, 12.2)
+        cameraNode.position = SCNVector3(0.3, 5.0, 10.0)   // v5：更近的三分之四视角
         cameraNode.eulerAngles = SCNVector3(pitch, 0, 0)
         scene.rootNode.addChildNode(cameraNode)
     }
@@ -305,14 +305,14 @@ final class ShipScene: NSObject {
         ambient.light?.color = p.ambient; ambient.light?.intensity = p.ambientIntensity
         let ys = Float((p.sunX - 0.5) * 0.9), se: Float = night0 ? 0.35 : 0.12
         let sunDir = SCNVector3(sin(ys) * cos(se), sin(se), -cos(ys) * cos(se))
-        let shallow = p.sea.mix(SkyPalette.rgb(0.36, 0.80, 0.77), night0 ? 0.2 : 0.6)
-        let deep = p.sea.mix(SkyPalette.rgb(0.10, 0.50, 0.56), night0 ? 0.3 : 0.6)
-        SeaShader.set(seaMat, shallow: shallow, deep: deep, sky: p.horizon.mix(p.mid, 0.3), foam: p.horizon.mix(.white, 0.75),
-                      sunDir: sunDir, yaw: state.phase == .docked ? 0 : 0.42, wake: state.phase == .sailing ? 1 : (state.phase == .fishing ? 0.3 : 0), night: night0 ? 0.35 : 0)
+        let shallow = p.sea.mix(SkyPalette.rgb(0.20, 0.84, 0.82), night0 ? 0.2 : 0.65)
+        let deep = p.sea.mix(SkyPalette.rgb(0.02, 0.44, 0.58), night0 ? 0.3 : 0.65)
+        SeaShader.set(seaMat, shallow: shallow, deep: deep, sky: p.horizon.mix(p.mid, 0.3), foam: p.horizon.mix(.white, 0.88),
+                      sunDir: sunDir, yaw: state.phase == .docked ? 0 : 0.55, wake: state.phase == .sailing ? 1 : (state.phase == .fishing ? 0.75 : 0.5), night: night0 ? 0.35 : 0)
         seaMat.setValue(NSNumber(value: weather == .storm || weather == .rain || weather == .fog ? 0.3 : 1.0), forKey: "causticAmt")
         seaMat.setValue(NSNumber(value: night0 ? 0.6 : (weather == .storm || weather == .fog ? 0.2 : 1.0)), forKey: "sparkleAmt")
         for n in cloudRoot.childNodes { n.geometry?.firstMaterial?.multiply.contents = p.cloud.mix(.white, 0.35) }
-        cloudRoot.isHidden = weather == .fog
+        cloudRoot.isHidden = true   // v5：手绘天空贴图自带云层
         scene.fogColor = p.horizon
         scene.fogStartDistance = p.fogStart; scene.fogEndDistance = p.fogEnd; scene.fogDensityExponent = 1.3
         scene.lightingEnvironment.contents = p.environmentImage()
@@ -320,17 +320,17 @@ final class ShipScene: NSObject {
         let night = part == .night
         windows?.emission.contents = night ? ShipModel.rgb(0.75, 0.55, 0.30) : UIColor.black
         lanternLight.light?.intensity = night ? 220 : 0
-        rim.light?.intensity = night ? 120 : (part == .dusk || part == .dawn ? 650 : 420)
+        rim.light?.intensity = night ? 160 : (part == .dusk || part == .dawn ? 900 : 420)
         rainNode.isHidden = !(weather == .rain || weather == .storm)
         rainNode.particleSystems?.first?.birthRate = weather == .storm ? 1600 : 700
         gulls.isHidden = night || weather == .storm || weather == .rain
         let polar = state.oceanID == "arctic" || state.oceanID == "southern"
         iceNode.isHidden = !(polar || weather == .ice)
-        scene.rootNode.childNode(withName: "glitter", recursively: false)?.isHidden = night || weather == .rain || weather == .storm || weather == .fog
+        scene.rootNode.childNode(withName: "glitter", recursively: false)?.isHidden = true   // v5：波光由海面着色器绘制
         let docked = state.phase == .docked
         portNode.isHidden = !docked
         wakeNode.isHidden = true
-        shipRoot.eulerAngles.y = docked ? 0 : 0.42
+        shipRoot.eulerAngles.y = docked ? 0 : 0.55
         startMotion(amp: weather == .storm ? 3.2 : (weather == .rain || weather == .breeze ? 1.6 : 1))
         scene.rootNode.removeAction(forKey: "lightning")
         if weather == .storm {
