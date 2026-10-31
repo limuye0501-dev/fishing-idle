@@ -213,7 +213,7 @@ enum ShipModel {
         // 船名
         let nameNode = SCNNode()
         setName(nameNode, name)
-        onStarboard(nameNode, x: 1.05, y: 0.62, out: 0.03)
+        onStarboard(nameNode, x: 1.15, y: 0.62, out: 0.08)
         ship.addChildNode(nameNode)
 
         // 驾驶室
@@ -387,7 +387,7 @@ enum ShipModel {
         let n = SCNNode(geometry: t)
         let (minB, maxB) = n.boundingBox
         let w = maxB.x - minB.x, h = maxB.y - minB.y
-        let scale = min(1, 2.0 / max(w, 0.01))
+        let scale = min(1, 1.45 / max(w, 0.01))
         n.scale = SCNVector3(scale, scale, 1)
         n.position = SCNVector3(-(minB.x + w / 2) * scale, -(minB.y + h / 2) * scale, 0)
         node.addChildNode(n)
