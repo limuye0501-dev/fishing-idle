@@ -1,44 +1,42 @@
-# App Store Metadata · English (U.S.) — draft
+# App Store Metadata · English (U.S.) — draft, v2
 
 **App name (≤30)**: Captain, Don't Come Back
 
-**Subtitle (≤30)**: Cozy idle fishing harbor
+**Subtitle (≤30)**: A cozy idle fishing voyage
 
 **Promotional text (≤170)**:
-Your bear captains sail out to fish — and never want to come home! Collect 32 real fish species across 8 real-world seas and earn while you're away. No ads, no tracking.
+Name your trawler and sail with your little captain from the East China Sea to the Southern Ocean. 39 real species, idle or hands-on fishing. No ads.
 
 **Keywords (≤100 bytes, comma-separated, no spaces)**:
-idle,fishing,fish,boat,captain,bear,ocean,aquarium,tycoon,relaxing,cozy,offline,collection,sea
+idle,fishing,fish,boat,trawler,captain,ocean,aquarium,relaxing,cozy,offline,sailing,collection
 
 **Description**:
-You run a tiny harbor by the sea and hire a crew of bear captains. They sail out, cast their nets, land the catch and sell it back at port — all on their own. The only catch? Once they're out at sea, they'd really rather not come back.
+You have one big fishing trawler of your own, skippered by a little boy in a white captain's cap. The ship is always at sea, fishing quietly through sunrises, sunsets, rain and fog. Heading back to port is up to you.
 
-RELAXING IDLE FISHING
-• Captains sail, fish and sell automatically — they keep working while you're away
-• Come back to a summary card of the coins, gems and sea stories you earned
-• Every captain has a personality: Old Salt, Quick Hands, Lucky, Won't Come Home, Storm Rider
+TWO WAYS TO FISH
+• Idle: your trawler keeps fishing while you're away, and a summary card shows the catch when you return
+• Hands-on: find a school on sonar, time your cast, then keep the line tension steady. Better play lands bigger, rarer fish
 
-A REAL OCEAN
-• 8 seas based on real places: off Zhoushan, Hainan's mangroves, Okinawa's reefs, California's kelp forests, the North Pacific, the Bering Sea, the Mariana Trench…
-• A live world map shows where each captain is right now
-• 32 real species, with names, ranges, habits and conservation status drawn from FishBase, Wikipedia and the IUCN Red List
-• Seasons rotate, and real-world fishing seasons decide what's biting
+SIX OCEANS
+• East China Sea → Atlantic → Pacific → Indian → Arctic → Southern Ocean, unlocked one by one
+• Strengthen your hull to push into the ice for Greenland sharks, Antarctic krill and Antarctic toothfish
+• A live mini map shows exactly where your ship is
 
-COLLECT AND GROW
-• Rods, traps, longlines, trawls and deep-sea nets — different gear lands different fish
-• Upgrade speed and hold size, and hire more captains
-• Complete a sea's Codex for a permanent income bonus
-• Keep your favourite catches in your own aquarium and tap one to learn about it
+RUN YOUR SHIP
+• Fuel, hold space and freshness: sell at full price in port, or call a carrier ship out at sea
+• Upgrade the engine, hold, sonar, net winch, icebox and hull, and learn captain skills
+• Weather, time of day and the seasons change what's biting
+• Quests, trophy fish, a Codex and your own aquarium
 
 FAIR BY DESIGN
-• One purchase unlocks the Full Version; gems are never sold
+• One purchase unlocks the Full Version. Gems are earned in game and never sold
 • No ads, no third-party analytics, no tracking, no personal data collected
 • Available in English and Simplified Chinese
 
-3D art by Kenney (CC0). World map from Natural Earth (public domain). Fish photos from Wikimedia Commons; authors and licenses are credited in the in-game Codex.
+3D scenes are original and generated in code. World map from Natural Earth (public domain). Fish photos from Wikimedia Commons; authors and licenses are credited in the in-game Codex.
 
-**In-app purchase**: Full Version (non-consumable) — unlocks every sea, all gear and aquarium upgrades
+**In-app purchase**: Full Version (non-consumable) — unlocks all 6 oceans and higher upgrade levels
 
-**What's New (1.0)**: First release!
+**What's New (2.0)**: A full redesign! One trawler you name yourself, six oceans, a hands-on fishing minigame, weather, day and night, and quests. Your old save carries over automatically.
 
 **Category**: Games › Casual / Simulation   **Age rating**: 4+ (suggested)
