@@ -114,7 +114,7 @@ struct CollectionView: View {
                 }
                 .padding(12).background(Color.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
             }
-            Text(tr("涂装数据已保存，船体 3D 着色由场景模块读取 ext.paint（待接入）。", "Paint is saved; the 3D hull tint reads ext.paint (hook pending)."))
+            Text(tr("涂装会实时显示在 3D 船身上。", "Paint shows live on the 3D hull."))
                 .font(.caption2).foregroundStyle(.secondary)
         }
         .padding(.horizontal)

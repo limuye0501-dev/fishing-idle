@@ -25,6 +25,41 @@ final class ShipScene: NSObject {
     private var lastKey = ""
     private var lastName = ""
     private var usingModels = false
+    private var lastPaint = ""
+    /// v7.5：涂装（FishingCore HullPaint）→ Meshy 船身贴图重着色：奶白区换船身色、青绿条纹换条纹色
+    private func applyPaint(_ id: String) {
+        guard let p = VoyageConfig.paints.first(where: { $0.id == id }),
+              let body = shipNode.childNode(withName: "ShipBody", recursively: true) ?? shipNode.childNodes.first(where: { $0.geometry != nil }) else { return }
+        let on: Float = id == "classic" ? 0 : 1
+        body.enumerateHierarchy { n, _ in
+            for m in n.geometry?.materials ?? [] {
+                if m.shaderModifiers?[.surface] == nil {
+                    m.shaderModifiers = [.surface: """
+                    #pragma arguments
+                    float paintOn;
+                    float3 paintHull;
+                    float3 paintStripe;
+                    #pragma body
+                    if (paintOn > 0.5) {
+                        float3 c = _surface.diffuse.rgb;
+                        float mx = max(c.r, max(c.g, c.b)), mn = min(c.r, min(c.g, c.b));
+                        float lum = dot(c, float3(0.299, 0.587, 0.114));
+                        float cream = smoothstep(0.62, 0.78, lum) * (1.0 - smoothstep(0.18, 0.32, mx - mn));
+                        float teal = smoothstep(0.04, 0.12, c.b - c.r) * smoothstep(0.04, 0.12, c.g - c.r);
+                        float3 hullC = paintHull * (lum / 0.85);
+                        float3 strC = paintStripe * (lum / 0.45);
+                        c = mix(c, hullC, cream);
+                        c = mix(c, strC, teal * (1.0 - cream));
+                        _surface.diffuse.rgb = c;
+                    }
+                    """]
+                }
+                m.setValue(NSNumber(value: on), forKey: "paintOn")
+                m.setValue(NSValue(scnVector3: SCNVector3(Float(p.hull.0), Float(p.hull.1), Float(p.hull.2))), forKey: "paintHull")
+                m.setValue(NSValue(scnVector3: SCNVector3(Float(p.stripe.0), Float(p.stripe.1), Float(p.stripe.2))), forKey: "paintStripe")
+            }
+        }
+    }
     private var lastCaught = -1
     private let rim = SCNNode()
     private let cloudRoot = SCNNode()
@@ -390,6 +425,7 @@ final class ShipScene: NSObject {
 
     // MARK: 同步
     func sync(state: VoyageState, now: Date) {
+        if usingModels, state.ext.paint != lastPaint { lastPaint = state.ext.paint; applyPaint(state.ext.paint) }
         if state.shipName != lastName { lastName = state.shipName; ShipModel.setName(nameNode, state.shipName) }
         if lastCaught >= 0, state.totalFishCaught > lastCaught, state.phase == .fishing || state.phase == .sailing {
             let colors = [UIColor(red: 1, green: 0.62, blue: 0.48, alpha: 1), UIColor(red: 0.98, green: 0.80, blue: 0.42, alpha: 1),

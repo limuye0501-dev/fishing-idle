@@ -77,8 +77,9 @@ final class MinigameFX {
         fxRoot.runAction(.repeatForever(.sequence([ping, .wait(duration: 1.4)])), forKey: "ping")
         // 水下鱼群（透过海面可见的暗色剪影，声波扫过时发光）
         for k in 0..<4 {
-            let a = Float(k) * 1.4 + 0.5, r: Float = 4.5 + Float(k % 2) * 2.5
-            let school = SCNNode(); school.position = SCNVector3(cos(a) * r, -0.35, sin(a) * r + 1.0)
+            // v7.5：鱼群限制在船前方镜头可见扇区内（不再出画）
+            let a = 0.45 + Float(k) * 0.75, r: Float = 3.0 + Float(k % 2) * 1.1
+            let school = SCNNode(); school.position = SCNVector3(cos(a) * r * 1.1, -0.35, sin(a) * r * 0.7 + 1.2)
             school.eulerAngles.y = -a + .pi / 2
             for j in 0..<5 {
                 guard let f = FishModels.node(fishIDs[(k + j) % fishIDs.count]) else { continue }
@@ -94,7 +95,7 @@ final class MinigameFX {
                 }
                 school.addChildNode(f)
             }
-            school.runAction(.repeatForever(.rotateBy(x: 0, y: 0.6, z: 0, duration: 4)))
+            school.runAction(.repeatForever(.sequence([.rotateBy(x: 0, y: 0.5, z: 0, duration: 2), .rotateBy(x: 0, y: -0.5, z: 0, duration: 2)])))   // 原地摆动，不游出画面
             // 被声波扫到：发光脉冲（环扩散速度 ~6m/s）
             let delay = Double(r) / 6.5
             let glow = SCNAction.customAction(duration: 0.9) { n, t in

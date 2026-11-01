@@ -131,6 +131,8 @@ struct FishingMinigameView: View {
                     }
                     .accessibilityLabel(tr("收工", "Done"))
                 }
+                .padding(.horizontal, 14).padding(.vertical, 8)
+                .background(Color(red: 0.05, green: 0.16, blue: 0.26).opacity(0.72), in: Capsule())
                 Text(hint).font(.system(.subheadline, design: .rounded)).foregroundStyle(Theme.cream.opacity(0.85))
                     .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 Spacer(minLength: 0)
@@ -143,7 +145,8 @@ struct FishingMinigameView: View {
                 Spacer(minLength: 0)
                 StagePips(stage: m.stage)
             }
-            .padding(20)
+            .padding(.horizontal, 20).padding(.bottom, 20)
+            .padding(.top, 128)   // v7.5：标题放在主界面金币/状态条下方，不再重叠
         }
         .onAppear {
             m.autoplay = game.autoplayMinigame
