@@ -101,7 +101,7 @@ final class VoyageTests: XCTestCase {
         }
         XCTAssertGreaterThan(avgValue(active: true), avgValue(active: false) * 1.3)
         var s = VoyageState(now: t0)
-        XCTAssertNil(s.activeCatch(quality: 0.05, now: t0))
+        XCTAssertNotNil(s.activeCatch(quality: 0.05, now: t0))   // v8：失败也有鱼
     }
 
     func testQuestRewards() {

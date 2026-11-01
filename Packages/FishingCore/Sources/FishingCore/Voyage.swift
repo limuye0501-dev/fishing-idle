@@ -170,9 +170,11 @@ public enum VoyageConfig {
     public static let baseSpeed = 0.6            // 海里/秒（游戏时间）
     public static let fuelPerHour = 8.0          // 作业时每小时油耗
     public static let fuelPerNM = 0.05           // 航行每海里油耗
-    public static let driftCatchFactor = 0.3     // 没油时漂流作业效率
+    public static let driftCatchFactor = 0.5     // 没油时漂流作业效率（v8：30%→50%，不卡死）
     public static let shelfLifeHours = 6.0       // 冰柜 1 级时的保鲜期
     public static let minFreshness = 0.3
+    /// 主动捕鱼体型系数：品质 0 → 0.6（失败也有鱼），品质 1 → 1.5
+    public static func activeKgFactor(quality q: Double) -> Double { 0.6 + 0.9 * max(0, min(1, q)) }
     public static let carrierPrice = 0.75        // 收购船价格
     public static let carrierCooldown: Double = 2 * 3600
     public static let carrierFuelPrice = 3       // 收购船上的油价（每单位）
@@ -270,7 +272,13 @@ public struct VoyageReport: Sendable {
     public var newSpecies: [String] = []
     public var arrived: String? = nil
     public var seconds: Double = 0
+    /// 期间发生的稀有/重要事件（日志文本，新→旧），用于“航海日志明信片”
+    public var events: [String] = []
+    public var trophies = 0
     public init() {}
+    /// 本次最值钱的一条
+    public var bestCatch: HoldFish? { catches.max { (VoyageConfig.fish($0.fishID)?.value ?? 0) < (VoyageConfig.fish($1.fishID)?.value ?? 0) } }
+
 }
 
 /// v2 游戏状态
@@ -477,6 +485,11 @@ public struct VoyageState: Codable, Sendable {
         guard dt > 0 else { return report }
         dt = min(dt, VoyageConfig.maxOfflineSeconds)
         report.seconds = dt
+        let eventsBefore = eventCounter, trophiesBefore = trophies
+        defer {
+            report.events = Array(eventLog.prefix(min(eventLog.count, eventCounter - eventsBefore))).map(\.text)
+            report.trophies = trophies - trophiesBefore
+        }
         var t = now.addingTimeInterval(-dt)
         while dt > 0 {
             let step = min(dt, 30)
@@ -703,13 +716,13 @@ public struct VoyageState: Codable, Sendable {
     public mutating func activeCatch(quality: Double, now: Date) -> HoldFish? {
         advance(to: now)
         guard phase == .fishing else { return nil }
+        // v8：小游戏失败不丢鱼，只降低品质/体型（kgFactor 0.6…1.5）
         let q = max(0, min(1, quality))
-        guard q > 0.15 else { return nil }
         var report = VoyageReport()
         guard let t = pickFish(pool(at: now).isEmpty ? ocean.fish : pool(at: now), rare: rareMultiplier(at: now, active: q), now: now) else { return nil }
         activeCatches += 1
         fuel = max(0, fuel - 0.3)
-        return stow(t, kgFactor: 1 + 0.5 * q, active: true, now: now, report: &report)
+        return stow(t, kgFactor: VoyageConfig.activeKgFactor(quality: q), active: true, now: now, report: &report)
     }
 
     // MARK: 任务
