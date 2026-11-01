@@ -15,3 +15,4 @@ Reference: store asset 694d119b...jpg (pink-gold sunset, painted toy boat close 
 - Step5 result: CI 41253362792 green; sun disc visible. Remaining: foreground still bright cyan, no glitter column under sun, bow spray weak, no captain on deck, net white/not rope-brown.
 - Step6 (v5.2a): captain was at x=2.1 under the net bag (hidden) -> moved to (-0.35, deck, 0.55) facing camera; wider/closer glitter band; darker fg sea; speckled bow spray. Blender rebuild w/ NetBrown pending.
 - Step7 (v5.2b): Blender rebuild (NetBrown net, flat flag/radar), RES 4096, Ship.usdz replaced.
+- Step7 result: CI 41255461331 green. Captain now visible (partly behind net), brown net OK. REGRESSION: bow spray uses floor(lp*9) cells -> blocky square specks in wake; replace with round dots. Foreground sea still bright; glitter path still faint. Next: fix spray, darken fg via deepColor near camera, move captain to x=-0.9.
