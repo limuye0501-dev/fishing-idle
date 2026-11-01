@@ -98,8 +98,10 @@ float lobe = exp(-lz * lz) * smoothstep(0.0, 0.015, dep) * (1.0 - smoothstep(0.1
 float gn = sin(p.x * 2.7 + g.y * 9.0 + t * 1.7) * sin(p.y * 9.5 - g.x * 7.0 - t * 1.2) + 0.6 * sin(p.x * 6.3 - p.y * 4.1 + t * 2.6);
 float gsp = smoothstep(0.35, 1.1, gn + hgt * 0.4);
 float3 gold = float3(1.0, 0.80, 0.42);
-col = mix(col, gold * 1.1, clamp(lobe * (0.15 + 0.3 * gsp), 0.0, 0.5) * (1.0 - nightAmt));   // v6.1c：减弱旧光斑
-col += gold * lobe * gsp * 0.4 * (1.0 - nightAmt);
+// v7.6：参考图那样明显的金色波光路径（被波纹打碎成亮片）
+float gsp2 = smoothstep(0.55, 1.0, gn + hgt * 0.5);
+col = mix(col, gold * 1.15, clamp(lobe * (0.25 + 0.55 * gsp), 0.0, 0.8) * (1.0 - nightAmt));
+col += float3(1.0, 0.92, 0.75) * lobe * (gsp * 0.5 + gsp2 * 0.9) * (1.0 - nightAmt);
 
 // —— 白色浪尖（风浪碎沫）——
 float crestN = sin(p.x * 5.3 + p.y * 3.7 + t * 1.1) * sin(p.y * 6.1 - p.x * 2.9 - t * 0.8);
@@ -109,17 +111,19 @@ crest *= nearF * sparkleAmt;
 // —— 船体四周泡沫环（紧贴吃水线）——
 float ell = length(lp / float2(4.75, 1.72));
 float nz = sin(lp.x * 3.1 + t * 1.3) * sin(lp.y * 4.7 - t * 1.1) * 0.5 + sin(lp.x * 7.0 - t * 2.0) * 0.25;
-float foam = (1.0 - smoothstep(1.0, 1.40, ell + nz * 0.07)) * smoothstep(0.78, 0.97, ell + nz * 0.04);
+float churn = 0.5 + 0.5 * sin(lp.x * 11.0 - t * 6.0 + sin(lp.y * 9.0 + t * 4.0) * 2.0) * sin(lp.y * 13.0 + t * 5.0);
+float foam = (1.0 - smoothstep(1.0, 1.18, ell + nz * 0.07)) * smoothstep(0.88, 0.99, ell + nz * 0.04) * (0.6 + 0.4 * churn);   // v7.6：细泡沫线
 // —— 船首浪：从船头向两侧后方张开的 V ——
 float bx = 4.6 - lp.x;
 float bowSpread = 1.0 + bx * 0.36;
-float bowLine = (1.0 - smoothstep(0.0, 0.30 + bx * 0.03, abs(abs(lp.y) - bowSpread))) * smoothstep(-0.3, 0.6, bx) * (1.0 - smoothstep(5.0, 16.0, bx));
-float bowFoam = (1.0 - smoothstep(0.0, 2.0, length(float2(lp.x - 4.4, lp.y * 1.3)))) * 1.0;
+float bowLine = (1.0 - smoothstep(0.0, 0.22 + bx * 0.02, abs(abs(lp.y) - bowSpread))) * smoothstep(-0.3, 0.6, bx) * (1.0 - smoothstep(2.0, 7.0, bx));   // v7.6：短而碎
+// v7.6：船首翻涌白浪——紧贴船头，高频碎沫
+float bowFoam = (1.0 - smoothstep(0.3, 1.5, length(float2(lp.x - 4.1, lp.y * 0.9)))) * smoothstep(0.25, 0.75, churn + nz * 0.5);
 // —— 尾浪：船尾之后呈 V 形扩散，逐渐淡出 ——
 float back = -lp.x - 4.2;
 float spread = 0.9 + back * 0.30;
-float wakeCore = (1.0 - smoothstep(spread * 0.30, spread * 0.9, abs(lp.y))) * smoothstep(-0.5, 1.0, back) * (1.0 - smoothstep(4.0, 26.0, back));
-float wakeEdge = (1.0 - smoothstep(0.0, 0.7, abs(abs(lp.y) - spread))) * smoothstep(0.0, 1.5, back) * (1.0 - smoothstep(8.0, 34.0, back));
+float wakeCore = (1.0 - smoothstep(spread * 0.15, spread * 0.5, abs(lp.y))) * smoothstep(-0.5, 1.0, back) * (1.0 - smoothstep(2.0, 14.0, back)) * 0.6;   // v7.6：收窄尾浪
+float wakeEdge = (1.0 - smoothstep(0.0, 0.35, abs(abs(lp.y) - spread))) * smoothstep(0.0, 1.5, back) * (1.0 - smoothstep(5.0, 22.0, back)) * 0.7;
 float streaks = 0.55 + 0.45 * sin(lp.y * 9.0 + sin(back * 1.3 - t * 2.0) * 1.5) * sin(back * 2.2 - t * 3.0);
 float wake = clamp((wakeCore * 0.9 * streaks + wakeEdge * 1.1 * (0.7 + 0.3 * nz) + bowLine * 1.2 * (0.75 + 0.25 * nz) + bowFoam) * wakeOn, 0.0, 1.0);
 float fm = clamp(foam * (0.8 + 0.2 * nz) + wake + crest * 0.8, 0.0, 1.0);
