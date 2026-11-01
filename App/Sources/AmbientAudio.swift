@@ -10,13 +10,15 @@ final class AmbientAudio {
     private let bed = AVAudioPlayerNode(), rain = AVAudioPlayerNode()
     private var bedName = "", rainOn = false, started = false
     private(set) var underwater = false
+    private static let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
 
     private init() {
         engine.attach(bed); engine.attach(rain); engine.attach(eq)
         let b = eq.bands[0]; b.filterType = .lowPass; b.frequency = 20_000; b.bandwidth = 1; b.bypass = false
-        engine.connect(bed, to: eq, format: nil)
-        engine.connect(rain, to: eq, format: nil)
-        engine.connect(eq, to: engine.mainMixerNode, format: nil)
+        // 素材统一为 44.1kHz 单声道；固定连接格式，运行中不再改图（改图会让引擎停下导致 play() 抛异常）
+        engine.connect(bed, to: eq, format: Self.format)
+        engine.connect(rain, to: eq, format: Self.format)
+        engine.connect(eq, to: engine.mainMixerNode, format: Self.format)
     }
 
     static func bedFor(ocean: Ocean) -> String {
@@ -36,10 +38,8 @@ final class AmbientAudio {
     }
 
     private func loop(_ node: AVAudioPlayerNode, _ name: String) {
-        guard let b = buffer(name) else { return }
+        guard engine.isRunning, let b = buffer(name), b.format == Self.format else { return }
         node.stop()
-        engine.disconnectNodeOutput(node)
-        engine.connect(node, to: eq, format: b.format)
         node.scheduleBuffer(b, at: nil, options: .loops)
         node.play()
     }

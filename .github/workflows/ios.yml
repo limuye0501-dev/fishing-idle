@@ -93,6 +93,16 @@ jobs:
           kill -INT $REC
           wait $REC || true
           ls -la video
+      - name: Crash reports
+        if: always()
+        run: |
+          mkdir -p crashes
+          find ~/Library/Logs/DiagnosticReports -name "*ishing*" -newer screens 2>/dev/null | head -3 | while read f; do cp "$f" crashes/; echo "== $f"; head -c 8000 "$f"; done || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: crash-reports
+          path: crashes/
       - uses: actions/upload-artifact@v4
         if: always()
         with:
