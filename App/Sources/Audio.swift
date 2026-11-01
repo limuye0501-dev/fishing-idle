@@ -38,12 +38,13 @@ final class AudioManager {
         guard sfxOn else { return }
         if players[s] == nil, let u = url(s.rawValue) { players[s] = try? AVAudioPlayer(contentsOf: u) }
         guard let p = players[s] else { return }
-        p.volume = volume
+        p.volume = volume * Float(AppSettings.shared.sfxVolume)
         p.currentTime = 0
         p.play()
     }
 
-    private let musicVolume: Float = 0.35
+    private var musicVolume: Float { 0.5 * Float(AppSettings.shared.musicVolume) }
+    func applyMusicVolume() { bgm?.volume = musicVolume }
     private var fadeToken = 0
 
     /// 回到前台：从静音淡入

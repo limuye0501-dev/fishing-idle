@@ -82,6 +82,38 @@ struct PillButton: View {
     }
 }
 
+/// v9：点一下升 1 级；长按 0.4 秒后连续升级，直到钱不够或满级
+struct RepeatPillButton: View {
+    let title: String
+    var tint: Color = Theme.coral
+    var enabled = true
+    let tap: () -> Void
+    let repeatStep: () -> Bool
+    @State private var timer: Timer?
+    @State private var repeating = false
+    var body: some View {
+        Text(title).font(.system(.caption, design: .rounded).bold()).foregroundStyle(.white)
+            .padding(.horizontal, 12).padding(.vertical, 7)
+            .background(enabled ? (repeating ? Theme.teal : tint) : Color.gray.opacity(0.5), in: Capsule())
+            .scaleEffect(repeating ? 1.08 : 1)
+            .onTapGesture { if enabled { tap() } }
+            .onLongPressGesture(minimumDuration: 0.4, perform: {}, onPressingChanged: { pressing in
+                if pressing && enabled {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        guard timer == nil else { return }
+                        repeating = true
+                        timer = Timer.scheduledTimer(withTimeInterval: 0.18, repeats: true) { t in
+                            MainActor.assumeIsolated { if !repeatStep() { t.invalidate(); timer = nil; repeating = false } }
+                        }
+                    }
+                } else { timer?.invalidate(); timer = nil; repeating = false }
+            })
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHint(tr("长按连续升级", "Long-press to upgrade repeatedly"))
+            .accessibilityAction { if enabled { tap() } }
+    }
+}
+
 // MARK: - 海图：选择大洋、解锁、航行
 struct ChartPanel: View {
     @EnvironmentObject var game: GameViewModel
@@ -217,7 +249,8 @@ struct DockPanel: View {
                         else if lv >= s.maxPartLevel { FullVersionBadge() }
                         else {
                             let c = VoyageConfig.partCost(p, level: lv)
-                            PillButton(title: "\(c.formatted())🪙", enabled: s.phase == .docked && s.coins >= c) { game.upgrade(p) }
+                            RepeatPillButton(title: "\(c.formatted())🪙", enabled: s.phase == .docked && s.coins >= c,
+                                             tap: { game.upgrade(p) }, repeatStep: { game.upgradeRepeat(p) })
                         }
                     }
                     Text(p.desc).font(.caption2).foregroundStyle(.secondary)

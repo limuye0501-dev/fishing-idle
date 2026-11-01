@@ -17,11 +17,23 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            SeaSceneView(state: game.state)
+            SeaSceneView(state: game.state, photoMode: game.photoMode, catHearts: game.catHearts) { game.petCat() }
                 .ignoresSafeArea()
                 .accessibilityElement()
                 .accessibilityLabel(tr("\(game.state.shipName) 在\(game.state.ocean.zhName)", "\(game.state.shipName) in the \(game.state.ocean.enName)"))
-            HUDLayer()
+            if game.photoMode {
+                PhotoModeOverlay().transition(.opacity)
+            } else {
+                HUDLayer()
+            }
+        }
+        .sheet(isPresented: $game.showRecords) {
+            CollectionView().environmentObject(game)
+                .presentationDetents([.large]).presentationBackground(Theme.cream)
+        }
+        .sheet(item: $game.shareRecord) { r in
+            RecordShareSheet(record: r).environmentObject(game)
+                .presentationDetents([.large]).presentationBackground(Theme.cream)
         }
         .sheet(item: $game.panel) { p in
             PanelSheet(panel: p).environmentObject(game)
@@ -123,6 +135,8 @@ struct HUDLayer: View {
                             RoundButton(icon: "book.fill", title: tr("图鉴", "Codex")) { game.panel = .codex }
                             RoundButton(icon: "fish.fill", title: tr("鱼缸", "Tank")) { game.panel = .tank }
                             RoundButton(icon: "scroll.fill", title: tr("日志", "Log")) { game.panel = .log }
+                            RoundButton(icon: "star.fill", title: tr("收藏", "Collection")) { game.showRecords = true }
+                            RoundButton(icon: "camera.fill", title: tr("拍照", "Photo")) { withAnimation { railOpen = false; game.photoMode = true } }
                         }
                         .transition(.move(edge: .trailing).combined(with: .opacity))
                     }

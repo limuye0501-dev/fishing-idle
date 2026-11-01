@@ -65,6 +65,11 @@ jobs:
           shot mg-haul3d -demo -hour 18 -minigame -autoplay -mghold reel $ZH
           shot offline -demo -hour 18 -offline $ZH
           shot settings -demo -settings $ZH
+          shot photo -demo -hour 18 -photo $ZH
+          shot records -demo -records $ZH
+          shot notes -demo -records -notes $ZH
+          shot share-card -demo -share $ZH
+          shot en-share-card -demo -share $EN
           shot ency-sardine -demo -ency sardine $ZH
           shot en-onboarding $EN
           shot en-main-dusk -demo -hour 18 $EN

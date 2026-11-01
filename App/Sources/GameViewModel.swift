@@ -13,6 +13,7 @@ struct OfflineReport {
     var bestFishID: String? = nil
     var trophies = 0
     var fuelEmpty = false
+    var rareEvents: [RareEvent] = []
 }
 
 /// 面板
@@ -34,10 +35,16 @@ final class GameViewModel: ObservableObject {
     @Published var showOnboarding = false
     @Published var showSettings = false
     @Published var showNaming = false
-    @Published var showMinigame = false
+    @Published var showMinigame = false { didSet { AmbientAudio.shared.setUnderwater(showMinigame) } }   // v9：收线时水下闷声
     /// 最近一条捕获（浮动提示）
     @Published var lastCatch: HoldFish?
     @Published var migratedFromV1 = false
+    // v9
+    @Published var photoMode = false
+    @Published var shareRecord: RecordCatch?
+    @Published var catHearts = 0          // 触发爱心动画
+    @Published var showRecords = false
+    @Published var showNotes = false
     /// 演示：小游戏自动玩
     var autoplayMinigame = false
     private var seenEventCounter = 0
@@ -78,6 +85,10 @@ final class GameViewModel: ObservableObject {
         if let i = args.firstIndex(of: "-ocean"), i + 1 < args.count { state.oceanID = args[i + 1] }
         if args.contains("-minigame") { showMinigame = true; autoplayMinigame = args.contains("-autoplay") }
         if args.contains("-naming") { showNaming = true }
+        if args.contains("-photo") { photoMode = true }
+        if args.contains("-records") { showRecords = true }
+        if args.contains("-notes") { showNotes = true }
+        if args.contains("-share") { shareRecord = RecordCatch(fishID: "mahimahi", kg: 21.4, date: Date(), weather: .sunny, oceanID: "pacific", shiny: true) }
         #endif
         seenEventCounter = state.eventCounter
         lastCatchCount = state.totalFishCaught
@@ -135,6 +146,12 @@ final class GameViewModel: ObservableObject {
         s.lastUpdate = start.addingTimeInterval(2.5 * 3600)
         s.advance(to: Date())
         s.fuel = s.fuelCapacity * 0.72
+        var e = s.ext
+        e.notes = [0, 2, 5, 6]; e.decor = ["sand", "kelp", "coral"]; e.paints = ["classic", "coral"]; e.catHearts = 12
+        e.shinies = ["clown": 1]
+        e.records["mahimahi"] = RecordCatch(fishID: "mahimahi", kg: 21.4, date: start, weather: .sunny, oceanID: "pacific", shiny: true)
+        e.records["seabream"] = RecordCatch(fishID: "seabream", kg: 3.1, date: start, weather: .fog, oceanID: "coastal", shiny: false)
+        s.v9 = e
         return s
     }
     #endif
@@ -148,7 +165,7 @@ final class GameViewModel: ObservableObject {
             offlineReport = OfflineReport(seconds: r.seconds, fish: r.catches.count, released: r.released,
                                           newSpecies: r.newSpecies.count, arrived: r.arrived,
                                           events: r.events, bestFishID: r.bestCatch?.fishID, trophies: r.trophies,
-                                          fuelEmpty: state.fuel <= 0)
+                                          fuelEmpty: state.fuel <= 0, rareEvents: r.rareEvents)
         }
         seenEventCounter = state.eventCounter
         lastCatchCount = state.totalFishCaught
@@ -167,6 +184,8 @@ final class GameViewModel: ObservableObject {
 
     private func tick(_ now: Date) {
         let r = state.advance(to: now)
+        AmbientAudio.shared.update(state: state, now: now)
+        if !r.rareEvents.isEmpty { AudioManager.shared.play(.rare, volume: 0.6); AudioManager.shared.notify(.success) }
         if let c = r.catches.last {
             lastCatch = c
             AudioManager.shared.play(.coin, volume: 0.4)
@@ -268,12 +287,36 @@ final class GameViewModel: ObservableObject {
     func finishMinigame(quality: Double) -> HoldFish? {
         let f = state.activeCatch(quality: quality, now: Date())
         save()
-        if f != nil { AudioManager.shared.play(.catchFish); AudioManager.shared.notify(.success) }
+        if let f {
+            AudioManager.shared.play(f.isShiny || (state.ext.records[f.fishID]?.kg == f.kg && f.kg >= (fish(f.fishID)?.baseKg ?? 1) * VoyageConfig.trophyFactor) ? .rare : .catchFish)
+            AudioManager.shared.notify(.success)
+        }
         else { AudioManager.shared.play(.error, volume: 0.4) }
         return f
     }
 
     var isFullVersion: Bool { state.isFullVersion }
+
+    // MARK: v9 船猫 / 装饰 / 涂装
+    func petCat() {
+        switch state.petCat(now: Date()) {
+        case .petted(let h):
+            save(); catHearts = h
+            AudioManager.shared.play(.purr); AudioManager.shared.notify(.success)
+            toast = tr("🐱 呼噜呼噜～ 1 小时内挂机 +10%", "🐱 Purr~ +10% idle catch for 1 hour")
+        case .sleepy:
+            AudioManager.shared.play(.purr, volume: 0.35); AudioManager.shared.haptic(.soft)
+            toast = tr("🐱 船猫眯着眼打了个哈欠（明天再来）", "🐱 The cat yawns lazily (come back tomorrow)")
+        }
+    }
+    func buyDecoration(_ id: String) { perform { try $0.buyDecoration(id) } }
+    func paint(_ id: String) { perform { try $0.buyOrApplyPaint(id) } }
+    /// 长按连续升级：返回是否成功（失败则停止连发）
+    @discardableResult
+    func upgradeRepeat(_ p: ShipPart) -> Bool {
+        do { try state.upgrade(p, now: Date()); AudioManager.shared.play(.upgrade, volume: 0.4); AudioManager.shared.haptic(.light); return true }
+        catch { save(); return false }
+    }
     func purchaseFullVersion() {
         Task {
             let ok = await storeManager.purchase()

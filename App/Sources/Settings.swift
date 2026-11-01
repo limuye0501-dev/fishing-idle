@@ -12,13 +12,20 @@ final class AppSettings: ObservableObject {
     @Published var reduceCameraMotion: Bool { didSet { d.set(reduceCameraMotion, forKey: "reduceCameraMotion") } }
     @Published var assistMode: Bool { didSet { d.set(assistMode, forKey: "assistMode") } }
     @Published var iCloudSync: Bool { didSet { d.set(iCloudSync, forKey: "iCloudSync") } }
+    @Published var ambienceVolume: Double { didSet { d.set(ambienceVolume, forKey: "ambienceVolume") } }
+    @Published var sfxVolume: Double { didSet { d.set(sfxVolume, forKey: "sfxVolume") } }
+    @Published var musicVolume: Double { didSet { d.set(musicVolume, forKey: "musicVolume") } }
 
     private init() {
-        d.register(defaults: ["fps": 30, "reduceCameraMotion": false, "assistMode": false, "iCloudSync": true])
+        d.register(defaults: ["fps": 30, "reduceCameraMotion": false, "assistMode": false, "iCloudSync": true,
+                               "ambienceVolume": 0.7, "sfxVolume": 0.8, "musicVolume": 0.6])
         fps = d.integer(forKey: "fps")
         reduceCameraMotion = d.bool(forKey: "reduceCameraMotion")
         assistMode = d.bool(forKey: "assistMode")
         iCloudSync = d.bool(forKey: "iCloudSync")
+        ambienceVolume = d.double(forKey: "ambienceVolume")
+        sfxVolume = d.double(forKey: "sfxVolume")
+        musicVolume = d.double(forKey: "musicVolume")
     }
 
     /// 系统“减弱动态效果”也视为减少镜头晃动

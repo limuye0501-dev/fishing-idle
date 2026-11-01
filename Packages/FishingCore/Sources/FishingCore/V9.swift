@@ -20,6 +20,9 @@ public struct RecordCatch: Codable, Hashable, Sendable {
     public let weather: Weather
     public let oceanID: String
     public let shiny: Bool
+    public init(fishID: String, kg: Double, date: Date, weather: Weather, oceanID: String, shiny: Bool) {
+        self.fishID = fishID; self.kg = kg; self.date = date; self.weather = weather; self.oceanID = oceanID; self.shiny = shiny
+    }
 }
 
 public struct VoyageExtras: Codable, Hashable, Sendable {

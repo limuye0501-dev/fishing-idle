@@ -50,6 +50,10 @@ struct SettingsView: View {
                     Toggle("🔊 音效", isOn: $sfx).onChange(of: sfx) { _, v in AudioManager.shared.sfxOn = v }
                     Toggle("🎵 背景音乐", isOn: $music).onChange(of: music) { _, v in AudioManager.shared.musicOn = v }
                     Toggle("📳 触感反馈", isOn: $haptics).onChange(of: haptics) { _, v in AudioManager.shared.hapticsOn = v }
+                    LabeledContent("🌊 环境声") { Slider(value: $settings.ambienceVolume, in: 0...1).frame(maxWidth: 170) }
+                    LabeledContent("🔔 音效音量") { Slider(value: $settings.sfxVolume, in: 0...1).frame(maxWidth: 170) }
+                    LabeledContent("🎵 音乐音量") { Slider(value: $settings.musicVolume, in: 0...1).frame(maxWidth: 170)
+                        .onChange(of: settings.musicVolume) { _, _ in AudioManager.shared.applyMusicVolume() } }
                 }
                 Section("完整版") {
                     if game.isFullVersion {
@@ -143,6 +147,8 @@ struct OnboardingView: View {
              text: tr("不在的时候船员会自己捕鱼。想玩的时候点「撒网」：看声呐找鱼群、掐准时机、稳住拉力，更容易钓到稀有的大鱼。", "The crew fishes while you're away. Tap Cast to play: find a school on sonar, time your throw and keep the line steady for rarer, bigger fish.")),
         Page(image: nil, emoji: "⛽️🧊", title: tr("燃油、鱼舱和新鲜度", "Fuel, hold and freshness"),
              text: tr("燃油会慢慢烧掉，鱼舱会装满，鱼也会不新鲜。可以叫收购船来海上收鱼，也可以回港全价卖、顺便改装。", "Fuel burns, the hold fills and fish lose freshness. Call the carrier ship at sea, or sail home for full prices and refits.")),
+        Page(image: nil, emoji: "🐱📸", title: tr("船猫、明信片和拍照", "The ship's cat, postcards and photos"),
+             text: tr("每天点一下甲板上的船猫，它会让船员干劲更足。离开再回来会收到航海明信片；菜单里的「拍照」可以隐藏界面给船拍美照，「收藏」里有纪录鱼卡片和漂流瓶。", "Pet the ship's cat on deck once a day for a crew boost. Come back to a voyage postcard; use Photo in the menu to hide the UI and snap your ship, and Collection for record cards and bottle notes.")),
         Page(image: nil, emoji: "🗺️🐧", title: tr("从近海到南大洋", "From home waters to the Southern Ocean"),
              text: tr("一片片解锁大西洋、太平洋、印度洋、北冰洋和南大洋，收集 39 种真实海洋生物。天气、昼夜和季节都会改变鱼群。", "Unlock the Atlantic, Pacific, Indian, Arctic and Southern Oceans and collect 39 real sea creatures. Weather, day and night and the seasons all change what bites.")),
     ] }
@@ -292,10 +298,11 @@ struct OfflineSummaryView: View {
             }
             .padding(12)
             .background(Color.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
-            if !report.events.isEmpty {
+            let lines = report.rareEvents.isEmpty ? report.events : report.rareEvents.map(\.text)
+            if !lines.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(tr("海上见闻", "Sightings at sea")).font(.caption.bold()).foregroundStyle(.secondary)
-                    ForEach(Array(report.events.prefix(3).enumerated()), id: \.offset) { _, e in
+                    ForEach(Array(lines.prefix(3).enumerated()), id: \.offset) { _, e in
                         Text(e).font(.system(.footnote, design: .serif)).lineLimit(2)
                     }
                 }

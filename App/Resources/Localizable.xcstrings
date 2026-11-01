@@ -1591,6 +1591,36 @@
           }
         }
       }
+    },
+    "🌊 环境声": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🌊 Ambience"
+          }
+        }
+      }
+    },
+    "🔔 音效音量": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🔔 Effects volume"
+          }
+        }
+      }
+    },
+    "🎵 音乐音量": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🎵 Music volume"
+          }
+        }
+      }
     }
   }
 }
