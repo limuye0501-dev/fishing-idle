@@ -486,10 +486,6 @@ public struct VoyageState: Codable, Sendable {
         dt = min(dt, VoyageConfig.maxOfflineSeconds)
         report.seconds = dt
         let eventsBefore = eventCounter, trophiesBefore = trophies
-        defer {
-            report.events = Array(eventLog.prefix(min(eventLog.count, eventCounter - eventsBefore))).map(\.text)
-            report.trophies = trophies - trophiesBefore
-        }
         var t = now.addingTimeInterval(-dt)
         while dt > 0 {
             let step = min(dt, 30)
@@ -497,6 +493,8 @@ public struct VoyageState: Codable, Sendable {
             tick(step, at: t, report: &report)
         }
         lastUpdate = now
+        report.events = Array(eventLog.prefix(min(eventLog.count, eventCounter - eventsBefore))).map(\.text)
+        report.trophies = trophies - trophiesBefore
         return report
     }
 
