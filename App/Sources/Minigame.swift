@@ -16,6 +16,9 @@ final class MinigameModel: ObservableObject {
     @Published var sweep = 0.0
     @Published var castPos = 0.0
     @Published var tension = 0.3
+    private var hapticClock = 0.0
+    /// 鱼的体力：收线进度越高越累
+    var fishStamina: Double { max(0, 1 - reelProgress) }
     @Published var reelProgress = 0.0
     @Published var reeling = false
     @Published var timeLeft = 0.0
@@ -74,6 +77,10 @@ final class MinigameModel: ObservableObject {
             if band.contains(tension) { reelProgress += dt * (reeling ? 0.24 : 0.08) }
             if hold == "reel" { reelProgress = min(reelProgress, 0.62); timeLeft = 9; tension = min(tension, 0.6) }
             MinigameBus.post("reel", progress: reelProgress)
+            // v9：张力触感反馈——危险区连续重震，绿区轻点
+            hapticClock += dt
+            if tension > 0.85, hapticClock > 0.22 { hapticClock = 0; AudioManager.shared.haptic(.heavy) }
+            else if band.contains(tension), reeling, hapticClock > 0.6 { hapticClock = 0; AudioManager.shared.haptic(.light) }
             if tension >= 1 { finish(snapped: true); return }
             if reelProgress >= 1 || timeLeft <= 0 { finish(snapped: false) }
         case .result: break
@@ -218,7 +225,11 @@ struct FishingMinigameView: View {
                 }
             }
             .frame(width: 70, height: 240)
-            ProgressView(value: min(1, m.reelProgress)).tint(Theme.gold)
+            .overlay(alignment: .top) { Text(tr("拉力", "Tension")).font(.caption2.bold()).foregroundStyle(Theme.cream).offset(y: -16) }
+            VStack(alignment: .leading, spacing: 4) {
+                Text(tr("鱼的体力", "Fish stamina")).font(.caption2.bold()).foregroundStyle(Theme.cream)
+                ProgressView(value: m.fishStamina).tint(m.fishStamina < 0.3 ? .green : Theme.coral)
+            }
             Text(tr("剩余 \(max(0, Int(m.timeLeft.rounded()))) 秒", "\(max(0, Int(m.timeLeft.rounded())))s left")).font(.caption).foregroundStyle(Theme.cream)
             Text(tr("按住收线", "Hold to reel"))
                 .font(.system(.title3, design: .rounded).bold()).foregroundStyle(.white)

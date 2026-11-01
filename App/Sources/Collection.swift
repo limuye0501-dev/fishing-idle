@@ -201,7 +201,7 @@ struct BottleCard: View {
                     .background(Theme.teal.opacity(0.15), in: Capsule()).foregroundStyle(Theme.teal) }
             }
             if found {
-                Text("“\(bottle.text)”").font(.system(.body, design: .serif)).foregroundStyle(Theme.ink)
+                Text(bottle.text).font(.system(.body, design: .serif)).foregroundStyle(Theme.ink)
                 if !bottle.original.isEmpty && open { Text(bottle.original).font(.system(.footnote, design: .serif)).foregroundStyle(.secondary) }
                 if open {
                     Text(bottle.note).font(.caption).foregroundStyle(Theme.ink.opacity(0.8))

@@ -51,3 +51,5 @@ Reference: store asset 694d119b...jpg (pink-gold sunset, painted toy boat close 
 - 队列 P0/P1：存档→杀进程→冷启动的离线结算 QA 测试；逐项收益明细（明信片 + 卖鱼提示）；挂机绝不自动换装；升级解锁新玩法（声呐 Lv2 目标鱼锁定、渔网 Lv4 双网、冰舱 Lv3 活鱼舱）；鱼缸只产贝壳🐚（装饰用贝壳买，去掉卖鱼加成）；一键观赏/助眠模式（常亮）；商店文案写明 6 片海/39 种鱼/时长
 - 未完成：涂装 3D 着色接入场景、鱼缸拍照、小游戏结算链接纪录；收线张力条/鱼体力条/触感（Minigame 由另一位同事在改，避免冲突，暂缓）
 - 漂流瓶改为“海洋史漂流瓶”：32 条真实公有领域史料摘录（鉴真、郑和碑、五月花号、纳尔逊情书、泰坦尼克电报、麦哲伦/Pigafetta、埃塞克斯号捕鲸船、库克、布莱、达·伽马、达尔文、南森、斯科特、沙克尔顿、Cherry-Garrard、达纳），按海域分布（每海 4–8 条），越远的海越稀有；收藏页按海域分组，标注“真实摘录”，点开可看原文、背景注释和出处。来源与 URL 见 docs/bottle-history-sources.md，生成脚本 tools/bottles/bottles.py。玩家互写瓶子/CloudKit 已按要求取消，未实现。
+- 启动崩溃修复：环境音改为 AVAudioPlayer 循环（AVAudioEngine 的 AVAudioPlayerNode.play() 在模拟器启动时抛 NSException）；CI 新增 crash-reports 产物
+- 收线小游戏：拉力条加标签、新增“鱼的体力”条；拉力进入危险区时连续重震，在绿区收线时轻震（“鱼不出画面”属于 3D 场景，由另一位同事负责，未改动）
