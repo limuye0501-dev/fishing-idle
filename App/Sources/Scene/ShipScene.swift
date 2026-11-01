@@ -310,7 +310,11 @@ final class ShipScene: NSObject {
     }
     private func buildGulls() {
         if usingModels, let g = Gulls.make(ship: shipNode, perch: SCNVector3(0.5, 5.32, 0.4)) {   // v7.3：Meshy 海鸥
-            gulls.addChildNode(g); scene.rootNode.addChildNode(gulls); addFunnelSmoke(); return
+            gulls.addChildNode(g); scene.rootNode.addChildNode(gulls); addFunnelSmoke()
+            // v7.6：偶尔一声轻柔的海鸥叫（CC0，见 CREDITS.md）
+            let call = SCNAction.run { _ in DispatchQueue.main.async { AudioManager.shared.play(.gull, volume: 0.22) } }
+            gulls.runAction(.repeatForever(.sequence([.wait(duration: 22, withRange: 16), call])), forKey: "gullCall")
+            return
         }
         for k in 0..<3 {
             let g = SCNNode()

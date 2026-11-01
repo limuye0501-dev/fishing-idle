@@ -68,6 +68,7 @@ App 图标与新手引导主视觉（`OnboardingHero`）为本项目用 AI 图�
 | File | Source | License |
 |---|---|---|
 | sfx_tap / sfx_upgrade / sfx_open / sfx_coin / sfx_error (`App/Resources/Audio`) | Kenney Interface Sounds (click_002, confirmation_002, maximize_006, drop_002, error_004), https://kenney.nl/assets/interface-sounds | CC0 |
+| sfx_gull | European Herring Gull (Larus argentatus) call by Philippe Grange, xeno-canto XC1002938, https://xeno-canto.org/1002938 (4 s excerpt, high-pass + loudness normalised) | CC0 1.0 |
 | sfx_catch | Kenney Music Jingles (jingles_PIZZI01), https://kenney.nl/assets/music-jingles | CC0 |
 | bgm_harbor | Original, procedurally synthesized for this game (tools/bgm.py) | Ours |
 
