@@ -96,12 +96,12 @@ final class ShipScene: NSObject {
         // HDR 后期：柔光泛光、暗角、调色 LUT、轻微景深
         c.wantsHDR = true
         c.wantsExposureAdaptation = false
-        c.exposureOffset = 0.0
+        c.exposureOffset = -0.12   // v7.4：船体不再过曝
         c.whitePoint = 1.0
         c.minimumExposure = -1; c.maximumExposure = 1
-        c.contrast = 0.04   // v6：更柔和
-        c.saturation = 1.04
-        c.bloomIntensity = 0.6
+        c.contrast = 0.12   // v6：更柔和
+        c.saturation = 1.12
+        c.bloomIntensity = 0.35
         c.bloomThreshold = 0.95
         c.bloomBlurRadius = 20
         c.vignettingIntensity = 0.30
@@ -409,8 +409,8 @@ final class ShipScene: NSObject {
         ambient.light?.color = p.ambient; ambient.light?.intensity = p.ambientIntensity
         let ys = Float((p.sunX - 0.5) * 0.9), se: Float = night0 ? 0.35 : 0.12
         let sunDir = SCNVector3(sin(ys) * cos(se), sin(se), -cos(ys) * cos(se))
-        let shallow = p.sea.mix(SkyPalette.rgb(0.42, 0.80, 0.78), night0 ? 0.0 : 0.65)
-        let deep = p.sea.mix(SkyPalette.rgb(0.16, 0.52, 0.60), night0 ? 0.0 : 0.65)
+        let shallow = p.sea.mix(SkyPalette.rgb(0.30, 0.70, 0.70), night0 ? 0.0 : 0.75)
+        let deep = p.sea.mix(SkyPalette.rgb(0.10, 0.45, 0.50), night0 ? 0.0 : 0.75)
         SeaShader.set(seaMat, shallow: shallow, deep: deep, sky: p.horizon.mix(p.mid, 0.3), foam: p.horizon.mix(.white, 0.97),
                       sunDir: sunDir, yaw: state.phase == .docked ? 0 : (usingModels ? -2.42 : -0.85), wake: state.phase == .sailing ? 1 : (state.phase == .fishing ? 0.75 : 0.5), night: night0 ? 0.6 : 0)
         seaMat.setValue(NSNumber(value: weather == .storm || weather == .rain || weather == .fog ? 0.3 : 1.0), forKey: "causticAmt")

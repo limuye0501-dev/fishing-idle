@@ -33,7 +33,7 @@ enum ModelAssets {
         // 柔和暖色底光：轻微自发光避免阴影过黑（治愈色调）
         n.enumerateHierarchy { c, _ in
             for m in c.geometry?.materials ?? [] where m !== wm && c.name != "Lantern" && !(c.parent?.name == "Lantern") {
-                m.emission.contents = UIColor(red: 0.10, green: 0.07, blue: 0.06, alpha: 1)
+                m.emission.contents = UIColor(red: 0.04, green: 0.03, blue: 0.025, alpha: 1)   // v7.4：减弱，恢复对比
             }
         }
         return Ship(node: n, windows: wm,
@@ -62,7 +62,7 @@ enum ModelAssets {
         }
         // v7.1：提亮（贴图自发光 + 正面补光/轮廓光），整体挥手式摇摆
         n.enumerateHierarchy { c, _ in
-            for m in c.geometry?.materials ?? [] { m.emission.contents = m.diffuse.contents; m.emission.intensity = 0.32 }
+            for m in c.geometry?.materials ?? [] { m.emission.contents = m.diffuse.contents; m.emission.intensity = 0.22 }
         }
         let fill = SCNNode(); fill.light = SCNLight(); fill.light!.type = .omni; fill.light!.intensity = 90
         fill.light!.color = UIColor(red: 1, green: 0.93, blue: 0.85, alpha: 1); fill.light!.attenuationStartDistance = 0.2; fill.light!.attenuationEndDistance = 1.2
