@@ -39,7 +39,7 @@ float2 uvC = p * 0.023 + float2(t * 0.006, -t * 0.004);
 float2 nA = detailN.sample(dS, uvA).xy * 2.0 - 1.0;
 float2 nB = detailN.sample(dS, uvB).xy * 2.0 - 1.0;
 float2 nC = detailN.sample(dS, uvC).xy * 2.0 - 1.0;
-float detailAmt = mix(0.10, 0.42, nearF);
+float detailAmt = mix(0.16, 0.65, nearF);
 g += (nA * 0.55 + nB * 0.35) * detailAmt + nC * 0.18;
 float3 nW = normalize(float3(-g.x, 1.0, -g.y));
 _surface.normal = normalize((scn_frame.viewTransform * float4(nW, 0.0)).xyz);
@@ -56,7 +56,10 @@ float steep = clamp(VwE.y, 0.0, 1.0);
 float depthT = smoothstep(0.08, 0.55, 1.0 - steep) * 0.8 + smoothstep(25.0, 140.0, camDist) * 0.2;
 float3 col = mix(shallowColor, deepColor, depthT);
 // 波谷更深、波峰更亮（体积感）
-col *= 1.0 + hgt * 0.10 * mix(0.4, 1.0, nearF);
+col *= 1.0 + hgt * 0.20 * mix(0.4, 1.0, nearF);
+// v8b：法线朝向光照的明暗（让波纹/细节法线真正可见）
+float3 Lk = normalize(float3(0.35, 0.75, -0.55));
+col *= 0.80 + 0.42 * clamp(dot(nW, Lk) * 1.6 - 0.75, 0.0, 1.0) + 0.10 * (nA.x * 0.5 + nB.y * 0.5) * nearF;
 col = mix(col, col * float3(0.78, 0.92, 1.0), smoothstep(0.1, 0.9, -hgt) * 0.30 * nearF);
 
 // —— 次表面散射：逆光波峰透出明亮青绿 ——
@@ -133,14 +136,14 @@ float bx = 4.6 - lp.x;
 float bowSpread = 1.0 + bx * 0.36;
 float bowLine = (1.0 - smoothstep(0.0, 0.22 + bx * 0.02, abs(abs(lp.y) - bowSpread))) * smoothstep(-0.3, 0.6, bx) * (1.0 - smoothstep(2.0, 7.0, bx));   // v7.6：短而碎
 // v7.6：船首翻涌白浪——紧贴船头，高频碎沫
-float bowFoam = (1.0 - smoothstep(0.3, 1.5, length(float2(lp.x - 4.1, lp.y * 0.9)))) * smoothstep(0.25, 0.75, churn + nz * 0.5);
+float bowFoam = 0.8 * (1.0 - smoothstep(0.2, 1.1, length(float2(lp.x - 4.1, lp.y * 0.9)))) * smoothstep(0.25, 0.75, churn + nz * 0.5);
 // —— 尾浪：船尾之后呈 V 形扩散，逐渐淡出 ——
 float back = -lp.x - 4.2;
 float spread = 0.9 + back * 0.30;
 float wakeCore = (1.0 - smoothstep(spread * 0.15, spread * 0.5, abs(lp.y))) * smoothstep(-0.5, 1.0, back) * (1.0 - smoothstep(2.0, 14.0, back)) * 0.6;   // v7.6：收窄尾浪
 float wakeEdge = (1.0 - smoothstep(0.0, 0.35, abs(abs(lp.y) - spread))) * smoothstep(0.0, 1.5, back) * (1.0 - smoothstep(5.0, 22.0, back)) * 0.7;
 float streaks = 0.55 + 0.45 * sin(lp.y * 9.0 + sin(back * 1.3 - t * 2.0) * 1.5) * sin(back * 2.2 - t * 3.0);
-float wake = clamp((wakeCore * 0.9 * streaks + wakeEdge * 1.1 * (0.7 + 0.3 * nz) + bowLine * 1.2 * (0.75 + 0.25 * nz) + bowFoam) * wakeOn, 0.0, 1.0);
+float wake = clamp((wakeCore * 0.9 * streaks + wakeEdge * 1.1 * (0.7 + 0.3 * nz) + bowLine * 0.55 * (0.6 + 0.4 * churn) + bowFoam) * wakeOn, 0.0, 1.0);
 float fm = clamp(foam * (0.8 + 0.2 * nz) + wake + crest * 0.8, 0.0, 1.0);
 col = mix(col, foamColor * 1.08, clamp(fm * 1.1, 0.0, 1.0));   // v6.1：更白的船首浪
 

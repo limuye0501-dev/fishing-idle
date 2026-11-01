@@ -62,3 +62,4 @@ Reference: store asset 694d119b...jpg (pink-gold sunset, painted toy boat close 
 - v7.5e: minigame hint text gets a dark backing for legibility over the 3D scene.
 - v7.6: SeaShader bow churn foam + narrower wake + stronger golden glitter path; camera y 5.0 (ship lower); tension bar slim & docked right; gull call sfx_gull (CC0, xeno-canto XC1002938) every ~6–38 s at 0.22 volume.
 - v8 sea rewrite (top priority per owner): Gerstner displacement mesh + analytic normals, 3-scale detail normal map, SSS crest tint, Schlick Fresnel, crest foam, horizon fog. See docs/rendering-techniques.md.
+- v8b: stronger wave shading (normal·light term), detail normals ×1.5, smaller bow smear.
