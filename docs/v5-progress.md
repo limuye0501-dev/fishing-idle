@@ -27,3 +27,4 @@ Reference: store asset 694d119b...jpg (pink-gold sunset, painted toy boat close 
 - Step13 (v5.5): v5.3b->v5.4 shader diff is only the glitter block (fg sea brightness same as v5.3b by eye). Lobe gc forced -0.40 (was sign of sunDirW.x, likely put lobe on right behind boat), wider, no sparkleAmt gate; captain (-1.0,deck,1.2); spray 620/s size .2. Parallel red-debug branch run.
 - Step14: v5.5 run 41265331043 green: captain visible by wheelhouse, spray denser, glitter invisible. Red debug run showed lobe renders but faint/sparse + drifts; v5.5b: constant center, narrower, denser sparkles.
 - Step14 result: v5.5b 41266571854 green, delivered screens-v5_5. Glitter still only faint gold at horizon - next: apply glitter after fog / as final additive. Captain visible by wheelhouse (small).
+- Step15 (v6): docs/rendering-techniques.md; glitter moved to .fragment additive (final output); pastel sea colours, softer grade/bloom; captain scale 2.2.

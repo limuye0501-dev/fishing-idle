@@ -46,8 +46,8 @@ float3 col = mix(shallowColor, deepColor, depthT);
 col *= 1.0 + hgt * 0.16 * nearF;
 // v5.1：近景更深更饱和（屏幕下方渐暗）
 float fg = 1.0 - smoothstep(9.0, 45.0, camDist);
-col = mix(col, deepColor * float3(0.5, 0.82, 1.0), fg * 0.85);
-float lum = dot(col, float3(0.3, 0.59, 0.11)); col = mix(float3(lum), col, 1.0 + 0.35 * fg);
+col = mix(col, deepColor * float3(0.78, 0.92, 0.96), fg * 0.55);   // v6：柔和粉彩
+float lum = dot(col, float3(0.3, 0.59, 0.11)); col = mix(float3(lum), col, 1.0 - 0.05 * fg);
 col = mix(col, col * float3(0.80, 0.95, 1.0), smoothstep(0.2, 0.9, -hgt) * 0.35 * nearF);
 
 // —— 柔和焦散（近处更明显）——
@@ -129,9 +129,37 @@ col *= mix(1.0, 0.45, nightAmt);
 _surface.diffuse = float4(col, 1.0);
 """
 
+
+    /// v6：最终叠加的金色波光柱（在雾/调色之前的 fragment 末端以加法叠加，避免被雾冲淡）
+    static let fragment = """
+#pragma arguments
+float sparkleAmt;
+float nightAmt;
+
+#pragma body
+float3 pv = _surface.position;
+float sx = (pv.x / max(-pv.z, 0.01)) / 0.4452;
+float3 Vv = normalize(-pv);
+float3 Vw = normalize((scn_frame.inverseViewTransform * float4(Vv, 0.0)).xyz);
+float dep = max(Vw.y, 0.0);
+float4 wp = scn_frame.inverseViewTransform * float4(pv, 1.0);
+float2 p = wp.xz;
+float t = scn_frame.time;
+float gw = 0.035 + dep * 0.75;
+float lz = (sx + 0.40) / gw;
+float col = exp(-lz * lz);
+float vfade = smoothstep(0.0, 0.01, dep) * (1.0 - smoothstep(0.10, 0.35, dep));
+float n1 = sin(p.x * 3.1 + t * 1.9) * sin(p.y * 11.0 - t * 1.3);
+float n2 = sin(p.x * 7.7 - p.y * 5.3 + t * 2.7) * sin(p.y * 17.0 + t * 0.9);
+float rip = smoothstep(0.25, 0.95, n1 * 0.7 + n2 * 0.5 + 0.2);
+float glow = col * vfade * (0.35 + 1.6 * rip) * sparkleAmt * (1.0 - nightAmt);
+float halo = exp(-lz * lz * 0.18) * vfade * 0.10 * sparkleAmt * (1.0 - nightAmt);
+_output.color.rgb += float3(1.0, 0.78, 0.45) * (glow * 0.9 + halo);
+"""
+
     static func apply(to m: SCNMaterial) {
         m.lightingModel = .constant
-        m.shaderModifiers = [.surface: surface]
+        m.shaderModifiers = [.surface: surface, .fragment: fragment]
         m.metalness.contents = 0.0
         m.roughness.contents = 0.18
         m.normal.contents = nil

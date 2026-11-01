@@ -63,7 +63,7 @@ final class ShipScene: NSObject {
         let captain = ModelAssets.captain() ?? CaptainModel.build()
         captain.position = SCNVector3(-1.0, ShipModel.deckY(-1.0), 1.2)   // v5.5：驾驶室旁靠镜头一侧   // v5.4：船尾甲板，远离网兜   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
         captain.eulerAngles.y = 0.85 + .pi   // v5.3b：模型正面朝 -Z，翻转使其面向镜头
-        captain.scale = SCNVector3(1.5, 1.5, 1.5)
+        captain.scale = SCNVector3(2.2, 2.2, 2.2)   // v6：更大更显眼
         shipNode.addChildNode(captain)
         // 夜间灯光
         let l = SCNLight(); l.type = .omni; l.color = UIColor(red: 1, green: 0.75, blue: 0.45, alpha: 1); l.intensity = 0
@@ -92,11 +92,11 @@ final class ShipScene: NSObject {
         c.exposureOffset = 0.0
         c.whitePoint = 1.0
         c.minimumExposure = -1; c.maximumExposure = 1
-        c.contrast = 0.12
-        c.saturation = 1.18
-        c.bloomIntensity = 0.55
-        c.bloomThreshold = 0.85
-        c.bloomBlurRadius = 14
+        c.contrast = 0.04   // v6：更柔和
+        c.saturation = 1.04
+        c.bloomIntensity = 0.75
+        c.bloomThreshold = 0.72
+        c.bloomBlurRadius = 20
         c.vignettingIntensity = 0.30
         c.vignettingPower = 0.9
         if let lut = UIImage(named: "GradeLUT.png") { c.colorGrading.contents = lut; c.colorGrading.intensity = 0.6 }
@@ -381,8 +381,8 @@ final class ShipScene: NSObject {
         ambient.light?.color = p.ambient; ambient.light?.intensity = p.ambientIntensity
         let ys = Float((p.sunX - 0.5) * 0.9), se: Float = night0 ? 0.35 : 0.12
         let sunDir = SCNVector3(sin(ys) * cos(se), sin(se), -cos(ys) * cos(se))
-        let shallow = p.sea.mix(SkyPalette.rgb(0.20, 0.84, 0.82), night0 ? 0.0 : 0.65)
-        let deep = p.sea.mix(SkyPalette.rgb(0.02, 0.44, 0.58), night0 ? 0.0 : 0.65)
+        let shallow = p.sea.mix(SkyPalette.rgb(0.42, 0.80, 0.78), night0 ? 0.0 : 0.65)
+        let deep = p.sea.mix(SkyPalette.rgb(0.16, 0.52, 0.60), night0 ? 0.0 : 0.65)
         SeaShader.set(seaMat, shallow: shallow, deep: deep, sky: p.horizon.mix(p.mid, 0.3), foam: p.horizon.mix(.white, 0.88),
                       sunDir: sunDir, yaw: state.phase == .docked ? 0 : -0.85, wake: state.phase == .sailing ? 1 : (state.phase == .fishing ? 0.75 : 0.5), night: night0 ? 0.6 : 0)
         seaMat.setValue(NSNumber(value: weather == .storm || weather == .rain || weather == .fog ? 0.3 : 1.0), forKey: "causticAmt")
