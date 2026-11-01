@@ -229,8 +229,10 @@ struct FishingMinigameView: View {
                         .frame(height: 8).offset(y: -g.size.height * m.tension + 4)
                 }
             }
-            .frame(width: 70, height: 240)
-            .overlay(alignment: .top) { Text(tr("拉力", "Tension")).font(.caption2.bold()).foregroundStyle(Theme.cream).offset(y: -16) }
+            .frame(width: 30, height: 200)
+            .overlay(alignment: .top) { Text(tr("拉力", "Tension")).font(.caption2.bold()).foregroundStyle(Theme.cream).fixedSize().offset(y: -16) }
+            .opacity(0.85)
+            .frame(maxWidth: .infinity, alignment: .trailing)   // v7.6：拉力条贴右侧，不再挡住 3D 网兜
             VStack(alignment: .leading, spacing: 4) {
                 Text(tr("鱼的体力", "Fish stamina")).font(.caption2.bold()).foregroundStyle(Theme.cream)
                 ProgressView(value: m.fishStamina).tint(m.fishStamina < 0.3 ? .green : Theme.coral)
