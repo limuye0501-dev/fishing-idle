@@ -281,11 +281,12 @@ fl = mesh_obj("Flag", bm, F['teal']); fl.location = (MX - 0.0, 0, MT - 0.1)
 ng = []
 bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=False, segments=20, radius1=0.78, radius2=0.14, depth=1.7)
 bmesh.ops.subdivide_edges(bm, edges=[e for e in bm.edges if abs(e.verts[0].co.z - e.verts[1].co.z) > 0.1], cuts=7)
-cone = mesh_obj("netc", bm, F['rope']); cone.location = (0, 0, -1.45)
+NETM = mat('NetBrown', (0.45, 0.30, 0.17), rough=0.8)
+cone = mesh_obj("netc", bm, NETM); cone.location = (0, 0, -1.45)
 wf = cone.modifiers.new("wf", "WIREFRAME"); wf.thickness = 0.022; ng.append(cone)
 bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=20, v_segments=10, radius=0.78)
 for v in bm.verts: v.co.z *= 0.6
-bag = mesh_obj("bag", bm, F['rope']); bag.location = (0, 0, -2.25)
+bag = mesh_obj("bag", bm, NETM); bag.location = (0, 0, -2.25)
 wf = bag.modifiers.new("wf", "WIREFRAME"); wf.thickness = 0.022; ng.append(bag)
 fishM = [mat("fish1", (0.72, 0.82, 0.90), rough=0.25, metal=0.3), mat("fish2", (0.98, 0.62, 0.45), rough=0.3)]
 for k in range(7):

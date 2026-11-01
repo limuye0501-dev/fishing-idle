@@ -45,8 +45,8 @@ float depthT = smoothstep(2.0, 26.0, r);
 float3 col = mix(shallowColor, deepColor, depthT);
 col *= 1.0 + hgt * 0.16 * nearF;
 // v5.1：近景更深更饱和（屏幕下方渐暗）
-float fg = 1.0 - smoothstep(6.0, 22.0, camDist);
-col = mix(col, col * float3(0.62, 0.86, 0.95), fg * 0.55);
+float fg = 1.0 - smoothstep(8.0, 30.0, camDist);
+col = mix(col, col * float3(0.45, 0.78, 0.92), fg * 0.75);
 float lum = dot(col, float3(0.3, 0.59, 0.11)); col = mix(float3(lum), col, 1.0 + 0.35 * fg);
 col = mix(col, col * float3(0.80, 0.95, 1.0), smoothstep(0.2, 0.9, -hgt) * 0.35 * nearF);
 
@@ -79,11 +79,11 @@ float3 camW = (scn_frame.inverseViewTransform * float4(0.0, 0.0, 0.0, 1.0)).xyz;
 float2 dirH = normalize(wp4.xz - camW.xz);
 float2 sunH = normalize(sunDirW.xz + float2(1e-4, 0.0));
 float ad = 1.0 - dot(dirH, sunH);
-float pathW = mix(0.010, 0.0025, smoothstep(10.0, 120.0, camDist));
-float band = exp(-ad / pathW) * smoothstep(8.0, 40.0, camDist);
+float pathW = mix(0.030, 0.006, smoothstep(10.0, 120.0, camDist));
+float band = exp(-ad / pathW) * smoothstep(5.0, 18.0, camDist) * (1.0 - nightAmt * 0.6);
 float path = max(smoothstep(0.70, 0.99, rd), band);
 float brk = smoothstep(0.15, 0.9, sin(p.y * 5.0 + g.x * 14.0 + t * 1.5) * 0.5 + 0.5 + hgt * 0.4);
-col = mix(col, sunCol * 1.15, clamp(band * (0.35 + 0.65 * brk), 0.0, 1.0) * 0.85 * sparkleAmt);
+col = mix(col, sunCol * 1.15, clamp(band * (0.35 + 0.65 * brk), 0.0, 1.0) * 0.95 * sparkleAmt);
 float spark = step(0.55, h) * tw * dotm * path * sparkleAmt;
 col += sunCol * (spec + spark * 1.4) * mix(1.0, 0.6, nightAmt);
 
@@ -100,7 +100,9 @@ float foam = (1.0 - smoothstep(1.0, 1.40, ell + nz * 0.07)) * smoothstep(0.78, 0
 float bx = 4.6 - lp.x;
 float bowSpread = 1.0 + bx * 0.36;
 float bowLine = (1.0 - smoothstep(0.0, 0.30 + bx * 0.03, abs(abs(lp.y) - bowSpread))) * smoothstep(-0.3, 0.6, bx) * (1.0 - smoothstep(5.0, 16.0, bx));
-float bowFoam = (1.0 - smoothstep(0.0, 1.2, length(float2(lp.x - 4.6, lp.y * 1.6)))) * 0.9;
+float bowFoam = (1.0 - smoothstep(0.0, 2.0, length(float2(lp.x - 4.4, lp.y * 1.3)))) * 1.0;
+float spr = fract(sin(dot(floor(lp * 9.0), float2(127.1, 311.7))) * 43758.5);
+bowFoam = max(bowFoam, step(0.55, spr) * (1.0 - smoothstep(0.0, 3.2, length(float2(lp.x - 4.2, (abs(lp.y) - 1.4) * 1.5)))));
 // —— 尾浪：船尾之后呈 V 形扩散，逐渐淡出 ——
 float back = -lp.x - 4.2;
 float spread = 0.9 + back * 0.30;
