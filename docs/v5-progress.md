@@ -14,3 +14,4 @@ Reference: store asset 694d119b...jpg (pink-gold sunset, painted toy boat close 
 - Step5 (v5.1): kept WIP tweaks (fixed 'band' used-before-declared in SeaShader); yaw -0.85, cam (0.2,4.7,9.6); painted dusk sun disc+glow at 30%; darker/saturated near-camera sea, less fresnel wash; stronger hull foam, longer bow V, bolder wake. Next: verify CI dusk shot.
 - Step5 result: CI 41253362792 green; sun disc visible. Remaining: foreground still bright cyan, no glitter column under sun, bow spray weak, no captain on deck, net white/not rope-brown.
 - Step6 (v5.2a): captain was at x=2.1 under the net bag (hidden) -> moved to (-0.35, deck, 0.55) facing camera; wider/closer glitter band; darker fg sea; speckled bow spray. Blender rebuild w/ NetBrown pending.
+- Step7 (v5.2b): Blender rebuild (NetBrown net, flat flag/radar), RES 4096, Ship.usdz replaced.
