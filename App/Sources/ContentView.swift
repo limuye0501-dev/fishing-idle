@@ -21,7 +21,9 @@ struct ContentView: View {
                 .ignoresSafeArea()
                 .accessibilityElement()
                 .accessibilityLabel(tr("\(game.state.shipName) 在\(game.state.ocean.zhName)", "\(game.state.shipName) in the \(game.state.ocean.enName)"))
-            if game.photoMode {
+            if game.viewMode {
+                ViewModeOverlay().transition(.opacity)
+            } else if game.photoMode {
                 PhotoModeOverlay().transition(.opacity)
             } else {
                 HUDLayer()
@@ -137,6 +139,7 @@ struct HUDLayer: View {
                             RoundButton(icon: "scroll.fill", title: tr("日志", "Log")) { game.panel = .log }
                             RoundButton(icon: "star.fill", title: tr("收藏", "Collection")) { game.showRecords = true }
                             RoundButton(icon: "camera.fill", title: tr("拍照", "Photo")) { withAnimation { railOpen = false; game.photoMode = true } }
+                            RoundButton(icon: "moon.zzz.fill", title: tr("观赏", "Relax")) { withAnimation { railOpen = false; game.viewMode = true } }
                         }
                         .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
@@ -393,3 +396,23 @@ func formatDuration(_ s: Double) -> String {
 }
 
 struct FishRef: Identifiable { let id: String }
+
+
+/// v9：一键隐藏全部 UI 的观赏/助眠模式（屏幕常亮，轻点任意处退出）
+struct ViewModeOverlay: View {
+    @EnvironmentObject var game: GameViewModel
+    @State private var hint = true
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            Color.black.opacity(0.001).ignoresSafeArea()
+                .onTapGesture { withAnimation { game.viewMode = false } }
+            if hint {
+                Text(tr("观赏模式 · 轻点屏幕返回", "Relax mode · tap to return"))
+                    .font(.caption).padding(.horizontal, 12).padding(.vertical, 6)
+                    .background(.ultraThinMaterial, in: Capsule()).padding(.bottom, 30)
+                    .transition(.opacity)
+            }
+        }
+        .task { try? await Task.sleep(nanoseconds: 3_000_000_000); withAnimation { hint = false } }
+    }
+}

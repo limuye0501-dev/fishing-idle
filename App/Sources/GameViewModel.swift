@@ -14,6 +14,7 @@ struct OfflineReport {
     var trophies = 0
     var fuelEmpty = false
     var rareEvents: [RareEvent] = []
+    var lines: [VoyageState.EarningLine] = []
 }
 
 /// 面板
@@ -41,6 +42,8 @@ final class GameViewModel: ObservableObject {
     @Published var migratedFromV1 = false
     // v9
     @Published var photoMode = false
+    @Published var viewMode = false { didSet { UIApplication.shared.isIdleTimerDisabled = viewMode } }
+    @Published var saleLines: [VoyageState.EarningLine] = []
     @Published var shareRecord: RecordCatch?
     @Published var catHearts = 0          // 触发爱心动画
     @Published var showRecords = false
@@ -96,13 +99,16 @@ final class GameViewModel: ObservableObject {
         showOnboarding = (!onboarded && !args.contains("-demo") && !args.contains("-skipOnboarding")) || args.contains("-onboarding")
         if args.contains("-skipOnboarding") && !onboarded && !args.contains("-demo") { showNaming = false }
         if args.contains("-settings") { showSettings = true }
+        if args.contains("-view") { viewMode = true }
+        if args.contains("-dock") { panel = .dock }
         if args.contains("-tour") { runTour() }
         if args.contains("-offline") {
             offlineReport = OfflineReport(seconds: 3 * 3600 + 25 * 60, fish: 142, released: 96, newSpecies: 2, arrived: nil,
                                           events: [tr("🍾 捞到一个漂流瓶，里面有张旧海图", "🍾 Fished up a message in a bottle with an old chart"),
                                                    tr("🐋 远处有一群座头鲸喷水", "🐋 A pod of humpbacks spouted in the distance"),
                                                    tr("✨ 声呐发现🦈的踪迹！", "✨ Sonar picked up signs of 🦈!")],
-                                          bestFishID: "mahimahi", trophies: 1, fuelEmpty: true)
+                                          bestFishID: "mahimahi", trophies: 1, fuelEmpty: true,
+                                          lines: state.itemize(state.hold, now: Date()))
         }
     }
 
@@ -165,7 +171,8 @@ final class GameViewModel: ObservableObject {
             offlineReport = OfflineReport(seconds: r.seconds, fish: r.catches.count, released: r.released,
                                           newSpecies: r.newSpecies.count, arrived: r.arrived,
                                           events: r.events, bestFishID: r.bestCatch?.fishID, trophies: r.trophies,
-                                          fuelEmpty: state.fuel <= 0, rareEvents: r.rareEvents)
+                                          fuelEmpty: state.fuel <= 0, rareEvents: r.rareEvents,
+                                          lines: state.itemize(r.catches, now: Date()))
         }
         seenEventCounter = state.eventCounter
         lastCatchCount = state.totalFishCaught
@@ -270,9 +277,11 @@ final class GameViewModel: ObservableObject {
     func unlock(_ id: String) { perform { try $0.unlock(id, now: Date()) } }
     func sell(useGems: Bool = false) {
         do {
+            let lines = state.itemize(state.hold, now: Date())
             let n = try state.sellAll(now: Date(), useGems: useGems); save()
+            saleLines = lines
             AudioManager.shared.play(.catchFish); AudioManager.shared.notify(.success)
-            toast = "+\(n) 🪙"
+            toast = "+\(n) 🪙" + (lines.first.map { l in " · \(VoyageConfig.fish(l.fishID)?.emoji ?? "🐟")×\(l.count) \(l.coins.formatted())" } ?? "")
         } catch { AudioManager.shared.play(.error, volume: 0.5); toast = Self.message(error) }
     }
     func refuel() { perform { try $0.refuel(now: Date()) } }
@@ -282,6 +291,7 @@ final class GameViewModel: ObservableObject {
     func learn(_ s: CrewSkill) { perform { try $0.learn(s) } }
     func keep(_ id: UUID) { perform { try $0.keepInTank(id, now: Date()) } }
     func release(_ id: UUID) { if let i = state.tank.firstIndex(where: { $0.id == id }) { state.release(tankIndex: i); save() } }
+    func setTarget(_ id: String?) { perform { try $0.setTarget(id) } }
     func upgradeTank() { perform { try $0.upgradeTank() } }
     /// 小游戏结果
     func finishMinigame(quality: Double) -> HoldFish? {

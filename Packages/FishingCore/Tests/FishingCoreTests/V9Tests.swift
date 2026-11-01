@@ -74,11 +74,12 @@ final class V9Tests: XCTestCase {
 
     func testDecorAndPaintSinks() throws {
         var s = VoyageState(now: t0); s.coins = 10_000
+        XCTAssertThrowsError(try s.buyDecoration("sand"))   // 装饰只能用贝壳买
+        s.ext.shells = 12
         try s.buyDecoration("sand")
-        XCTAssertEqual(s.coins, 8_000)
+        XCTAssertEqual(s.coins, 10_000); XCTAssertEqual(s.ext.shells, 2, accuracy: 1e-9)
         XCTAssertThrowsError(try s.buyDecoration("sand"))
-        XCTAssertEqual(s.decorSellBonus, 1.02, accuracy: 1e-9)
-        try s.buyOrApplyPaint("coral"); XCTAssertEqual(s.ext.paint, "coral"); XCTAssertEqual(s.coins, 0)
+        try s.buyOrApplyPaint("coral"); XCTAssertEqual(s.ext.paint, "coral"); XCTAssertEqual(s.coins, 2_000)
         try s.buyOrApplyPaint("classic"); XCTAssertEqual(s.ext.paint, "classic")
         XCTAssertThrowsError(try s.buyOrApplyPaint("mint"))
     }

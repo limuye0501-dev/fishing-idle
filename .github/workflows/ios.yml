@@ -69,6 +69,8 @@ jobs:
           shot records -demo -records $ZH
           shot notes -demo -records -notes $ZH
           shot share-card -demo -share $ZH
+          shot view-mode -demo -view $ZH
+          shot dock-methods -demo -dock $ZH
           shot en-share-card -demo -share $EN
           shot ency-sardine -demo -ency sardine $ZH
           shot en-onboarding $EN

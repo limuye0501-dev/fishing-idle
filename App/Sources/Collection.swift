@@ -80,7 +80,7 @@ struct CollectionView: View {
 
     private var decor: some View {
         VStack(spacing: 10) {
-            Text(tr("每件装饰让卖鱼收入 +2%", "Each decoration adds +2% to fish sales")).font(.caption).foregroundStyle(.secondary)
+            Text(tr("鱼缸里每条鱼每小时产 1 🐚 贝壳，贝壳只能买装饰（现有 \(Int(game.state.ext.shells)) 🐚）", "Each aquarium fish makes 1 🐚 shell per hour; shells only buy decor (you have \(Int(game.state.ext.shells)) 🐚)")).font(.caption).foregroundStyle(.secondary)
             ForEach(VoyageConfig.decorations) { d in
                 let owned = game.state.ext.decor.contains(d.id)
                 HStack {
@@ -88,7 +88,7 @@ struct CollectionView: View {
                     Text(d.name).font(.headline)
                     Spacer()
                     if owned { Label(tr("已摆放", "Placed"), systemImage: "checkmark").foregroundStyle(.green) }
-                    else { PillButton(title: "\(d.cost.formatted())🪙", enabled: game.state.coins >= d.cost) { game.buyDecoration(d.id) } }
+                    else { PillButton(title: "\(d.cost.formatted())🐚", enabled: game.state.ext.shells >= Double(d.cost)) { game.buyDecoration(d.id) } }
                 }
                 .padding(12).background(Color.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
             }

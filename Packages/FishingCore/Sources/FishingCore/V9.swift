@@ -38,6 +38,8 @@ public struct VoyageExtras: Codable, Hashable, Sendable {
     public var paints: [String] = ["classic"]    // 船体涂装
     public var paint = "classic"
     public var whalesUntil: Date? = nil
+    public var targetFishID: String? = nil       // 声呐锁定的目标鱼
+    public var shells: Double = 0                // 鱼缸贝壳（只能买装饰）
     public init() {}
 }
 
@@ -67,7 +69,9 @@ extension VoyageConfig {
     public static let stormSurvivedCoins = 150
     public static let catBonusSeconds: Double = 3600
     public static let catBonusFactor = 1.10      // 撸猫后 1 小时挂机 +10%
-    public static let decorBonusEach = 0.02      // 每件鱼缸装饰卖鱼 +2%
+    public static let targetWeightFactor = 3.0
+    /// 鱼缸每条鱼每小时产出的贝壳（只用于装饰，不进入金币主收入）
+    public static let shellsPerFishHour = 1.0
 
     public static let bottleNotes: [BottleNote] = [
         .init(id: 0, zh: "“给捡到这个瓶子的人：今天的海很温柔。”", en: "\"To whoever finds this: the sea was gentle today.\""),
@@ -85,16 +89,16 @@ extension VoyageConfig {
     ]
 
     public static let decorations: [Decoration] = [
-        .init(id: "sand", emoji: "🏖️", zh: "细白沙", en: "White sand", cost: 2_000),
-        .init(id: "kelp", emoji: "🌿", zh: "海带丛", en: "Kelp clump", cost: 5_000),
-        .init(id: "shell", emoji: "🐚", zh: "大海螺", en: "Conch shell", cost: 12_000),
-        .init(id: "coral", emoji: "🪸", zh: "珊瑚礁", en: "Coral reef", cost: 30_000),
-        .init(id: "chest", emoji: "🧰", zh: "宝箱", en: "Treasure chest", cost: 75_000),
-        .init(id: "castle", emoji: "🏰", zh: "小城堡", en: "Tiny castle", cost: 180_000),
-        .init(id: "wreck", emoji: "⚓️", zh: "沉船残骸", en: "Shipwreck", cost: 420_000),
-        .init(id: "lantern", emoji: "🏮", zh: "水下灯笼", en: "Underwater lantern", cost: 1_000_000),
-        .init(id: "diver", emoji: "🤿", zh: "潜水员摆件", en: "Diver figurine", cost: 2_400_000),
-        .init(id: "moon", emoji: "🌕", zh: "月光石", en: "Moonstone", cost: 5_500_000),
+        .init(id: "sand", emoji: "🏖️", zh: "细白沙", en: "White sand", cost: 10),
+        .init(id: "kelp", emoji: "🌿", zh: "海带丛", en: "Kelp clump", cost: 25),
+        .init(id: "shell", emoji: "🐚", zh: "大海螺", en: "Conch shell", cost: 50),
+        .init(id: "coral", emoji: "🪸", zh: "珊瑚礁", en: "Coral reef", cost: 90),
+        .init(id: "chest", emoji: "🧰", zh: "宝箱", en: "Treasure chest", cost: 150),
+        .init(id: "castle", emoji: "🏰", zh: "小城堡", en: "Tiny castle", cost: 240),
+        .init(id: "wreck", emoji: "⚓️", zh: "沉船残骸", en: "Shipwreck", cost: 380),
+        .init(id: "lantern", emoji: "🏮", zh: "水下灯笼", en: "Underwater lantern", cost: 600),
+        .init(id: "diver", emoji: "🤿", zh: "潜水员摆件", en: "Diver figurine", cost: 900),
+        .init(id: "moon", emoji: "🌕", zh: "月光石", en: "Moonstone", cost: 1400),
     ]
 
     public static let paints: [HullPaint] = [
@@ -108,10 +112,8 @@ extension VoyageConfig {
         .init(id: "legend", zh: "传说之船", en: "Legendary", cost: 12_000_000, hull: (0.10, 0.10, 0.12), stripe: (0.95, 0.75, 0.25)),
     ]
 
-    /// 全部金币去处总和（用于节奏测算，见 docs/progression-curve.md）
-    public static var totalLongTermSink: Int {
-        decorations.map(\.cost).reduce(0, +) + paints.map(\.cost).reduce(0, +)
-    }
+    /// 全部长期金币去处总和（涂装；装饰改用贝壳），见 docs/progression-curve.md
+    public static var totalLongTermSink: Int { paints.map(\.cost).reduce(0, +) }
 }
 
 public enum CatPetResult: Equatable, Sendable { case petted(hearts: Int), sleepy }
@@ -180,7 +182,54 @@ extension VoyageState {
     /// 鲸群/船猫带来的额外稀有度与速度
     public func moodRareFactor(at now: Date) -> Double { (ext.whalesUntil.map { $0 > now } ?? false) ? 1.5 : 1 }
     public func catSpeedFactor(at now: Date) -> Double { (ext.catBonusUntil.map { $0 > now } ?? false) ? VoyageConfig.catBonusFactor : 1 }
-    public var decorSellBonus: Double { 1 + VoyageConfig.decorBonusEach * Double(ext.decor.count) }
+
+    // MARK: 鱼缸贝壳
+    mutating func accrueShells(seconds: Double) {
+        guard !tank.isEmpty, seconds > 0 else { return }
+        ext.shells += VoyageConfig.shellsPerFishHour * Double(tank.count) * seconds / 3600
+    }
+
+    // MARK: 升级解锁的新玩法
+    public enum Method: String, CaseIterable, Sendable {
+        case targetLock, doubleHaul, liveWell
+        public var requirement: (ShipPart, Int) {
+            switch self { case .targetLock: (.sonar, 2); case .doubleHaul: (.nets, 4); case .liveWell: (.icebox, 3) }
+        }
+        public var name: String {
+            switch self { case .targetLock: tr("声呐锁定目标鱼", "Sonar target lock"); case .doubleHaul: tr("双网收获", "Double haul"); case .liveWell: tr("活鱼舱", "Live well") }
+        }
+        public var desc: String {
+            switch self {
+            case .targetLock: tr("挂机时优先捕捉你选定的鱼（×3 概率）", "Idle fishing favours the species you pick (×3)")
+            case .doubleHaul: tr("手动捕鱼表现好时一次捞两条", "A good hand haul lands two fish")
+            case .liveWell: tr("在海上就能把鱼放进鱼缸", "Move fish into the aquarium while at sea")
+            }
+        }
+    }
+    public func hasMethod(_ m: Method) -> Bool { part(m.requirement.0) >= m.requirement.1 }
+    public var targetFishID: String? { hasMethod(.targetLock) ? ext.targetFishID : nil }
+    public mutating func setTarget(_ fishID: String?) throws {
+        guard hasMethod(.targetLock) else { throw VoyageError.locked }
+        if let id = fishID, !ocean.fish.contains(where: { $0.id == id }) { throw VoyageError.unknown }
+        ext.targetFishID = fishID
+    }
+
+    // MARK: 收益明细
+    public struct EarningLine: Sendable, Hashable {
+        public let fishID: String
+        public let count: Int
+        public let totalKg: Double
+        public let coins: Int
+        public let shiny: Int
+    }
+    /// 按鱼种汇总（按估值降序）
+    public func itemize(_ catches: [HoldFish], now: Date) -> [EarningLine] {
+        Dictionary(grouping: catches, by: \.fishID).map { id, fs in
+            EarningLine(fishID: id, count: fs.count, totalKg: fs.reduce(0) { $0 + $1.kg },
+                        coins: fs.reduce(0) { $0 + value($1, now: now) }, shiny: fs.filter(\.isShiny).count)
+        }
+        .sorted { $0.coins != $1.coins ? $0.coins > $1.coins : $0.fishID < $1.fishID }
+    }
 
     // MARK: 船猫
     public func canPetCat(now: Date) -> Bool {
@@ -204,8 +253,8 @@ extension VoyageState {
     public mutating func buyDecoration(_ id: String) throws {
         guard let d = VoyageConfig.decorations.first(where: { $0.id == id }) else { throw VoyageError.unknown }
         guard !ext.decor.contains(id) else { throw VoyageError.maxLevel }
-        guard coins >= d.cost else { throw VoyageError.notEnoughCoins }
-        coins -= d.cost; ext.decor.append(id)
+        guard ext.shells >= Double(d.cost) else { throw VoyageError.notEnoughCoins }
+        ext.shells -= Double(d.cost); ext.decor.append(id)
     }
     public mutating func buyOrApplyPaint(_ id: String) throws {
         guard let p = VoyageConfig.paints.first(where: { $0.id == id }) else { throw VoyageError.unknown }

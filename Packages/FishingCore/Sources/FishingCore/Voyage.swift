@@ -398,7 +398,7 @@ public struct VoyageState: Codable, Sendable {
         let size = max(0.6, min(2.0, f.kg / max(t.baseKg, 0.0001)))
         let season = Season.at(now, seasonSeconds: 86_400)
         let autumn = season == .autumn ? 1.1 : 1.0
-        return max(1, Int((Double(t.value) * size * freshness(f, now: now) * autumn * (f.isShiny ? VoyageConfig.shinyValueFactor : 1) * decorSellBonus).rounded()))
+        return max(1, Int((Double(t.value) * size * freshness(f, now: now) * autumn * (f.isShiny ? VoyageConfig.shinyValueFactor : 1)).rounded()))
     }
     public func holdValue(now: Date) -> Int { hold.reduce(0) { $0 + value($1, now: now) } }
     public var averageFreshnessText: String { "" }
@@ -445,6 +445,7 @@ public struct VoyageState: Codable, Sendable {
             if w < 3 { w *= pow(rare, Double(3 - min(3, Int(w)))) * (w < 1 ? rare : 1) }
             if !f.seasons.isEmpty { w *= f.seasons.contains(season) ? 1.5 : 0.25 }   // 当季洄游，过季少见
             if f.id == sighting { w *= 6 }
+            if f.id == targetFishID { w *= VoyageConfig.targetWeightFactor }
             return w
         }
         let total = weights.reduce(0, +)
@@ -505,6 +506,7 @@ public struct VoyageState: Codable, Sendable {
             t = t.addingTimeInterval(step); dt -= step
             tick(step, at: t, report: &report)
         }
+        accrueShells(seconds: report.seconds)
         lastUpdate = now
         report.events = Array(eventLog.prefix(min(eventLog.count, eventCounter - eventsBefore))).map(\.text)
         report.trophies = trophies - trophiesBefore
@@ -681,7 +683,7 @@ public struct VoyageState: Codable, Sendable {
         guard coins >= coinCost else { throw VoyageError.notEnoughCoins }
         guard gems >= gemCost else { throw VoyageError.notEnoughGems }
         coins -= coinCost; gems -= gemCost; gearLevels[g.rawValue] = lv + 1
-        if lv == 0 { equipped = g }
+        // v9：绝不自动换装（玩家选择的渔具/海域/目标鱼一直保持）
         log(tr("\(g.emoji) \(g.name) \(lv == 0 ? "上船" : "升到 \(lv + 1) 级")", "\(g.emoji) \(g.name) \(lv == 0 ? "on board" : "upgraded to Lv\(lv + 1)")"), now)
     }
     public func gearUpgradeCost(_ g: GearType) -> (coins: Int, gems: Int) {
@@ -706,7 +708,7 @@ public struct VoyageState: Codable, Sendable {
 
     // MARK: 鱼缸（在港才能从鱼舱转移）
     public mutating func keepInTank(_ id: UUID, now: Date) throws {
-        guard phase == .docked else { throw VoyageError.needsPort }
+        guard phase == .docked || hasMethod(.liveWell) else { throw VoyageError.needsPort }
         guard tank.count < tankCapacity else { throw VoyageError.tankFull }
         guard let i = hold.firstIndex(where: { $0.id == id }) else { throw VoyageError.unknown }
         let f = hold.remove(at: i)
@@ -735,6 +737,9 @@ public struct VoyageState: Codable, Sendable {
         guard let t = pickFish(pool(at: now).isEmpty ? ocean.fish : pool(at: now), rare: rareMultiplier(at: now, active: q), now: now) else { return nil }
         activeCatches += 1
         fuel = max(0, fuel - 0.3)
+        if hasMethod(.doubleHaul), q >= 0.6, let t2 = pickFish(pool(at: now).isEmpty ? ocean.fish : pool(at: now), rare: rareMultiplier(at: now, active: q), now: now) {
+            stow(t2, kgFactor: 1, active: true, now: now, report: &report)   // 双网：好表现时多捞一条
+        }
         return stow(t, kgFactor: VoyageConfig.activeKgFactor(quality: q), active: true, now: now, report: &report)
     }
 

@@ -298,6 +298,7 @@ struct OfflineSummaryView: View {
             }
             .padding(12)
             .background(Color.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
+            if !report.lines.isEmpty { EarningsBreakdown(lines: report.lines) }
             let lines = report.rareEvents.isEmpty ? report.events : report.rareEvents.map(\.text)
             if !lines.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
@@ -354,5 +355,33 @@ struct PromiseBanner: View {
         .background(Color.white.opacity(0.75), in: RoundedRectangle(cornerRadius: 16))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.gold, lineWidth: 1.5))
         .accessibilityElement(children: .combine)
+    }
+}
+
+
+/// v9：逐项收益明细（按鱼种）
+struct EarningsBreakdown: View {
+    @EnvironmentObject var game: GameViewModel
+    let lines: [VoyageState.EarningLine]
+    var limit = 4
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(tr("收益明细", "Earnings breakdown")).font(.caption.bold()).foregroundStyle(.secondary)
+            ForEach(lines.prefix(limit), id: \.fishID) { l in
+                HStack {
+                    Text("\(game.fish(l.fishID)?.emoji ?? "🐟") \(game.fish(l.fishID)?.name ?? l.fishID) ×\(l.count)\(l.shiny > 0 ? " ✨\(l.shiny)" : "")")
+                    Spacer()
+                    Text("\(l.coins.formatted())🪙").monospacedDigit()
+                }.font(.footnote)
+            }
+            if lines.count > limit {
+                let rest = lines.dropFirst(limit)
+                HStack { Text(tr("其他 \(rest.count) 种", "\(rest.count) other species")); Spacer(); Text("\(rest.map(\.coins).reduce(0, +).formatted())🪙").monospacedDigit() }
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            Divider()
+            HStack { Text(tr("合计", "Total")).bold(); Spacer(); Text("\(lines.map(\.coins).reduce(0, +).formatted())🪙").bold().monospacedDigit() }.font(.footnote)
+        }
+        .padding(10).background(Color.white.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
     }
 }

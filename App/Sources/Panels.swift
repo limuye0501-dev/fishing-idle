@@ -256,6 +256,7 @@ struct DockPanel: View {
                     Text(p.desc).font(.caption2).foregroundStyle(.secondary)
                 }
             }
+            MethodsCard()
             Text(tr("船员技能（剩余 \(s.skillPoints) 点）", "Crew skills (\(s.skillPoints) points left)")).font(.system(.headline, design: .serif))
                 .frame(maxWidth: .infinity, alignment: .leading)
             ForEach(CrewSkill.allCases, id: \.self) { k in
@@ -519,4 +520,39 @@ struct FullVersionBadge: View {
 
 func formatKg(_ kg: Double) -> String {
     kg >= 1000 ? String(format: tr("%.1f吨", "%.1f t"), kg / 1000) : (kg >= 10 ? String(format: "%.0fkg", kg) : (kg >= 0.1 ? String(format: "%.2fkg", kg) : String(format: "%.0fg", kg * 1000)))
+}
+
+
+/// v9：升级解锁的新玩法 + 目标鱼锁定
+struct MethodsCard: View {
+    @EnvironmentObject var game: GameViewModel
+    var body: some View {
+        let s = game.state
+        Card {
+            Text(tr("新玩法", "Fishing methods")).font(.system(.headline, design: .serif))
+            ForEach(VoyageState.Method.allCases, id: \.self) { m in
+                let ok = s.hasMethod(m)
+                HStack(alignment: .top) {
+                    Image(systemName: ok ? "checkmark.seal.fill" : "lock.fill").foregroundStyle(ok ? Theme.teal : .secondary)
+                    VStack(alignment: .leading) {
+                        Text(m.name).font(.subheadline.bold())
+                        Text(ok ? m.desc : tr("\(m.requirement.0.name) 升到 Lv\(m.requirement.1) 解锁", "Unlocks at \(m.requirement.0.name) Lv\(m.requirement.1)"))
+                            .font(.caption2).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+            }
+            if s.hasMethod(.targetLock) {
+                Menu {
+                    Button(tr("不锁定", "No target")) { game.setTarget(nil) }
+                    ForEach(s.ocean.fish, id: \.id) { f in Button("\(f.emoji) \(f.name)") { game.setTarget(f.id) } }
+                } label: {
+                    let f = s.targetFishID.flatMap { game.fish($0) }
+                    Label(f.map { tr("目标：\($0.emoji) \($0.name)", "Target: \($0.emoji) \($0.name)") } ?? tr("选择目标鱼", "Pick a target fish"), systemImage: "scope")
+                        .font(.subheadline.bold())
+                }
+                Text(tr("挂机时一直保持你的海域、渔具和目标鱼，不会自动更换", "Idle keeps your sea, gear and target — never auto-swaps")).font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+    }
 }

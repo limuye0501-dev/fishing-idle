@@ -13,6 +13,8 @@ idle,fishing,fish,boat,trawler,captain,ocean,aquarium,relaxing,cozy,offline,sail
 **Description**:
 FIRST TWO SEAS FREE · ONE-TIME UNLOCK · NO ADS · NO STAMINA
 
+6 seas · 39 species to collect · about 60–80 hours to max your ship and fill the codex, and hundreds more of idle voyages with shiny variants, records, paints and aquarium decor.
+
 You have one big fishing trawler of your own, skippered by a little boy in a white captain's cap. The ship is always at sea, fishing quietly through sunrises, sunsets, rain and fog. Heading back to port is up to you.
 
 TWO WAYS TO FISH
