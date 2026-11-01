@@ -61,9 +61,9 @@ final class ShipScene: NSObject {
         shipRoot.addChildNode(shipNode)
         // 小船长站在前甲板，面朝镜头偏右
         let captain = ModelAssets.captain() ?? CaptainModel.build()
-        captain.position = SCNVector3(-1.0, ShipModel.deckY(-1.0), 1.2)   // v5.5：驾驶室旁靠镜头一侧   // v5.4：船尾甲板，远离网兜   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
+        captain.position = SCNVector3(-0.3, ShipModel.deckY(-0.3), 1.45)   // v5.5：驾驶室旁靠镜头一侧   // v5.4：船尾甲板，远离网兜   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
         captain.eulerAngles.y = 0.85 + .pi   // v5.3b：模型正面朝 -Z，翻转使其面向镜头
-        captain.scale = SCNVector3(1.85, 1.85, 1.85)   // v6：更大更显眼
+        captain.scale = SCNVector3(1.6, 1.6, 1.6)   // v6：更大更显眼
         shipNode.addChildNode(captain)
         // 夜间灯光
         let l = SCNLight(); l.type = .omni; l.color = UIColor(red: 1, green: 0.75, blue: 0.45, alpha: 1); l.intensity = 0

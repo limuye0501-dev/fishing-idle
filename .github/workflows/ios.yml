@@ -35,7 +35,7 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
       - name: Run in simulator & screenshot
-        timeout-minutes: 14
+        timeout-minutes: 24
         run: |
           set -x
           UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print([x['udid'] for k,v in d.items() if 'iOS' in k for x in v if 'iPhone' in x['name'] and 'Pro Max' in x['name']][-1])")
