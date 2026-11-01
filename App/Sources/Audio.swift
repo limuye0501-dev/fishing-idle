@@ -5,7 +5,7 @@ import UIKit
 @MainActor
 final class AudioManager {
     static let shared = AudioManager()
-    enum Sfx: String { case tap = "sfx_tap", upgrade = "sfx_upgrade", open = "sfx_open", coin = "sfx_coin", error = "sfx_error", catchFish = "sfx_catch" }
+    enum Sfx: String { case tap = "sfx_tap", upgrade = "sfx_upgrade", open = "sfx_open", coin = "sfx_coin", error = "sfx_error", catchFish = "sfx_catch", rare = "sfx_rare", purr = "sfx_purr", shutter = "sfx_shutter", splash = "sfx_splash" }
 
     private var players: [Sfx: AVAudioPlayer] = [:]
     private var bgm: AVAudioPlayer?
