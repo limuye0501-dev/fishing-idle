@@ -101,3 +101,10 @@ final class V9QueueTests: XCTestCase {
         XCTAssertEqual(s.coins, coins)
     }
 }
+
+final class ExtrasDecodeTests: XCTestCase {
+    func testPartialExtrasDecode() throws {
+        let e = try JSONDecoder().decode(VoyageExtras.self, from: Data(#"{"notes":[1],"catHearts":3}"#.utf8))
+        XCTAssertEqual(e.notes, [1]); XCTAssertEqual(e.catHearts, 3); XCTAssertEqual(e.shells, 0); XCTAssertNil(e.targetFishID)
+    }
+}

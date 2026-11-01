@@ -41,6 +41,24 @@ public struct VoyageExtras: Codable, Hashable, Sendable {
     public var targetFishID: String? = nil       // 声呐锁定的目标鱼
     public var shells: Double = 0                // 鱼缸贝壳（只能买装饰）
     public init() {}
+    // 缺字段一律用默认值，保证后续加字段时旧存档仍能读
+    public init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: CodingKeys.self)
+        if let v = try c.decodeIfPresent([Int].self, forKey: .notes) { notes = v }
+        if let v = try c.decodeIfPresent(Int.self, forKey: .lastWeatherHour) { lastWeatherHour = v }
+        if let v = try c.decodeIfPresent(Bool.self, forKey: .lastWasStorm) { lastWasStorm = v }
+        if let v = try c.decodeIfPresent(Date.self, forKey: .catLastPet) { catLastPet = v }
+        if let v = try c.decodeIfPresent(Int.self, forKey: .catHearts) { catHearts = v }
+        if let v = try c.decodeIfPresent(Date.self, forKey: .catBonusUntil) { catBonusUntil = v }
+        if let v = try c.decodeIfPresent([String: Int].self, forKey: .shinies) { shinies = v }
+        if let v = try c.decodeIfPresent([String: RecordCatch].self, forKey: .records) { records = v }
+        if let v = try c.decodeIfPresent([String].self, forKey: .decor) { decor = v }
+        if let v = try c.decodeIfPresent([String].self, forKey: .paints) { paints = v }
+        if let v = try c.decodeIfPresent(String.self, forKey: .paint) { paint = v }
+        if let v = try c.decodeIfPresent(Date.self, forKey: .whalesUntil) { whalesUntil = v }
+        if let v = try c.decodeIfPresent(String.self, forKey: .targetFishID) { targetFishID = v }
+        if let v = try c.decodeIfPresent(Double.self, forKey: .shells) { shells = v }
+    }
 }
 
 public struct BottleNote: Sendable {

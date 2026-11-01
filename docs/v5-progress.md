@@ -41,3 +41,12 @@ Reference: store asset 694d119b...jpg (pink-gold sunset, painted toy boat close 
 - Step17 result: CI 41292312634 GREEN; delivered /workspace/FishingIdle-screens-v7 (+compare-reference.png) and FishingIdle-video/gameplay-v7-zh.mp4. Meshy ship reads close to ref (cream/teal hull, anchor, wheelhouse, booms, rigging); captain visible on deck by wheelhouse. Gaps: boat faces bow camera-right (ref bow left, stern net toward camera), net on far side, ship mostly static (no animated sub-nodes), captain a bit small/dark, name plate hidden. Est ~75-80%.
 - Step18 (v7.1): ship yaw -2.42 (bow left, net side +Y_blender toward camera; shader shipYaw follows). Blender split (tools/meshy/split.py): Net (pivot top, sways) and captain Head (pivot neck, tilts). Procedural parts (ModelAssets.addProceduralParts): radar bar on wheelhouse roof, red flag at mast top, lantern sphere, additive window quad (night glow). Name plate on camera-side bow (2.1,0.78,-1.47). Captain (0.55,deck,-0.85) yaw 1.02 scale 1.75, self-emission 0.32 + fill/rim omni lights, whole-body wave/hop.
 - Step18 result: CI 41293405197 GREEN; screens -> /workspace/FishingIdle-screens-v8 (postcard, settings, onboarding banner verified). TODO: real-device iCloud test with team; in-app ja localization; postcard share-to-photos (P2 #14).
+
+## v9（2026-11-01）
+- 离线稀有事件（漂流瓶纸条/鲸群/极光/传说踪迹/风暴/闪光/纪录）进明信片；漂流瓶只用预设手写纸条（玩家互写瓶子功能已取消，无 CloudKit 公共库）
+- 纪录鱼分享卡（存相册 + 分享）、拍照模式（隐藏 UI/环绕缩放/滤镜）、船猫（每日抚摸 +10% 速度 1h、爱心）
+- 分海域环境音 + 雨声 + 水下闷音（AVAudioEngine），稀有/溅水/呼噜/快门音效，音量设置；授权见 docs/audio-credits.md
+- 天气心情、闪光变种、纪录、鱼缸装饰、船体涂装；节奏曲线见 docs/progression-curve.md
+- 长按连续升级、可重看引导；鱼舱 40+20×(Lv-1)
+- 队列 P0/P1：存档→杀进程→冷启动的离线结算 QA 测试；逐项收益明细（明信片 + 卖鱼提示）；挂机绝不自动换装；升级解锁新玩法（声呐 Lv2 目标鱼锁定、渔网 Lv4 双网、冰舱 Lv3 活鱼舱）；鱼缸只产贝壳🐚（装饰用贝壳买，去掉卖鱼加成）；一键观赏/助眠模式（常亮）；商店文案写明 6 片海/39 种鱼/时长
+- 未完成：涂装 3D 着色接入场景、鱼缸拍照、小游戏结算链接纪录；收线张力条/鱼体力条/触感（Minigame 由另一位同事在改，避免冲突，暂缓）
