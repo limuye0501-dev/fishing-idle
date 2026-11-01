@@ -5,17 +5,19 @@
 **Subtitle (≤30)**: A cozy idle fishing voyage
 
 **Promotional text (≤170)**:
-Name your trawler and sail with your little captain from the East China Sea to the Southern Ocean. 39 real species, idle or hands-on fishing. No ads.
+Name your trawler and sail with your little captain from the East China Sea to the Southern Ocean. First two seas free, one-time unlock. No ads, no stamina.
 
 **Keywords (≤100 bytes, comma-separated, no spaces)**:
 idle,fishing,fish,boat,trawler,captain,ocean,aquarium,relaxing,cozy,offline,sailing,collection
 
 **Description**:
+FIRST TWO SEAS FREE · ONE-TIME UNLOCK · NO ADS · NO STAMINA
+
 You have one big fishing trawler of your own, skippered by a little boy in a white captain's cap. The ship is always at sea, fishing quietly through sunrises, sunsets, rain and fog. Heading back to port is up to you.
 
 TWO WAYS TO FISH
-• Idle: your trawler keeps fishing while you're away, and a summary card shows the catch when you return
-• Hands-on: find a school on sonar, time your cast, then keep the line tension steady. Better play lands bigger, rarer fish
+• Idle: your trawler keeps fishing while you're away, and and a voyage-log postcard shows the catch and rare sightings when you return
+• Hands-on: find a school on sonar, time your cast, then keep the line tension steady. Better play lands bigger, rarer fish — a slip never loses the fish, and an assist mode widens the safe zone
 
 SIX OCEANS
 • East China Sea → Atlantic → Pacific → Indian → Arctic → Southern Ocean, unlocked one by one
@@ -29,7 +31,10 @@ RUN YOUR SHIP
 • Quests, trophy fish, a Codex and your own aquarium
 
 FAIR BY DESIGN
-• One purchase unlocks the Full Version. Gems are earned in game and never sold
+• The first two seas are free to play. One purchase unlocks the Full Version forever. Gems are earned in game and never sold
+• No stamina or energy timers — fish as much as you like. Running out of fuel never stalls you
+• iCloud save sync plus manual save export/import
+• 30 fps battery saver by default, and a Reduce camera motion option
 • No ads, no third-party analytics, no tracking, no personal data collected
 • Available in English and Simplified Chinese
 
