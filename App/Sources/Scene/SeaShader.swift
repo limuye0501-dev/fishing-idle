@@ -59,7 +59,7 @@ col += float3(0.85, 1.0, 0.95) * caus * causticAmt * (1.0 - smoothstep(4.0, 30.0
 // —— 柔和菲涅尔：掠射角处映出天空色 ——
 float3 V = normalize(-_surface.position);
 float fres = pow(1.0 - clamp(dot(V, _surface.normal), 0.0, 1.0), 4.0);
-col = mix(col, skyColor, clamp(fres * 0.45 * (1.0 - fg * 0.95) + smoothstep(40.0, 200.0, camDist) * 0.38, 0.0, 0.6)   // v6.1：减少奶白感);
+col = mix(col, skyColor, clamp(fres * 0.45 * (1.0 - fg * 0.95) + smoothstep(40.0, 200.0, camDist) * 0.38, 0.0, 0.6));   // v6.1：减少奶白感
 
 // —— 太阳金色波光带（宽高光 + 圆形闪点）——
 float3 Vw = normalize((scn_frame.inverseViewTransform * float4(V, 0.0)).xyz);
@@ -135,15 +135,15 @@ float n2 = sin(p.x * 7.7 - p.y * 5.3 + t * 2.7) * sin(p.y * 17.0 + t * 0.9);
 float rip = smoothstep(0.25, 0.95, n1 * 0.7 + n2 * 0.5 + 0.2);
 float glow2 = exp(-lz2 * lz2) * vf2 * (0.35 + 1.6 * rip) * sparkleAmt * (1.0 - nightAmt);
 // v6.1：高频阈值波纹 -> 清晰闪光短条（横向拉长），HDR >1 触发泛光
-float2 sq = p * float2(1.6, 7.5);
-float s1 = sin(sq.x * 5.1 + sin(sq.y * 0.9 + t * 1.1) * 2.0 + t * 2.3) * sin(sq.y * 3.7 - t * 3.1 + g.x * 6.0);
-float s2 = sin(sq.x * 9.3 - sq.y * 1.7 - t * 3.7) * sin(sq.y * 6.1 + t * 2.2);
-float streak = smoothstep(0.62, 0.80, s1 * 0.75 + s2 * 0.45 + hgt * 0.2);
-float colm = exp(-lz2 * lz2) * vf2 * sparkleAmt * (1.0 - nightAmt);
-col += float3(1.0, 0.80, 0.50) * (colm * (0.18 + 0.4 * rip) + exp(-lz2 * lz2 * 0.18) * vf2 * 0.06 * sparkleAmt * (1.0 - nightAmt));
-col += float3(1.6, 1.35, 0.95) * streak * colm * 1.6;
+float2 glQ = p * float2(1.6, 7.5);
+float glA = sin(glQ.x * 5.1 + sin(glQ.y * 0.9 + t * 1.1) * 2.0 + t * 2.3) * sin(glQ.y * 3.7 - t * 3.1 + g.x * 6.0);
+float glB = sin(glQ.x * 9.3 - glQ.y * 1.7 - t * 3.7) * sin(glQ.y * 6.1 + t * 2.2);
+float glS = smoothstep(0.62, 0.80, glA * 0.75 + glB * 0.45 + hgt * 0.2);
+float glM = exp(-lz2 * lz2) * vf2 * sparkleAmt * (1.0 - nightAmt);
+col += float3(1.0, 0.80, 0.50) * (glM * (0.18 + 0.4 * rip) + exp(-lz2 * lz2 * 0.18) * vf2 * 0.06 * sparkleAmt * (1.0 - nightAmt));
+col += float3(1.6, 1.35, 0.95) * glS * glM * 1.6;
 // 柱外零星闪点
-col += float3(1.4, 1.25, 1.0) * smoothstep(0.86, 0.95, s1 * 0.75 + s2 * 0.45) * exp(-lz2 * lz2 * 0.08) * vf2 * 0.5 * sparkleAmt * (1.0 - nightAmt);
+col += float3(1.4, 1.25, 1.0) * smoothstep(0.86, 0.95, glA * 0.75 + glB * 0.45) * exp(-lz2 * lz2 * 0.08) * vf2 * 0.5 * sparkleAmt * (1.0 - nightAmt);
 _surface.diffuse = float4(col, 1.0);
 """
 
