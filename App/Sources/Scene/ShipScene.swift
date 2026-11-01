@@ -100,7 +100,7 @@ final class ShipScene: NSObject {
         }
         shipRoot.addChildNode(shipNode)
         if usingModels {
-            cameraNode.position = SCNVector3(-0.35, 4.4, 9.7)   // v7.5d：网不出画；v7.5：更近，船占画面更大（对齐参考图）
+            cameraNode.position = SCNVector3(-0.35, 5.0, 9.7)   // v7.6：船在画面略下移；v7.5d：网不出画；v7.5：更近，船占画面更大（对齐参考图）
         }
         minigameFX = MinigameFX(root: scene.rootNode, ship: shipNode, camera: cameraNode)   // v7.2：小游戏 3D 声呐/收网
         // 小船长站在前甲板，面朝镜头偏右
