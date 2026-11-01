@@ -212,9 +212,9 @@ final class ShipScene: NSObject {
     private func buildSpray() {
         let ps = SCNParticleSystem()
         ps.particleImage = ShipScene.softDot()
-        ps.birthRate = 900
+        ps.birthRate = 420
         ps.particleLifeSpan = 0.6; ps.particleLifeSpanVariation = 0.25
-        ps.particleSize = 0.11; ps.particleSizeVariation = 0.06
+        ps.particleSize = 0.14; ps.particleSizeVariation = 0.06
         ps.particleVelocity = 1.1; ps.particleVelocityVariation = 0.5
         ps.emittingDirection = SCNVector3(0, 1, 0); ps.spreadingAngle = 55
         ps.acceleration = SCNVector3(0, -4.5, 0)
