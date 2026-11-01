@@ -64,11 +64,11 @@ enum ModelAssets {
         n.enumerateHierarchy { c, _ in
             for m in c.geometry?.materials ?? [] { m.emission.contents = m.diffuse.contents; m.emission.intensity = 0.32 }
         }
-        let fill = SCNNode(); fill.light = SCNLight(); fill.light!.type = .omni; fill.light!.intensity = 260
-        fill.light!.color = UIColor(red: 1, green: 0.93, blue: 0.85, alpha: 1); fill.light!.attenuationStartDistance = 0.2; fill.light!.attenuationEndDistance = 1.6
+        let fill = SCNNode(); fill.light = SCNLight(); fill.light!.type = .omni; fill.light!.intensity = 90
+        fill.light!.color = UIColor(red: 1, green: 0.93, blue: 0.85, alpha: 1); fill.light!.attenuationStartDistance = 0.2; fill.light!.attenuationEndDistance = 1.2
         fill.position = SCNVector3(0.9, 1.0, 0.2); n.addChildNode(fill)
-        let rim = SCNNode(); rim.light = SCNLight(); rim.light!.type = .omni; rim.light!.intensity = 320
-        rim.light!.color = UIColor(red: 1, green: 0.8, blue: 0.6, alpha: 1); rim.light!.attenuationStartDistance = 0.2; rim.light!.attenuationEndDistance = 1.4
+        let rim = SCNNode(); rim.light = SCNLight(); rim.light!.type = .omni; rim.light!.intensity = 70
+        rim.light!.color = UIColor(red: 1, green: 0.8, blue: 0.6, alpha: 1); rim.light!.attenuationStartDistance = 0.2; rim.light!.attenuationEndDistance = 0.9
         rim.position = SCNVector3(-0.7, 1.4, -0.3); n.addChildNode(rim)
         if n.childNode(withName: "ArmR", recursively: true) == nil {
             func sw(_ a: Float, _ t: TimeInterval) -> SCNAction { let x = SCNAction.rotateTo(x: 0, y: 0, z: CGFloat(a), duration: t, usesShortestUnitArc: true); x.timingMode = .easeInEaseOut; return x }
