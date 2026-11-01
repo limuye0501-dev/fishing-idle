@@ -108,3 +108,25 @@ final class ExtrasDecodeTests: XCTestCase {
         XCTAssertEqual(e.notes, [1]); XCTAssertEqual(e.catHearts, 3); XCTAssertEqual(e.shells, 0); XCTAssertNil(e.targetFishID)
     }
 }
+
+final class HistoryBottleTests: XCTestCase {
+    func testCatalogue() {
+        let all = VoyageConfig.historyBottles
+        XCTAssertGreaterThanOrEqual(all.count, 30)
+        XCTAssertEqual(Set(all.map(\.id)).count, all.count)
+        for o in VoyageConfig.oceans { XCTAssertGreaterThanOrEqual(all.filter { $0.oceanID == o.id }.count, 4, o.id) }
+        for b in all {
+            XCTAssertFalse(b.zh.isEmpty); XCTAssertFalse(b.en.isEmpty); XCTAssertTrue(b.url.hasPrefix("https://"))
+            XCTAssertFalse(b.noteZh.isEmpty); XCTAssertTrue(b.authentic)
+        }
+        XCTAssertGreaterThan(VoyageConfig.bottleSeaFactor("coastal"), VoyageConfig.bottleSeaFactor("southern"))
+    }
+    func testBottlesComeFromCurrentSeaAndCompleteSet() {
+        var s = VoyageState(now: Date(timeIntervalSince1970: 1_800_000_000))
+        var have: [Int] = []
+        while let b = s.nextHistoryBottle(in: "atlantic", have: have, roll: 0.99) { XCTAssertEqual(b.oceanID, "atlantic"); have.append(b.id) }
+        XCTAssertEqual(have.count, VoyageConfig.historyBottles.filter { $0.oceanID == "atlantic" }.count)
+        s.v9 = VoyageExtras(); s.v9?.notes = have
+        XCTAssertEqual(s.historyCollected.count, have.count)
+    }
+}

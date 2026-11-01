@@ -61,6 +61,24 @@ public struct VoyageExtras: Codable, Hashable, Sendable {
     }
 }
 
+/// 历史漂流瓶：真实公有领域史料摘录（数据见 HistoryBottles.swift）
+public struct HistoryBottle: Sendable, Identifiable {
+    public enum Kind: String, Sendable { case diary, log, letter, telegram, journal
+        public var label: String {
+            switch self { case .diary: tr("日记", "Diary"); case .log: tr("航海日志", "Ship's log"); case .letter: tr("书信", "Letter")
+            case .telegram: tr("电报", "Wireless"); case .journal: tr("捕鲸日志", "Whaler's journal") }
+        }
+    }
+    public let id: Int, oceanID: String, kind: Kind, date: String
+    public let en: String, zh: String, original: String
+    public let noteZh: String, noteEn: String, sourceZh: String, sourceEn: String, url: String
+    public var text: String { tr(zh, en) }
+    public var note: String { tr(noteZh, noteEn) }
+    public var source: String { tr(sourceZh, sourceEn) }
+    /// 全部为真实摘录（以后如有改编条目须另加标记）
+    public var authentic: Bool { true }
+}
+
 public struct BottleNote: Sendable {
     public let id: Int
     public let zh: String, en: String
@@ -82,6 +100,10 @@ extension VoyageConfig {
     public static let shinyChance = 0.004
     public static let shinyValueFactor = 5.0
     public static let bottleChance = 0.05        // 每小时
+    /// 越难的海域瓶子越稀有
+    public static func bottleSeaFactor(_ sea: String) -> Double {
+        switch sea { case "coastal": 1.0; case "atlantic": 0.9; case "pacific": 0.8; case "indian": 0.7; case "arctic": 0.6; default: 0.5 }
+    }
     public static let whaleChance = 0.05
     public static let auroraChance = 0.25        // 极地夜晚每小时
     public static let stormSurvivedCoins = 150
@@ -154,11 +176,10 @@ extension VoyageState {
         }
         e.lastWasStorm = w == .storm
         // 漂流瓶
-        if rand() < VoyageConfig.bottleChance {
-            let missing = VoyageConfig.bottleNotes.map(\.id).filter { !e.notes.contains($0) }
-            if let id = missing.first {
-                e.notes.append(id)
-                add(.bottle, tr("🍾 捞到一个漂流瓶：\(VoyageConfig.bottleNotes[id].zh)", "🍾 Fished up a bottle: \(VoyageConfig.bottleNotes[id].en)"))
+        if rand() < VoyageConfig.bottleChance * VoyageConfig.bottleSeaFactor(oceanID) {
+            if let b = nextHistoryBottle(in: oceanID, have: e.notes, roll: rand()) {
+                e.notes.append(b.id)
+                add(.bottle, tr("🍾 捞到一个漂流瓶：「\(b.zh)」—— \(b.date)", "🍾 Fished up a bottle: “\(b.en)” — \(b.date)"))
             } else {
                 coins += 50
                 add(.bottle, tr("🍾 又捞到一个空漂流瓶（+50 金币）", "🍾 Another empty bottle (+50 coins)"))
@@ -283,4 +304,11 @@ extension VoyageState {
         ext.paint = id
     }
     public var notesCollected: [BottleNote] { ext.notes.compactMap { i in VoyageConfig.bottleNotes.first { $0.id == i } } }
+    public var historyCollected: [HistoryBottle] { VoyageConfig.historyBottles.filter { ext.notes.contains($0.id) } }
+    /// 本海域还没捞到的历史瓶子里随机挑一个
+    public func nextHistoryBottle(in sea: String, have: [Int], roll: Double) -> HistoryBottle? {
+        let missing = VoyageConfig.historyBottles.filter { $0.oceanID == sea && !have.contains($0.id) }
+        guard !missing.isEmpty else { return nil }
+        return missing[min(missing.count - 1, Int(roll * Double(missing.count)))]
+    }
 }

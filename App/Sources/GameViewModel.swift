@@ -104,7 +104,7 @@ final class GameViewModel: ObservableObject {
         if args.contains("-tour") { runTour() }
         if args.contains("-offline") {
             offlineReport = OfflineReport(seconds: 3 * 3600 + 25 * 60, fish: 142, released: 96, newSpecies: 2, arrived: nil,
-                                          events: [tr("🍾 捞到一个漂流瓶，里面有张旧海图", "🍾 Fished up a message in a bottle with an old chart"),
+                                          events: [tr("🍾 捞到一个漂流瓶：「这片海叫“太平洋”真是名副其实，因为这段时间里我们一场风暴也没遇到。」—— 1521", "🍾 Fished up a bottle: “This was well named Pacific, for during this same time we met with no storm.” — 1521"),
                                                    tr("🐋 远处有一群座头鲸喷水", "🐋 A pod of humpbacks spouted in the distance"),
                                                    tr("✨ 声呐发现🦈的踪迹！", "✨ Sonar picked up signs of 🦈!")],
                                           bestFishID: "mahimahi", trophies: 1, fuelEmpty: true,
@@ -153,7 +153,7 @@ final class GameViewModel: ObservableObject {
         s.advance(to: Date())
         s.fuel = s.fuelCapacity * 0.72
         var e = s.ext
-        e.notes = [0, 2, 5, 6]; e.decor = ["sand", "kelp", "coral"]; e.paints = ["classic", "coral"]; e.catHearts = 12
+        e.notes = [100, 103, 110, 113, 121, 130, 140, 152]; e.decor = ["sand", "kelp", "coral"]; e.paints = ["classic", "coral"]; e.catHearts = 12
         e.shinies = ["clown": 1]
         e.records["mahimahi"] = RecordCatch(fishID: "mahimahi", kg: 21.4, date: start, weather: .sunny, oceanID: "pacific", shiny: true)
         e.records["seabream"] = RecordCatch(fishID: "seabream", kg: 3.1, date: start, weather: .fog, oceanID: "coastal", shiny: false)

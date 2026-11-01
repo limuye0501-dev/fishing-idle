@@ -61,18 +61,18 @@ struct CollectionView: View {
     }
 
     private var notes: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(tr("已收集 \(game.state.ext.notes.count)/\(VoyageConfig.bottleNotes.count) 张纸条", "\(game.state.ext.notes.count)/\(VoyageConfig.bottleNotes.count) notes collected"))
+        let all = VoyageConfig.historyBottles
+        let have = Set(game.state.ext.notes)
+        return VStack(alignment: .leading, spacing: 10) {
+            Text(tr("海洋史漂流瓶 \(all.filter { have.contains($0.id) }.count)/\(all.count)", "Sea history bottles \(all.filter { have.contains($0.id) }.count)/\(all.count)"))
                 .font(.subheadline.bold())
-            ForEach(VoyageConfig.bottleNotes, id: \.id) { n in
-                let have = game.state.ext.notes.contains(n.id)
-                HStack(alignment: .top) {
-                    Text(have ? "🍾" : "❔")
-                    Text(have ? n.text : tr("还没捞到…离开时船会在海上捡漂流瓶", "Not found yet… the ship picks up bottles while you're away"))
-                        .font(.system(.body, design: .serif)).foregroundStyle(have ? Theme.ink : .secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12).background(Color.white.opacity(have ? 0.8 : 0.4), in: RoundedRectangle(cornerRadius: 12))
+            Text(tr("每个瓶子都是真实历史文献的摘录，越远的海越难捞到。", "Every bottle is a real excerpt from a historical document; farther seas make them rarer."))
+                .font(.caption).foregroundStyle(.secondary)
+            ForEach(VoyageConfig.oceans, id: \.id) { o in
+                let list = all.filter { $0.oceanID == o.id }
+                Text("\(tr(o.zhName, o.enName)) · \(list.filter { have.contains($0.id) }.count)/\(list.count)")
+                    .font(.system(.headline, design: .serif)).padding(.top, 6)
+                ForEach(list) { n in BottleCard(bottle: n, found: have.contains(n.id)) }
             }
         }
         .padding(.horizontal)
@@ -183,5 +183,36 @@ struct RecordShareSheet: View {
             r.scale = 3
             image = r.uiImage
         }
+    }
+}
+
+
+struct BottleCard: View {
+    let bottle: HistoryBottle
+    let found: Bool
+    @State private var open = false
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(found ? "🍾" : "❔")
+                Text(found ? "\(bottle.kind.label) · \(bottle.date)" : tr("还没捞到", "Not found yet")).font(.caption.bold())
+                Spacer()
+                if found { Text(tr("真实摘录", "Authentic excerpt")).font(.caption2.bold()).padding(.horizontal, 6).padding(.vertical, 2)
+                    .background(Theme.teal.opacity(0.15), in: Capsule()).foregroundStyle(Theme.teal) }
+            }
+            if found {
+                Text("“\(bottle.text)”").font(.system(.body, design: .serif)).foregroundStyle(Theme.ink)
+                if !bottle.original.isEmpty && open { Text(bottle.original).font(.system(.footnote, design: .serif)).foregroundStyle(.secondary) }
+                if open {
+                    Text(bottle.note).font(.caption).foregroundStyle(Theme.ink.opacity(0.8))
+                    Text(tr("出处：\(bottle.source)", "Source: \(bottle.source)")).font(.caption2).foregroundStyle(.secondary)
+                }
+            } else {
+                Text(tr("出海挂机时，船会捡到这片海的漂流瓶", "Your ship picks up this sea's bottles while you're away")).font(.footnote).foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12).background(Color.white.opacity(found ? 0.8 : 0.4), in: RoundedRectangle(cornerRadius: 12))
+        .onTapGesture { if found { withAnimation { open.toggle() } } }
     }
 }
