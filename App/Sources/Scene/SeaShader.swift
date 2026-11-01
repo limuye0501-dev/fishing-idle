@@ -98,8 +98,8 @@ float lobe = exp(-lz * lz) * smoothstep(0.0, 0.015, dep) * (1.0 - smoothstep(0.1
 float gn = sin(p.x * 2.7 + g.y * 9.0 + t * 1.7) * sin(p.y * 9.5 - g.x * 7.0 - t * 1.2) + 0.6 * sin(p.x * 6.3 - p.y * 4.1 + t * 2.6);
 float gsp = smoothstep(0.35, 1.1, gn + hgt * 0.4);
 float3 gold = float3(1.0, 0.80, 0.42);
-col = mix(col, gold * 1.25, clamp(lobe * (0.45 + 0.8 * gsp), 0.0, 0.92) * (1.0 - nightAmt));
-col += gold * lobe * gsp * 1.3 * (1.0 - nightAmt);
+col = mix(col, gold * 1.1, clamp(lobe * (0.15 + 0.3 * gsp), 0.0, 0.5) * (1.0 - nightAmt));   // v6.1c：减弱旧光斑
+col += gold * lobe * gsp * 0.4 * (1.0 - nightAmt);
 
 // —— 白色浪尖（风浪碎沫）——
 float crestN = sin(p.x * 5.3 + p.y * 3.7 + t * 1.1) * sin(p.y * 6.1 - p.x * 2.9 - t * 0.8);
@@ -127,7 +127,7 @@ col = mix(col, foamColor * 1.08, clamp(fm * 1.1, 0.0, 1.0));   // v6.1：更白�
 
 col *= mix(1.0, 0.45, nightAmt);
 // v6c：最终叠加金色波光柱（HDR >1 触发泛光）
-float gw2 = 0.035 + dep * 0.75;
+float gw2 = 0.03 + dep * 0.45;
 float lz2 = (sx + 0.40) / gw2;
 float vf2 = smoothstep(0.0, 0.01, dep) * (1.0 - smoothstep(0.10, 0.35, dep));
 float n1 = sin(p.x * 3.1 + t * 1.9) * sin(p.y * 11.0 - t * 1.3);
@@ -138,10 +138,10 @@ float glow2 = exp(-lz2 * lz2) * vf2 * (0.35 + 1.6 * rip) * sparkleAmt * (1.0 - n
 float2 glQ = p * float2(1.6, 7.5);
 float glA = sin(glQ.x * 5.1 + sin(glQ.y * 0.9 + t * 1.1) * 2.0 + t * 2.3) * sin(glQ.y * 3.7 - t * 3.1 + g.x * 6.0);
 float glB = sin(glQ.x * 9.3 - glQ.y * 1.7 - t * 3.7) * sin(glQ.y * 6.1 + t * 2.2);
-float glS = smoothstep(0.62, 0.80, glA * 0.75 + glB * 0.45 + hgt * 0.2);
+float glS = smoothstep(0.74, 0.80, glA * 0.75 + glB * 0.45 + hgt * 0.2);
 float glM = exp(-lz2 * lz2) * vf2 * sparkleAmt * (1.0 - nightAmt);
-col += float3(1.0, 0.80, 0.50) * (glM * (0.18 + 0.4 * rip) + exp(-lz2 * lz2 * 0.18) * vf2 * 0.06 * sparkleAmt * (1.0 - nightAmt));
-col += float3(1.6, 1.35, 0.95) * glS * glM * 1.6;
+col += float3(1.0, 0.80, 0.50) * (glM * (0.06 + 0.12 * rip) + exp(-lz2 * lz2 * 0.18) * vf2 * 0.02 * sparkleAmt * (1.0 - nightAmt));
+col += float3(1.6, 1.35, 0.95) * glS * glM * 2.2;
 // 柱外零星闪点
 col += float3(1.4, 1.25, 1.0) * smoothstep(0.86, 0.95, glA * 0.75 + glB * 0.45) * exp(-lz2 * lz2 * 0.08) * vf2 * 0.5 * sparkleAmt * (1.0 - nightAmt);
 _surface.diffuse = float4(col, 1.0);

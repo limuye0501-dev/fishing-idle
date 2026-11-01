@@ -94,8 +94,8 @@ final class ShipScene: NSObject {
         c.minimumExposure = -1; c.maximumExposure = 1
         c.contrast = 0.04   // v6：更柔和
         c.saturation = 1.04
-        c.bloomIntensity = 0.75
-        c.bloomThreshold = 0.72
+        c.bloomIntensity = 0.6
+        c.bloomThreshold = 0.95
         c.bloomBlurRadius = 20
         c.vignettingIntensity = 0.30
         c.vignettingPower = 0.9
