@@ -60,10 +60,52 @@ enum ModelAssets {
             tilt.timingMode = .easeInEaseOut
             head.runAction(.repeatForever(tilt))
         }
+        // v7.1：提亮（贴图自发光 + 正面补光/轮廓光），整体挥手式摇摆
+        n.enumerateHierarchy { c, _ in
+            for m in c.geometry?.materials ?? [] { m.emission.contents = m.diffuse.contents; m.emission.intensity = 0.32 }
+        }
+        let fill = SCNNode(); fill.light = SCNLight(); fill.light!.type = .omni; fill.light!.intensity = 260
+        fill.light!.color = UIColor(red: 1, green: 0.93, blue: 0.85, alpha: 1); fill.light!.attenuationStartDistance = 0.2; fill.light!.attenuationEndDistance = 1.6
+        fill.position = SCNVector3(0.9, 1.0, 0.2); n.addChildNode(fill)
+        let rim = SCNNode(); rim.light = SCNLight(); rim.light!.type = .omni; rim.light!.intensity = 320
+        rim.light!.color = UIColor(red: 1, green: 0.8, blue: 0.6, alpha: 1); rim.light!.attenuationStartDistance = 0.2; rim.light!.attenuationEndDistance = 1.4
+        rim.position = SCNVector3(-0.7, 1.4, -0.3); n.addChildNode(rim)
+        if n.childNode(withName: "ArmR", recursively: true) == nil {
+            func sw(_ a: Float, _ t: TimeInterval) -> SCNAction { let x = SCNAction.rotateTo(x: 0, y: 0, z: CGFloat(a), duration: t, usesShortestUnitArc: true); x.timingMode = .easeInEaseOut; return x }
+            let hop = SCNAction.sequence([.moveBy(x: 0, y: 0.05, z: 0, duration: 0.18), .moveBy(x: 0, y: -0.05, z: 0, duration: 0.18)])
+            let wave = SCNAction.sequence([sw(0.08, 0.3), sw(-0.08, 0.3), sw(0.08, 0.3), sw(0, 0.3), hop, .wait(duration: 2.6)])
+            let body = SCNNode(); body.name = "CaptainWave"
+            for c in n.childNodes { body.addChildNode(c) }
+            n.addChildNode(body); body.runAction(.repeatForever(wave))
+        }
         let breathe = SCNAction.sequence([.scale(to: 1.02, duration: 1.2), .scale(to: 1.0, duration: 1.2)])
         breathe.timingMode = .easeInEaseOut
-        n.childNodes.first?.runAction(.repeatForever(breathe))
+        (n.childNode(withName: "CaptainWave", recursively: false) ?? n.childNodes.first)?.runAction(.repeatForever(breathe))
         return n
+    }
+
+    /// v7.1：Meshy 船体为单网格，补充可动小部件：雷达、旗、灯笼、驾驶室窗光。返回窗户材质（夜间发光）
+    static func addProceduralParts(to ship: SCNNode) -> SCNMaterial {
+        func mat(_ c: UIColor, emit: UIColor = .black) -> SCNMaterial { let m = SCNMaterial(); m.lightingModel = .physicallyBased; m.diffuse.contents = c; m.roughness.contents = 0.6; m.emission.contents = emit; return m }
+        let radar = SCNNode(); radar.name = "Radar"; radar.position = SCNVector3(-2.4, 2.85, 0.15)
+        let pole = SCNNode(geometry: SCNCylinder(radius: 0.03, height: 0.3)); pole.geometry!.materials = [mat(.darkGray)]; pole.position.y = 0.15; radar.addChildNode(pole)
+        let bar = SCNNode(geometry: SCNBox(width: 0.7, height: 0.07, length: 0.1, chamferRadius: 0.03)); bar.geometry!.materials = [mat(UIColor(white: 0.92, alpha: 1))]; bar.position.y = 0.32; radar.addChildNode(bar)
+        radar.runAction(.repeatForever(.rotateBy(x: 0, y: .pi * 2, z: 0, duration: 4))); ship.addChildNode(radar)
+        let flagRoot = SCNNode(); flagRoot.name = "Flag"; flagRoot.position = SCNVector3(0.5, 5.05, 0.4)
+        let fp = SCNPlane(width: 0.55, height: 0.32); fp.widthSegmentCount = 8
+        let fm = mat(UIColor(red: 0.85, green: 0.3, blue: 0.28, alpha: 1)); fm.isDoubleSided = true; fp.materials = [fm]
+        let flag = SCNNode(geometry: fp); flag.position.x = -0.28; flagRoot.addChildNode(flag)
+        let flap = SCNAction.sequence([.rotateTo(x: 0, y: 0.35, z: 0, duration: 0.6), .rotateTo(x: 0, y: -0.25, z: 0, duration: 0.6)]); flap.timingMode = .easeInEaseOut
+        flagRoot.runAction(.repeatForever(flap)); ship.addChildNode(flagRoot)
+        let lantern = SCNNode(geometry: SCNSphere(radius: 0.09)); lantern.name = "Lantern"
+        lantern.geometry!.materials = [mat(UIColor(red: 1, green: 0.55, blue: 0.35, alpha: 1), emit: UIColor(red: 1, green: 0.62, blue: 0.42, alpha: 1))]
+        lantern.position = SCNVector3(-1.8, 2.3, -1.05); ship.addChildNode(lantern)
+        let wm = mat(UIColor(red: 0.25, green: 0.3, blue: 0.35, alpha: 1)); wm.roughness.contents = 0.08; wm.transparency = 0.0
+        let win = SCNNode(geometry: SCNPlane(width: 0.9, height: 0.38)); win.name = "Windows"; win.geometry!.materials = [wm]
+        win.position = SCNVector3(-1.72, 1.95, 0); win.eulerAngles.y = .pi / 2; ship.addChildNode(win)
+        // 夜间才显示窗光：白天透明
+        wm.diffuse.contents = UIColor.clear; wm.blendMode = .add
+        return wm
     }
 
     private static func firstMaterial(_ n: SCNNode?) -> SCNMaterial? {

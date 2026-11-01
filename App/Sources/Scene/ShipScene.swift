@@ -54,7 +54,10 @@ final class ShipScene: NSObject {
             m.net?.runAction(.repeatForever(sway))
             nameNode.removeFromParentNode()
             shipNode.addChildNode(nameNode)
-            nameNode.isHidden = true   // v7：Meshy 船体形状不同，船名牌不贴合，隐藏
+            // v7.1：船名牌贴在镜头侧（Blender +Y = SceneKit -Z）船首外板
+            nameNode.position = SCNVector3(2.1, 0.78, -1.47); nameNode.eulerAngles.y = .pi - 0.4
+            nameNode.scale = SCNVector3(0.8, 0.8, 0.8)
+            windows = ModelAssets.addProceduralParts(to: shipNode)
         } else {
             shipNode = built.ship; windows = built.windows
             built.radar.runAction(.repeatForever(.rotateBy(x: 0, y: .pi * 2, z: 0, duration: 4)))
@@ -62,17 +65,17 @@ final class ShipScene: NSObject {
         shipRoot.addChildNode(shipNode)
         // 小船长站在前甲板，面朝镜头偏右
         let captain = ModelAssets.captain() ?? CaptainModel.build()
-        captain.position = usingModels ? SCNVector3(0.7, 0.59, 0.75) : SCNVector3(-0.3, ShipModel.deckY(-0.3), 1.45)   // v7：Meshy 船甲板高 0.59   // v5.5：驾驶室旁靠镜头一侧   // v5.4：船尾甲板，远离网兜   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
-        captain.eulerAngles.y = 0.85 - .pi / 2   // v6.1：模型正面为 +X，世界朝向 +Z（镜头）   // v5.3b：模型正面朝 -Z，翻转使其面向镜头
-        captain.scale = usingModels ? SCNVector3(1.3, 1.3, 1.3) : SCNVector3(1.6, 1.6, 1.6)   // v7：Meshy 船长高 1.4   // v6：更大更显眼
+        captain.position = usingModels ? SCNVector3(0.55, 0.59, -0.85) : SCNVector3(-0.3, ShipModel.deckY(-0.3), 1.45)   // v7：Meshy 船甲板高 0.59   // v5.5：驾驶室旁靠镜头一侧   // v5.4：船尾甲板，远离网兜   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
+        captain.eulerAngles.y = usingModels ? 1.02 : 0.85 - .pi / 2   // v6.1：模型正面为 +X，世界朝向 +Z（镜头）   // v5.3b：模型正面朝 -Z，翻转使其面向镜头
+        captain.scale = usingModels ? SCNVector3(1.75, 1.75, 1.75) : SCNVector3(1.6, 1.6, 1.6)   // v7：Meshy 船长高 1.4   // v6：更大更显眼
         shipNode.addChildNode(captain)
         // 夜间灯光
         let l = SCNLight(); l.type = .omni; l.color = UIColor(red: 1, green: 0.75, blue: 0.45, alpha: 1); l.intensity = 0
         l.attenuationStartDistance = 0.3; l.attenuationEndDistance = 4.5
-        lanternLight.light = l; lanternLight.position = SCNVector3(-0.5, 2.6, 1.6)
+        lanternLight.light = l; lanternLight.position = usingModels ? SCNVector3(-1.8, 2.4, -1.3) : SCNVector3(-0.5, 2.6, 1.6)
         shipNode.addChildNode(lanternLight)
         scene.rootNode.addChildNode(shipRoot)
-        shipRoot.eulerAngles.y = -0.85   // v5：船头朝向右前方（靠近镜头），三分之四视角
+        shipRoot.eulerAngles.y = usingModels ? -2.42 : -0.85   // v7.1：船头朝左、网侧朝镜头 // v5：船头朝向右前方（靠近镜头），三分之四视角
         buildWake()
         buildGulls()
         buildRain()
@@ -385,7 +388,7 @@ final class ShipScene: NSObject {
         let shallow = p.sea.mix(SkyPalette.rgb(0.42, 0.80, 0.78), night0 ? 0.0 : 0.65)
         let deep = p.sea.mix(SkyPalette.rgb(0.16, 0.52, 0.60), night0 ? 0.0 : 0.65)
         SeaShader.set(seaMat, shallow: shallow, deep: deep, sky: p.horizon.mix(p.mid, 0.3), foam: p.horizon.mix(.white, 0.97),
-                      sunDir: sunDir, yaw: state.phase == .docked ? 0 : -0.85, wake: state.phase == .sailing ? 1 : (state.phase == .fishing ? 0.75 : 0.5), night: night0 ? 0.6 : 0)
+                      sunDir: sunDir, yaw: state.phase == .docked ? 0 : (usingModels ? -2.42 : -0.85), wake: state.phase == .sailing ? 1 : (state.phase == .fishing ? 0.75 : 0.5), night: night0 ? 0.6 : 0)
         seaMat.setValue(NSNumber(value: weather == .storm || weather == .rain || weather == .fog ? 0.3 : 1.0), forKey: "causticAmt")
         seaMat.setValue(NSNumber(value: night0 ? 0.6 : (weather == .storm || weather == .fog ? 0.2 : 1.0)), forKey: "sparkleAmt")
         for n in cloudRoot.childNodes { n.geometry?.firstMaterial?.multiply.contents = p.cloud.mix(.white, 0.35) }
@@ -409,7 +412,7 @@ final class ShipScene: NSObject {
         let docked = state.phase == .docked
         portNode.isHidden = !docked
         wakeNode.isHidden = true
-        shipRoot.eulerAngles.y = docked ? 0 : -0.85
+        shipRoot.eulerAngles.y = docked ? 0 : (usingModels ? -2.42 : -0.85)
         startMotion(amp: weather == .storm ? 3.2 : (weather == .rain || weather == .breeze ? 1.6 : 1))
         scene.rootNode.removeAction(forKey: "lightning")
         if weather == .storm {
