@@ -134,7 +134,9 @@ struct FishingMinigameView: View {
                 .padding(.horizontal, 14).padding(.vertical, 8)
                 .background(Color(red: 0.05, green: 0.16, blue: 0.26).opacity(0.72), in: Capsule())
                 Text(hint).font(.system(.subheadline, design: .rounded)).foregroundStyle(Theme.cream.opacity(0.85))
-                    .multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center).padding(.horizontal, 12).padding(.vertical, 6)
+                    .background(Color(red: 0.05, green: 0.16, blue: 0.26).opacity(0.55), in: RoundedRectangle(cornerRadius: 12))
+                    .frame(maxWidth: .infinity)
                 Spacer(minLength: 0)
                 switch m.stage {
                 case .sonar: sonar

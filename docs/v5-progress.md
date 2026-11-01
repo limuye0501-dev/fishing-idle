@@ -58,3 +58,5 @@ Reference: store asset 694d119b...jpg (pink-gold sunset, painted toy boat close 
 - v7.2 3D sonar/net-haul (MinigameFX), v7.3 Meshy gulls (Gulls.swift, perch on mast), v7.4 grading (deeper teal, −0.12 EV, contrast/saturation), AmbientAudio crash guard.
 - CI 41299259120: app launches OK; mg-sonar3d / mg-haul3d show 3D dome, fish schools, NetBag close-up.
 - v7.5: camera closer (−0.8,4.35,9.3) so the ship fills the frame like the reference; bow spray moved outside the Meshy hull; ambient ×0.8, contrast 0.18 to reduce haze.
+- v7.5b–d: cloth-wave flag; bigger/closer gulls; hull paint (ext.paint → ShipBody surface shader recolour cream→hull, teal→stripe); minigame title in pill under HUD (CI 41303035400 verified no overlap); sonar schools kept in front sector; camera (−0.35,4.4,9.7).
+- v7.5e: minigame hint text gets a dark backing for legibility over the 3D scene.
