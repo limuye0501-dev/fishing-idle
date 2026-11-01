@@ -132,10 +132,6 @@ _surface.diffuse = float4(col, 1.0);
 
     /// v6：最终叠加的金色波光柱（在雾/调色之前的 fragment 末端以加法叠加，避免被雾冲淡）
     static let fragment = """
-#pragma arguments
-float sparkleAmt;
-float nightAmt;
-
 #pragma body
 float3 pv = _surface.position;
 float sx = (pv.x / max(-pv.z, 0.01)) / 0.4452;
