@@ -29,3 +29,4 @@ Reference: store asset 694d119b...jpg (pink-gold sunset, painted toy boat close 
 - Step14 result: v5.5b 41266571854 green, delivered screens-v5_5. Glitter still only faint gold at horizon - next: apply glitter after fog / as final additive. Captain visible by wheelhouse (small).
 - Step15 (v6): docs/rendering-techniques.md; glitter moved to .fragment additive (final output); pastel sea colours, softer grade/bloom; captain scale 2.2.
 - Step15 result: run 41282642477 failed (timeout) + sea magenta = fragment modifier compile error (duplicate #pragma arguments). v6b: fragment uses surface's uniforms; captain 1.85 (2.2 too large).
+- v6b result: run 41283900633 still magenta + timeout -> fragment modifier unusable here; v6c folds glitter column into end of surface modifier.

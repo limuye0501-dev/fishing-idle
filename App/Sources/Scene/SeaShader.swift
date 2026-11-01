@@ -126,6 +126,15 @@ float fm = clamp(foam * (0.8 + 0.2 * nz) + wake + crest * 0.8, 0.0, 1.0);
 col = mix(col, foamColor, fm * 0.92);
 
 col *= mix(1.0, 0.45, nightAmt);
+// v6c：最终叠加金色波光柱（HDR >1 触发泛光）
+float gw2 = 0.035 + dep * 0.75;
+float lz2 = (sx + 0.40) / gw2;
+float vf2 = smoothstep(0.0, 0.01, dep) * (1.0 - smoothstep(0.10, 0.35, dep));
+float n1 = sin(p.x * 3.1 + t * 1.9) * sin(p.y * 11.0 - t * 1.3);
+float n2 = sin(p.x * 7.7 - p.y * 5.3 + t * 2.7) * sin(p.y * 17.0 + t * 0.9);
+float rip = smoothstep(0.25, 0.95, n1 * 0.7 + n2 * 0.5 + 0.2);
+float glow2 = exp(-lz2 * lz2) * vf2 * (0.35 + 1.6 * rip) * sparkleAmt * (1.0 - nightAmt);
+col += float3(1.0, 0.78, 0.45) * (glow2 * 1.1 + exp(-lz2 * lz2 * 0.18) * vf2 * 0.12 * sparkleAmt * (1.0 - nightAmt));
 _surface.diffuse = float4(col, 1.0);
 """
 
@@ -155,7 +164,7 @@ _output.color.rgb += float3(1.0, 0.78, 0.45) * (glow * 0.9 + halo);
 
     static func apply(to m: SCNMaterial) {
         m.lightingModel = .constant
-        m.shaderModifiers = [.surface: surface, .fragment: fragment]
+        m.shaderModifiers = [.surface: surface]
         m.metalness.contents = 0.0
         m.roughness.contents = 0.18
         m.normal.contents = nil
