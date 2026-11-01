@@ -12,13 +12,13 @@ enum Gulls {
         let root = SCNNode()
         for k in 0..<4 {
             let g = proto.clone()
-            let s: Float = 0.75 + Float(k % 2) * 0.15
+            let s: Float = 1.15 + Float(k % 2) * 0.2   // v7.5：更大更近，画面里能看清翅膀
             g.scale = SCNVector3(s, s, s)
             root.addChildNode(g)
             let wl = g.childNode(withName: "WingL", recursively: true), wr = g.childNode(withName: "WingR", recursively: true)
             let perches = k == 1
             let period: Double = perches ? 24 : 16 + Double(k) * 3.5
-            let r = 5.5 + Float(k) * 1.6, h = 6.2 + Float(k) * 0.9, ph = Float(k) * 1.7, dir: Float = k % 2 == 0 ? 1 : -1
+            let r = 4.6 + Float(k) * 1.4, h = 5.0 + Float(k) * 0.7, ph = Float(k) * 1.7, dir: Float = k % 2 == 0 ? 1 : -1
             func path(_ t: Float) -> SCNVector3 {
                 let a = dir * t * 2 * .pi + ph
                 return SCNVector3(cos(a) * r * 1.25, h + sin(a * 2 + ph) * 0.9, sin(a) * r * 0.8 - 2)

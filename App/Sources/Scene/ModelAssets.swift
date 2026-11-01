@@ -94,8 +94,18 @@ enum ModelAssets {
         let flagRoot = SCNNode(); flagRoot.name = "Flag"; flagRoot.position = SCNVector3(0.5, 5.05, 0.4)
         let fp = SCNPlane(width: 0.55, height: 0.32); fp.widthSegmentCount = 8
         let fm = mat(UIColor(red: 0.85, green: 0.3, blue: 0.28, alpha: 1)); fm.isDoubleSided = true; fp.materials = [fm]
+        fp.heightSegmentCount = 2; fp.widthSegmentCount = 16
+        // v7.5：布料感——沿旗面传播的波浪（旗杆端固定）
+        fm.shaderModifiers = [.geometry: """
+        float u = clamp((0.275 - _geometry.position.x) / 0.55, 0.0, 1.0);
+        float w = sin(u * 7.0 - scn_frame.time * 8.0);
+        _geometry.position.z += w * 0.07 * u;
+        _geometry.position.y += cos(u * 5.0 - scn_frame.time * 6.0) * 0.02 * u;
+        _geometry.normal = normalize(_geometry.normal + float3(cos(u * 7.0 - scn_frame.time * 8.0) * 0.6 * u, 0.0, 0.0));
+        """]
         let flag = SCNNode(geometry: fp); flag.position.x = -0.28; flagRoot.addChildNode(flag)
-        let flap = SCNAction.sequence([.rotateTo(x: 0, y: 0.35, z: 0, duration: 0.6), .rotateTo(x: 0, y: -0.25, z: 0, duration: 0.6)]); flap.timingMode = .easeInEaseOut
+        flagRoot.eulerAngles.y = 0.5   // v7.5：旗面朝向镜头，避免侧看成一块方块
+        let flap = SCNAction.sequence([.rotateTo(x: 0, y: 0.65, z: 0, duration: 1.4), .rotateTo(x: 0, y: 0.35, z: 0, duration: 1.4)]); flap.timingMode = .easeInEaseOut
         flagRoot.runAction(.repeatForever(flap)); ship.addChildNode(flagRoot)
         let lantern = SCNNode(geometry: SCNSphere(radius: 0.09)); lantern.name = "Lantern"
         lantern.geometry!.materials = [mat(UIColor(red: 1, green: 0.55, blue: 0.35, alpha: 1), emit: UIColor(red: 1, green: 0.62, blue: 0.42, alpha: 1))]
