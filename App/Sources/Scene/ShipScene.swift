@@ -64,7 +64,9 @@ final class ShipScene: NSObject {
             built.radar.runAction(.repeatForever(.rotateBy(x: 0, y: .pi * 2, z: 0, duration: 4)))
         }
         shipRoot.addChildNode(shipNode)
-        if usingModels { cameraNode.position = SCNVector3(-0.9, 4.9, 10.8) }   // v7.1b：船头朝左后整体左移，避免船头出画
+        if usingModels {
+            cameraNode.position = SCNVector3(-0.8, 4.35, 9.3)   // v7.5：更近，船占画面更大（对齐参考图）
+        }
         minigameFX = MinigameFX(root: scene.rootNode, ship: shipNode, camera: cameraNode)   // v7.2：小游戏 3D 声呐/收网
         // 小船长站在前甲板，面朝镜头偏右
         let captain = ModelAssets.captain() ?? CaptainModel.build()
@@ -80,6 +82,14 @@ final class ShipScene: NSObject {
         scene.rootNode.addChildNode(shipRoot)
         shipRoot.eulerAngles.y = usingModels ? -2.42 : -0.85   // v7.1：船头朝左、网侧朝镜头 // v5：船头朝向右前方（靠近镜头），三分之四视角
         buildWake()
+        if usingModels {
+            // v7.5：船首水花移到 Meshy 船体外侧，否则被船壳挡住
+            sprayNode.position = SCNVector3(3.55, 0.05, 0)
+            if let ps = sprayNode.particleSystems?.first {
+                ps.emitterShape = SCNBox(width: 1.8, height: 0.02, length: 3.5, chamferRadius: 0)
+                ps.particleSize = 0.3; ps.particleVelocity = 1.5; ps.birthRate = 800
+            }
+        }
         buildGulls()
         buildRain()
         buildIce()
@@ -99,7 +109,7 @@ final class ShipScene: NSObject {
         c.exposureOffset = -0.12   // v7.4：船体不再过曝
         c.whitePoint = 1.0
         c.minimumExposure = -1; c.maximumExposure = 1
-        c.contrast = 0.12   // v6：更柔和
+        c.contrast = 0.18   // v7.5：船体更清晰
         c.saturation = 1.12
         c.bloomIntensity = 0.35
         c.bloomThreshold = 0.95
@@ -406,7 +416,7 @@ final class ShipScene: NSObject {
         let night0 = part == .night
         sun.light?.color = p.lightColor; sun.light?.intensity = p.lightIntensity
         sun.eulerAngles = SCNVector3(-p.lightElevation, Float((0.5 - p.sunX) * 1.2), 0)
-        ambient.light?.color = p.ambient; ambient.light?.intensity = p.ambientIntensity
+        ambient.light?.color = p.ambient; ambient.light?.intensity = p.ambientIntensity * (usingModels ? 0.8 : 1)   // v7.5：减少灰雾感
         let ys = Float((p.sunX - 0.5) * 0.9), se: Float = night0 ? 0.35 : 0.12
         let sunDir = SCNVector3(sin(ys) * cos(se), sin(se), -cos(ys) * cos(se))
         let shallow = p.sea.mix(SkyPalette.rgb(0.30, 0.70, 0.70), night0 ? 0.0 : 0.75)

@@ -53,3 +53,8 @@ Reference: store asset 694d119b...jpg (pink-gold sunset, painted toy boat close 
 - 漂流瓶改为“海洋史漂流瓶”：32 条真实公有领域史料摘录（鉴真、郑和碑、五月花号、纳尔逊情书、泰坦尼克电报、麦哲伦/Pigafetta、埃塞克斯号捕鲸船、库克、布莱、达·伽马、达尔文、南森、斯科特、沙克尔顿、Cherry-Garrard、达纳），按海域分布（每海 4–8 条），越远的海越稀有；收藏页按海域分组，标注“真实摘录”，点开可看原文、背景注释和出处。来源与 URL 见 docs/bottle-history-sources.md，生成脚本 tools/bottles/bottles.py。玩家互写瓶子/CloudKit 已按要求取消，未实现。
 - 启动崩溃修复：环境音改为 AVAudioPlayer 循环（AVAudioEngine 的 AVAudioPlayerNode.play() 在模拟器启动时抛 NSException）；CI 新增 crash-reports 产物
 - 收线小游戏：拉力条加标签、新增“鱼的体力”条；拉力进入危险区时连续重震，在绿区收线时轻震（“鱼不出画面”属于 3D 场景，由另一位同事负责，未改动）
+
+## Step19–21 (v7.2–v7.5 visuals)
+- v7.2 3D sonar/net-haul (MinigameFX), v7.3 Meshy gulls (Gulls.swift, perch on mast), v7.4 grading (deeper teal, −0.12 EV, contrast/saturation), AmbientAudio crash guard.
+- CI 41299259120: app launches OK; mg-sonar3d / mg-haul3d show 3D dome, fish schools, NetBag close-up.
+- v7.5: camera closer (−0.8,4.35,9.3) so the ship fills the frame like the reference; bow spray moved outside the Meshy hull; ambient ×0.8, contrast 0.18 to reduce haze.
