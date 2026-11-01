@@ -91,15 +91,15 @@ col += sunCol * (spec + spark * 1.4) * mix(1.0, 0.6, nightAmt);
 float3 pv = _surface.position;
 float sx = (pv.x / max(-pv.z, 0.01)) / 0.4452;
 float dep = max(Vw.y, 0.0);
-float gc = sunDirW.x < 0.0 ? -0.40 : 0.40;
-float gw = 0.035 + dep * 1.1;
+float gc = -0.40;   // v5.5：天空贴图太阳固定在画面 30% 处（左侧）
+float gw = 0.06 + dep * 1.3;
 float lz = (sx - gc * (1.0 - dep * 1.2)) / gw;
 float lobe = exp(-lz * lz) * smoothstep(0.0, 0.015, dep) * (1.0 - smoothstep(0.30, 0.65, dep));
 float gn = sin(p.x * 2.7 + g.y * 9.0 + t * 1.7) * sin(p.y * 9.5 - g.x * 7.0 - t * 1.2) + 0.6 * sin(p.x * 6.3 - p.y * 4.1 + t * 2.6);
 float gsp = smoothstep(0.75, 1.35, gn + hgt * 0.4);
 float3 gold = float3(1.0, 0.80, 0.42);
-col = mix(col, gold * 1.2, clamp(lobe * (0.30 + 0.9 * gsp), 0.0, 1.0) * sparkleAmt * (1.0 - nightAmt));
-col += gold * lobe * gsp * 0.6 * sparkleAmt * (1.0 - nightAmt);
+col = mix(col, gold * 1.25, clamp(lobe * (0.55 + 0.9 * gsp), 0.0, 1.0) * (1.0 - nightAmt));
+col += gold * lobe * gsp * 0.9 * (1.0 - nightAmt);
 
 // —— 白色浪尖（风浪碎沫）——
 float crestN = sin(p.x * 5.3 + p.y * 3.7 + t * 1.1) * sin(p.y * 6.1 - p.x * 2.9 - t * 0.8);

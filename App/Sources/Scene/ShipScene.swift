@@ -61,7 +61,7 @@ final class ShipScene: NSObject {
         shipRoot.addChildNode(shipNode)
         // 小船长站在前甲板，面朝镜头偏右
         let captain = ModelAssets.captain() ?? CaptainModel.build()
-        captain.position = SCNVector3(-3.0, ShipModel.deckY(-3.0), 0.8)   // v5.4：船尾甲板，远离网兜   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
+        captain.position = SCNVector3(-1.0, ShipModel.deckY(-1.0), 1.2)   // v5.5：驾驶室旁靠镜头一侧   // v5.4：船尾甲板，远离网兜   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
         captain.eulerAngles.y = 0.85 + .pi   // v5.3b：模型正面朝 -Z，翻转使其面向镜头
         captain.scale = SCNVector3(1.5, 1.5, 1.5)
         shipNode.addChildNode(captain)
@@ -212,9 +212,9 @@ final class ShipScene: NSObject {
     private func buildSpray() {
         let ps = SCNParticleSystem()
         ps.particleImage = ShipScene.softDot()
-        ps.birthRate = 420
-        ps.particleLifeSpan = 0.6; ps.particleLifeSpanVariation = 0.25
-        ps.particleSize = 0.14; ps.particleSizeVariation = 0.06
+        ps.birthRate = 620
+        ps.particleLifeSpan = 0.8; ps.particleLifeSpanVariation = 0.25
+        ps.particleSize = 0.2; ps.particleSizeVariation = 0.06
         ps.particleVelocity = 1.1; ps.particleVelocityVariation = 0.5
         ps.emittingDirection = SCNVector3(0, 1, 0); ps.spreadingAngle = 55
         ps.acceleration = SCNVector3(0, -4.5, 0)
