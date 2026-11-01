@@ -83,3 +83,41 @@
 - Steam / Reddit / TapTap 未取得数据；Cast n Chill、Webfishing、A Short Hike、Cat Goes Fishing 只有视频侧证据。
 - App Store 网页每区每款只露出约 10 条“精选”评论，存在偏向长评与高赞的选择偏差；关键词统计仅为粗略计数，不代表评分分布。
 - 视频转录为 YouTube 自动字幕，个别词有识别错误（如 "idol" = idle）。
+
+## X (Twitter) social listening — cozy/idle fishing (collected 2026-11-01)
+
+Method: 11 X API searches (EN/JA/ZH) for "cozy fishing game", "idle fishing", Cast n Chill, DREDGE/Webfishing, 釣りゲーム 癒し, 放置ゲーム/旅かえる, 治愈/放置 钓鱼, #cozygames/#indiedev fishing, cozy mobile + ads/energy. The index returned mostly Oct 2026 posts. Engagement is as of collection time (L = likes, RT = reposts, BM = bookmarks, Imp = impressions).
+
+### What excites players
+- **Ambient "leave it on screen" play.** Desktop/taskbar idle fishing is a crowded trend: Tiny Harbor, Desktop Harbor, River Whisker, Taskbar Fishing & Aquarium, Fishing Tales. A player on Tiny Harbor: "A cozy fishing game I can leave idling on the side of my screen while I work?? … understood the assignment" — https://x.com/thesoftspine0/status/2106119318157021199. JP: "Cast n Chillを画面に置いてぼーっと眺めるの、良い" — https://x.com/3_8_ts/status/2114211414982426840
+- **Big/legendary catch screenshots** are the most common thing players post. A JP player made a whole Cast n Chill series ("伝説級キングサーモンとの一騎打ち", "デカいの釣れました🎣🦈" 7L/2RT — https://x.com/Sfera03269315/status/2109296674111975781), plus "伝説級は出現する時間帯があるらしい" (legendaries only show up at certain times of day).
+- **Scenery and atmosphere:** auroras, mountains reflected in the water, night lantern light. "水面に映る山々まで描きこまれたドット絵に驚愕…癒し体験" 14L — https://x.com/zeromoku_game/status/2108891862358786290. The "turquoise water, boats rocking at the pier… night mode where the only light is your lantern" clip spread widely (its repost by @HelloVyom got 1,113L/423BM/54K Imp — https://x.com/HelloVyom/status/2109532406663479712; note it was flagged as stolen footage from @ForkedPush).
+- **Companions and pets:** "犬撫でれる" (you can pet the dog) for Cast n Chill; cats in Tiny Harbor, River Whisker and Plai.
+- **Home and room upgrades:** "リフォームしました" posts; a Yesday catch "went straight on the wall of Pip's room".
+- **Good for chatting while you play:** JP VTubers and streamers use Cast n Chill as a background game for talk streams ("雑談に向いているCast n Chill" 21L — https://x.com/mokamohu/status/2111733838825320642). ASMR fishing streams also do well ("ASMR釣りゲーム…水の音と鳥の鳴き声" 41L/20RT — https://x.com/rukuinumi_vt/status/2105964674663825721).
+- **Cute UI and character art from devs:** Orca Girl: Idle Fishing Story got 121L/21BM for its farm station (https://x.com/hujinniandiaoyu/status/2112728479435542718) and 100L/11 replies for a "which UI vibe?" poll (https://x.com/hujinniandiaoyu/status/2114514781919154334).
+
+### Complaints / friction
+- **Mislabelled idle games (JP):** "50時間程度で終わる放置ゲームとか放置ゲームのタグつけるのやめてほしい" (stop tagging ~50-hour games as idle games) — https://x.com/lix_wh/status/2116394401169891354. Another JP post separates true idle games (long-horizon) from incrementals (fast inflation) — https://x.com/Uzel_FF14/status/2112556684501741906
+- **"Cozy" games that turn into a second job / debt grind:** https://x.com/glitchvault247/status/2112465316110295427, https://x.com/HansMarvel3/status/2109162084613181779
+- **Energy bars and ads are pitched against as a selling point:** "No energy bar, no waiting to play the next level" — https://x.com/ZofloqDev/status/2113312437663359364; "a cozy Android game with no ads and no purchases" — https://x.com/KhanjanKavani/status/2115337773095993448. The ZH 放置/钓鱼 results are dominated by crypto play-to-earn spam, which is a reputational risk.
+- **AI "built a cozy fishing game solo" viral posts** draw accusations of stolen content — https://x.com/Cayden970207/status/2111885851890491698
+
+### What goes viral
+- Deal/aggregator accounts: Wario64's "Cast n Chill is $10.04 on Steam" got 94K Imp/50L — https://x.com/Wario64/status/2106068828820291753
+- Media pieces: AUTOMATON JP's idle-game article got 255L/99RT/75K Imp — https://x.com/AUTOMATONJapan/status/2105889702016618997
+- Short scenic clips with a "made by one person" hook (above, 1.1K L).
+- Ordinary dev posts with #cozygames/#indiedev usually get under 10 likes. Cute character art plus a question/poll does 10× better (Orca Girl).
+
+### Marketing patterns & amplifiers on X
+- Hashtags: #cozygames #cozygaming #indiedev #gamedev #indiegame #pixelart #ScreenshotSaturday #WishlistWednesday; JP: #個人開発 #インディーゲーム #癒しゲーム #放置ゲーム #ドット絵
+- Post formats: "Hi, I'm X, a solo dev from Y" intros; one-feature GIFs ("Pick a fish, pack it up, let the little whale deliver it"); "what should be the rarest fish? I'll add the best answer" engagement asks — https://x.com/AgantaBurinaaa/status/2116823337846423888
+- Amplifiers: @cozygamingclub (monthly cozy release roundups — https://x.com/cozygamingclub/status/2106068499009536384), @Wario64 (deals), @AUTOMATONJapan and @gamebiznews (JP media; gamebiz covered Tiny Trawler, https://x.com/gamebiznews/status/2110953037326168135), @DualShockers lists, JP/EN VTubers and small streamers (Cast n Chill, DREDGE).
+- Competitors to watch: Tiny Trawler (Mathias, a "handline → shrimp trawler" fleet with 55 species, very close to our pitch — https://x.com/MathiasIndie/status/2109058796555297212), Tiny Harbor, Idle Fishing Empire, FishX, Fishing Inc: Legendary Catch (mobile pre-registration).
+
+### Implications for 船长别回来
+1. Our pitch (free + one-time unlock, no ads, no stamina) matches what cozy players say they want. Put "no ads · no stamina · one-time unlock" in the first line of the App Store listing and our X bio.
+2. Build shareable moments on purpose: a legendary-catch card (size, rarity, time/weather), aquarium and boat photo modes, and scenic night and aurora oceans.
+3. Make idle sessions genuinely long-horizon, and avoid an inflation curve that finishes in 50 hours (the JP 放置 complaint).
+4. Give the chibi captain a pet (a cat or dog) to pet. Companions show up again and again in shared posts.
+5. On X: post weekly devlog GIFs of a single feature, run a "name the rarest fish" community ask, and post JP versions with JP tags. Pitch @cozygamingclub, JP media (AUTOMATON/gamebiz) and JP VTubers who stream chill games. Show real dev footage to avoid looking like the "AI-made" posts. In ZH copy, keep 治愈/放置 away from crypto wording.
