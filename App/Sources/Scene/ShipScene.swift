@@ -61,8 +61,8 @@ final class ShipScene: NSObject {
         shipRoot.addChildNode(shipNode)
         // 小船长站在前甲板，面朝镜头偏右
         let captain = ModelAssets.captain() ?? CaptainModel.build()
-        captain.position = SCNVector3(-0.75, ShipModel.deckY(-0.75), 0.75)   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
-        captain.eulerAngles.y = 0.85
+        captain.position = SCNVector3(-0.9, ShipModel.deckY(-0.9), 1.0)   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
+        captain.eulerAngles.y = 0.85 + .pi   // v5.3b：模型正面朝 -Z，翻转使其面向镜头
         captain.scale = SCNVector3(1.5, 1.5, 1.5)
         shipNode.addChildNode(captain)
         // 夜间灯光
@@ -192,30 +192,30 @@ final class ShipScene: NSObject {
         m.diffuse.contents = img; m.blendMode = .add; m.writesToDepthBuffer = false; m.isDoubleSided = true
         pl.materials = [m]
         glitterNode.geometry = pl
-        glitterNode.renderingOrder = 5
-        scene.rootNode.addChildNode(glitterNode)
+        // v5.3b：挂在相机下的屏幕锚定条带：从太阳下方地平线延伸到画面下部；不读深度，在海面之后、船之前绘制
+        m.readsFromDepthBuffer = false
+        glitterNode.renderingOrder = -1
+        seaNode.renderingOrder = -2
+        let D: Float = 40, halfW = tanf(24 * .pi / 180) * D, halfH = halfW / 0.46
+        let top = (0.5 - 0.345) * 2 * halfH, bot = (0.5 - 0.78) * 2 * halfH
+        pl.width = CGFloat(halfW * 0.75); pl.height = CGFloat(top - bot)
+        glitterNode.position = SCNVector3(-0.36 * halfW, (top + bot) / 2, -D)
+        cameraNode.addChildNode(glitterNode)
         let shimmer = SCNAction.repeatForever(.sequence([.fadeOpacity(to: 0.75, duration: 0.9), .fadeOpacity(to: 1.0, duration: 0.9)]))
         glitterNode.runAction(shimmer)
     }
 
     private func placeGlitter(sunDir: SCNVector3, visible: Bool) {
         glitterNode.isHidden = !visible
-        let cx = cameraNode.position.x, cz = cameraNode.position.z
-        let l = max(sqrtf(sunDir.x * sunDir.x + sunDir.z * sunDir.z), 1e-4)
-        let dx = sunDir.x / l, dz = sunDir.z / l
-        let d: Float = 6 + 75   // 近端距镜头约 6
-        glitterNode.position = SCNVector3(cx + dx * d, 0.04, cz + dz * d)
-        // 平面先躺平（-x 90°），再绕 y 旋转使长边指向太阳
-        glitterNode.eulerAngles = SCNVector3(-Float.pi / 2, atan2f(-dx, -dz), 0)
     }
 
     /// v5.3：船首白色水花（柔和圆形粒子）
     private func buildSpray() {
         let ps = SCNParticleSystem()
         ps.particleImage = ShipScene.softDot()
-        ps.birthRate = 140
+        ps.birthRate = 320
         ps.particleLifeSpan = 0.9; ps.particleLifeSpanVariation = 0.3
-        ps.particleSize = 0.16; ps.particleSizeVariation = 0.1
+        ps.particleSize = 0.26; ps.particleSizeVariation = 0.1
         ps.particleVelocity = 1.8; ps.particleVelocityVariation = 0.8
         ps.emittingDirection = SCNVector3(0, 1, 0); ps.spreadingAngle = 55
         ps.acceleration = SCNVector3(0, -4.5, 0)

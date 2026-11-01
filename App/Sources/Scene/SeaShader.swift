@@ -45,8 +45,8 @@ float depthT = smoothstep(2.0, 26.0, r);
 float3 col = mix(shallowColor, deepColor, depthT);
 col *= 1.0 + hgt * 0.16 * nearF;
 // v5.1：近景更深更饱和（屏幕下方渐暗）
-float fg = 1.0 - smoothstep(8.0, 30.0, camDist);
-col = mix(col, deepColor * float3(0.55, 0.85, 1.0), fg * 0.7);
+float fg = 1.0 - smoothstep(9.0, 45.0, camDist);
+col = mix(col, deepColor * float3(0.5, 0.82, 1.0), fg * 0.85);
 float lum = dot(col, float3(0.3, 0.59, 0.11)); col = mix(float3(lum), col, 1.0 + 0.35 * fg);
 col = mix(col, col * float3(0.80, 0.95, 1.0), smoothstep(0.2, 0.9, -hgt) * 0.35 * nearF);
 
