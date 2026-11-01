@@ -61,3 +61,4 @@ Reference: store asset 694d119b...jpg (pink-gold sunset, painted toy boat close 
 - v7.5b–d: cloth-wave flag; bigger/closer gulls; hull paint (ext.paint → ShipBody surface shader recolour cream→hull, teal→stripe); minigame title in pill under HUD (CI 41303035400 verified no overlap); sonar schools kept in front sector; camera (−0.35,4.4,9.7).
 - v7.5e: minigame hint text gets a dark backing for legibility over the 3D scene.
 - v7.6: SeaShader bow churn foam + narrower wake + stronger golden glitter path; camera y 5.0 (ship lower); tension bar slim & docked right; gull call sfx_gull (CC0, xeno-canto XC1002938) every ~6–38 s at 0.22 volume.
+- v8 sea rewrite (top priority per owner): Gerstner displacement mesh + analytic normals, 3-scale detail normal map, SSS crest tint, Schlick Fresnel, crest foam, horizon fog. See docs/rendering-techniques.md.

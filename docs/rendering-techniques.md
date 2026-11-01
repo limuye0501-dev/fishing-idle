@@ -15,3 +15,9 @@ Sources: Wind Waker/Sea of Thieves/Genshin GDC-style breakdowns, Catlike Coding 
 - `SeaShader.fragment`: additive gold glitter column under painted sun (ndc x −0.40), ripple-broken, HDR → bloom.
 - Softer palette: pastel teal shallow/deep, fg darkening reduced, camera contrast 0.04, saturation 1.04, bloom 0.75/0.72/20.
 - Captain scale 1.5 → 2.2.
+
+## Applied in v8 (sea rewrite)
+- Gerstner sum (6 waves, 0.8–9 m wavelengths, deep-water dispersion ω=√(gk)) with real vertex displacement on an 84 m, 168×168 near mesh (edges fade to flat; flat 600 m far plane underneath). Same wave set evaluated per-pixel for analytic normals (Sea of Thieves / GPU Gems ch.1 approach).
+- Tileable procedural detail normal map sampled at 3 scrolling scales (macro 0.023, mid 0.11, micro 0.37 /m) — breaks tiling, adds sparkle detail near camera.
+- Colour: view-angle depth gradient shallow→deep, crest brighten / trough darken, subsurface tint on back-lit crests (Genshin/AC-style SSS fake), Schlick Fresnel sky reflection with horizon→zenith tint, crest whitecaps from height + noise, horizon fog to sky colour.
+- Kept: screen-space golden glitter path under the sun, hull foam ring, bow churn, wake.

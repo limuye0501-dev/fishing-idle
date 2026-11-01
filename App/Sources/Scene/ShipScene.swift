@@ -16,6 +16,7 @@ final class ShipScene: NSObject {
     private let ambient = SCNNode()
     private let seaNode: SCNNode
     private let seaMat = SCNMaterial()
+    private let seaNearMat = SCNMaterial()   // v8：近景细分 + Gerstner 顶点位移
     private let wakeNode: SCNNode
     private let rainNode = SCNNode()
     private let gulls = SCNNode()
@@ -186,8 +187,13 @@ final class ShipScene: NSObject {
         seaNode.geometry = plane
         seaNode.geometry?.materials = [seaMat]
         seaNode.eulerAngles.x = -.pi / 2
-        seaNode.position.y = 0
+        seaNode.position.y = -0.25   // v8：远景平面略低，近景位移网格覆盖其上
         scene.rootNode.addChildNode(seaNode)
+        SeaShader.apply(to: seaNearMat, displaced: true)
+        let near = SCNPlane(width: 84, height: 84); near.widthSegmentCount = 168; near.heightSegmentCount = 168
+        near.materials = [seaNearMat]
+        let nearNode = SCNNode(geometry: near); nearNode.eulerAngles.x = -.pi / 2; nearNode.name = "seaNear"
+        scene.rootNode.addChildNode(nearNode)
         // 波光粼粼
         let glitter = SCNParticleSystem()
         glitter.birthRate = 25; glitter.particleLifeSpan = 1.2; glitter.particleSize = 0.12; glitter.particleSizeVariation = 0.08
@@ -465,6 +471,10 @@ final class ShipScene: NSObject {
                       sunDir: sunDir, yaw: state.phase == .docked ? 0 : (usingModels ? -2.42 : -0.85), wake: state.phase == .sailing ? 1 : (state.phase == .fishing ? 0.75 : 0.5), night: night0 ? 0.6 : 0)
         seaMat.setValue(NSNumber(value: weather == .storm || weather == .rain || weather == .fog ? 0.3 : 1.0), forKey: "causticAmt")
         seaMat.setValue(NSNumber(value: night0 ? 0.6 : (weather == .storm || weather == .fog ? 0.2 : 1.0)), forKey: "sparkleAmt")
+        for k in ["shallowColor", "deepColor", "skyColor", "foamColor", "sunDirW", "shipYaw", "wakeOn", "nightAmt", "causticAmt", "sparkleAmt"] {
+            if let v = seaMat.value(forKey: k) { seaNearMat.setValue(v, forKey: k) }
+        }
+        seaNearMat.setValue(NSNumber(value: weather == .storm ? 2.2 : (weather == .rain ? 1.4 : 1.0)), forKey: "dispAmt")
         for n in cloudRoot.childNodes { n.geometry?.firstMaterial?.multiply.contents = p.cloud.mix(.white, 0.35) }
         placeGlitter(sunDir: sunDir, visible: p.sunVisible && !night0 && weather != .storm && weather != .fog && weather != .rain)
         sprayNode.isHidden = state.phase != .sailing && state.phase != .fishing
