@@ -38,7 +38,8 @@ final class AmbientAudio {
     }
 
     private func loop(_ node: AVAudioPlayerNode, _ name: String) {
-        guard engine.isRunning, let b = buffer(name), b.format == Self.format else { return }
+        guard engine.isRunning, node.engine === engine, !engine.outputConnectionPoints(for: node, outputBus: 0).isEmpty,   // 未连接时 play() 会抛 NSException（CI 启动崩溃）
+              let b = buffer(name), b.format == Self.format else { return }
         node.stop()
         node.scheduleBuffer(b, at: nil, options: .loops)
         node.play()
