@@ -87,7 +87,7 @@ public enum ShipPart: String, Codable, CaseIterable, Sendable {
     public var desc: String {
         switch self {
         case .engine: return tr("航速 +15%/级，油箱 +40", "+15% speed per level, +40 fuel capacity")
-        case .hold: return tr("鱼舱 +10 格/级", "+10 hold slots per level")
+        case .hold: return tr("鱼舱 +20 格/级", "+20 hold slots per level")
         case .sonar: return tr("稀有鱼 +10%/级，主动捕鱼时鱼群更好找", "+10% rare fish per level; easier to find schools when fishing actively")
         case .nets: return tr("挂机捕鱼速度 +15%/级", "+15% idle catch speed per level")
         case .icebox: return tr("保鲜时间 +50%/级", "+50% freshness time per level")
@@ -192,7 +192,7 @@ public enum VoyageConfig {
     public static func tankUpgradeCost(level: Int) -> Int { Int((500.0 * pow(2.0, Double(level))).rounded()) }
     public static func partCost(_ p: ShipPart, level: Int) -> Int {
         let base: Double
-        switch p { case .engine: base = 120; case .hold: base = 100; case .sonar: base = 150; case .nets: base = 130; case .icebox: base = 90; case .hull: base = 400 }
+        switch p { case .engine: base = 120; case .hold: base = 150; case .sonar: base = 150; case .nets: base = 130; case .icebox: base = 90; case .hull: base = 400 }
         return Int((base * pow(2.1, Double(level - 1))).rounded())
     }
     public static func gearPrice(_ g: GearType) -> (coins: Int, gems: Int) {
@@ -358,7 +358,7 @@ public struct VoyageState: Codable, Sendable {
     public func part(_ p: ShipPart) -> Int { parts[p.rawValue] ?? 1 }
     public func skill(_ s: CrewSkill) -> Int { skills[s.rawValue] ?? 0 }
     public var ocean: Ocean { VoyageConfig.ocean(oceanID) ?? VoyageConfig.oceans[0] }
-    public var holdCapacity: Int { 20 + 10 * (part(.hold) - 1) }
+    public var holdCapacity: Int { 40 + 20 * (part(.hold) - 1) }   // 用户要求：鱼舱加大（Lv3=80，Lv6=140）
     public var fuelCapacity: Double { 100 + 40 * Double(part(.engine) - 1) }
     public var speed: Double { VoyageConfig.baseSpeed * (1 + 0.15 * Double(part(.engine) - 1)) * (1 + 0.05 * Double(skill(.seamanship))) }
     public var shelfLife: Double { VoyageConfig.shelfLifeHours * 3600 * (1 + 0.5 * Double(part(.icebox) - 1)) * (1 + 0.15 * Double(skill(.cook))) }

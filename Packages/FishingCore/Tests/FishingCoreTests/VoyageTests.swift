@@ -54,7 +54,7 @@ final class VoyageTests: XCTestCase {
         XCTAssertEqual(s.phase, .docked)
         s.coins = 10_000
         try s.upgrade(.hold, now: t0)
-        XCTAssertEqual(s.holdCapacity, 30)
+        XCTAssertEqual(s.holdCapacity, 60)
         try s.upgrade(.hold, now: t0)
         XCTAssertThrowsError(try s.upgrade(.hold, now: t0)) { XCTAssertEqual($0 as? VoyageError, .needsFullVersion) }
     }
