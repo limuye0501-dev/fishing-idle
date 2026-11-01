@@ -62,7 +62,7 @@ final class ShipScene: NSObject {
         // 小船长站在前甲板，面朝镜头偏右
         let captain = ModelAssets.captain() ?? CaptainModel.build()
         captain.position = SCNVector3(-0.3, ShipModel.deckY(-0.3), 1.45)   // v5.5：驾驶室旁靠镜头一侧   // v5.4：船尾甲板，远离网兜   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
-        captain.eulerAngles.y = 0.85 + .pi   // v5.3b：模型正面朝 -Z，翻转使其面向镜头
+        captain.eulerAngles.y = 0.85 - .pi / 2   // v6.1：模型正面为 +X，世界朝向 +Z（镜头）   // v5.3b：模型正面朝 -Z，翻转使其面向镜头
         captain.scale = SCNVector3(1.6, 1.6, 1.6)   // v6：更大更显眼
         shipNode.addChildNode(captain)
         // 夜间灯光
@@ -214,7 +214,7 @@ final class ShipScene: NSObject {
         ps.particleImage = ShipScene.softDot()
         ps.birthRate = 620
         ps.particleLifeSpan = 0.8; ps.particleLifeSpanVariation = 0.25
-        ps.particleSize = 0.2; ps.particleSizeVariation = 0.06
+        ps.particleSize = 0.24; ps.particleSizeVariation = 0.06
         ps.particleVelocity = 1.1; ps.particleVelocityVariation = 0.5
         ps.emittingDirection = SCNVector3(0, 1, 0); ps.spreadingAngle = 55
         ps.acceleration = SCNVector3(0, -4.5, 0)
@@ -224,7 +224,7 @@ final class ShipScene: NSObject {
         ps.birthLocation = .surface
         ps.isAffectedByGravity = false
         let fade = SCNParticlePropertyController(animation: {
-            let a = CAKeyframeAnimation(); a.values = [0.0, 0.9, 0.0]; a.keyTimes = [0, 0.2, 1]; return a }())
+            let a = CAKeyframeAnimation(); a.values = [0.0, 1.0, 0.0]; a.keyTimes = [0, 0.2, 1]; return a }())
         ps.propertyControllers = [.opacity: fade]
         sprayNode.addParticleSystem(ps)
         sprayNode.position = SCNVector3(3.0, 0.08, 0)
@@ -383,7 +383,7 @@ final class ShipScene: NSObject {
         let sunDir = SCNVector3(sin(ys) * cos(se), sin(se), -cos(ys) * cos(se))
         let shallow = p.sea.mix(SkyPalette.rgb(0.42, 0.80, 0.78), night0 ? 0.0 : 0.65)
         let deep = p.sea.mix(SkyPalette.rgb(0.16, 0.52, 0.60), night0 ? 0.0 : 0.65)
-        SeaShader.set(seaMat, shallow: shallow, deep: deep, sky: p.horizon.mix(p.mid, 0.3), foam: p.horizon.mix(.white, 0.88),
+        SeaShader.set(seaMat, shallow: shallow, deep: deep, sky: p.horizon.mix(p.mid, 0.3), foam: p.horizon.mix(.white, 0.97),
                       sunDir: sunDir, yaw: state.phase == .docked ? 0 : -0.85, wake: state.phase == .sailing ? 1 : (state.phase == .fishing ? 0.75 : 0.5), night: night0 ? 0.6 : 0)
         seaMat.setValue(NSNumber(value: weather == .storm || weather == .rain || weather == .fog ? 0.3 : 1.0), forKey: "causticAmt")
         seaMat.setValue(NSNumber(value: night0 ? 0.6 : (weather == .storm || weather == .fog ? 0.2 : 1.0)), forKey: "sparkleAmt")

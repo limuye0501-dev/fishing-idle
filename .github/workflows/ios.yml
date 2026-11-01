@@ -78,7 +78,7 @@ jobs:
           xcrun simctl terminate "$UDID" com.example.fishingidle || true
           xcrun simctl launch "$UDID" com.example.fishingidle -demo -tour -hour 18 -AppleLanguages "(zh-Hans)"
           sleep 3
-          xcrun simctl io "$UDID" recordVideo --codec=h264 --force video/gameplay-v5-zh.mov &
+          xcrun simctl io "$UDID" recordVideo --codec=h264 --force video/gameplay-v6-zh.mov &
           REC=$!
           sleep 88
           kill -INT $REC
