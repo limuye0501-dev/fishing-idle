@@ -61,6 +61,8 @@ jobs:
           shot main-sailing -demo -hour 18 -sailing $ZH
           for P in chart gear dock codex tank log hold; do shot panel-$P -demo -hour 18 -panel $P $ZH; done
           shot minigame -demo -hour 18 -minigame $ZH
+          shot mg-sonar3d -demo -hour 18 -minigame -autoplay -mghold sonar $ZH
+          shot mg-haul3d -demo -hour 18 -minigame -autoplay -mghold reel $ZH
           shot offline -demo -hour 18 -offline $ZH
           shot settings -demo -settings $ZH
           shot ency-sardine -demo -ency sardine $ZH
@@ -78,7 +80,7 @@ jobs:
           xcrun simctl terminate "$UDID" com.example.fishingidle || true
           xcrun simctl launch "$UDID" com.example.fishingidle -demo -tour -hour 18 -AppleLanguages "(zh-Hans)"
           sleep 3
-          xcrun simctl io "$UDID" recordVideo --codec=h264 --force video/gameplay-v6-zh.mov &
+          xcrun simctl io "$UDID" recordVideo --codec=h264 --force video/gameplay-v7-zh.mov &
           REC=$!
           sleep 88
           kill -INT $REC

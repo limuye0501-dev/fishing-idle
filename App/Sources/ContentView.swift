@@ -54,7 +54,7 @@ struct ContentView: View {
             }
         }
         .fullScreenCover(isPresented: $game.showOnboarding) { OnboardingView().environmentObject(game) }
-        .fullScreenCover(isPresented: $game.showMinigame) { FishingMinigameView().environmentObject(game) }
+        .fullScreenCover(isPresented: $game.showMinigame) { FishingMinigameView().environmentObject(game).presentationBackground(.clear) }
         .sheet(isPresented: $game.showSettings) { SettingsView(store: game.storeManager).environmentObject(game) }
         .sheet(isPresented: $game.showNaming) {
             ShipNamingView().environmentObject(game)

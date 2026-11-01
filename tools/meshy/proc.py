@@ -24,7 +24,8 @@ if t>int(maxtri):
   m=o.modifiers.new('d','DECIMATE');m.ratio=int(maxtri)/t*0.98;bpy.ops.object.modifier_apply(modifier='d')
 o.name=name;o.data.name=name
 for im in bpy.data.images:
-  if im.size[0]>2048: im.scale(2048,2048)
+  T=int(os.environ.get('MAXTEX','2048'))
+  if im.size[0]>T: im.scale(T,T)
   if im.size[0]>0:
     im.filepath_raw=os.path.join(os.path.dirname(dst),name+'_tex.jpg');im.file_format='JPEG';im.save();im.unpack(method='REMOVE') if im.packed_file else None
 bb=[Vector(v) for v in o.bound_box]

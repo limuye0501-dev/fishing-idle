@@ -8,7 +8,10 @@ final class MinigameModel: ObservableObject {
     enum Stage { case sonar, cast, reel, result }
     struct Blip: Identifiable { let id = UUID(); var angle: Double; var radius: Double; let size: Double; let speed: Double }
 
-    @Published var stage: Stage = .sonar
+    @Published var stage: Stage = .sonar { didSet { if stage != oldValue || stage == .sonar { MinigameBus.post(stageName) } } }
+    var stageName: String { switch stage { case .sonar: "sonar"; case .cast: "cast"; case .reel: "reel"; case .result: "result" } }
+    /// CI 截图：-mghold sonar|reel 让自动演示停在该阶段
+    let hold = UserDefaults.standard.string(forKey: "mghold")
     @Published var blips: [Blip] = []
     @Published var sweep = 0.0
     @Published var castPos = 0.0
@@ -44,6 +47,7 @@ final class MinigameModel: ObservableObject {
         }
     }
     func stop() { timer?.cancel(); timer = nil }
+    func end() { stop(); MinigameBus.post("end") }
 
     private func step(_ dt: Double) {
         t += dt
@@ -52,7 +56,8 @@ final class MinigameModel: ObservableObject {
             sweep = (sweep + dt * 1.6).truncatingRemainder(dividingBy: 2 * .pi)
             for i in blips.indices { blips[i].angle += blips[i].speed * dt }
             timeLeft -= dt
-            if autoplay && t > 2.2 { pick(blips.max { $0.size < $1.size }!) }
+            if hold == "sonar" { timeLeft = 8 }
+            else if autoplay && t > 2.2 { pick(blips.max { $0.size < $1.size }!) }
             else if timeLeft <= 0 { pick(blips.min { $0.size < $1.size }!) }
         case .cast:
             castPos += castDir * dt * 0.9
@@ -67,6 +72,8 @@ final class MinigameModel: ObservableObject {
             tension += ((reeling ? ReelConfig.reelForce(assist: assist) : -0.45) + pull * (assist ? 0.7 : 1)) * dt
             tension = max(0, min(1, tension))
             if band.contains(tension) { reelProgress += dt * (reeling ? 0.24 : 0.08) }
+            if hold == "reel" { reelProgress = min(reelProgress, 0.62); timeLeft = 9; tension = min(tension, 0.6) }
+            MinigameBus.post("reel", progress: reelProgress)
             if tension >= 1 { finish(snapped: true); return }
             if reelProgress >= 1 || timeLeft <= 0 { finish(snapped: false) }
         case .result: break
@@ -105,7 +112,7 @@ struct FishingMinigameView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(red: 0.10, green: 0.30, blue: 0.40), Color(red: 0.05, green: 0.16, blue: 0.26)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [.clear, .clear, Color(red: 0.05, green: 0.16, blue: 0.26).opacity(0.85)], startPoint: .top, endPoint: .bottom)   // v7.2：露出 3D 场景
                 .ignoresSafeArea()
             VStack(spacing: 18) {
                 HStack {
@@ -136,7 +143,7 @@ struct FishingMinigameView: View {
             m.onFinish = { q in game.finishMinigame(quality: q) }
             m.start(sonarLevel: game.state.part(.sonar))
         }
-        .onDisappear { m.stop() }
+        .onDisappear { m.end() }
     }
 
     private var title: String {
@@ -161,7 +168,7 @@ struct FishingMinigameView: View {
             let r = min(g.size.width, g.size.height) / 2
             let c = CGPoint(x: g.size.width / 2, y: g.size.height / 2)
             ZStack {
-                Circle().fill(Color(red: 0.05, green: 0.35, blue: 0.30).opacity(0.8))
+                Circle().fill(Color(red: 0.05, green: 0.35, blue: 0.30).opacity(0.12))   // v7.2：3D 声呐为主，2D 仅作点击层
                 ForEach(1..<4) { k in Circle().stroke(Color.green.opacity(0.35), lineWidth: 1).frame(width: r * 2 * CGFloat(k) / 3, height: r * 2 * CGFloat(k) / 3) }
                 Path { p in p.move(to: c); p.addLine(to: CGPoint(x: c.x + r * cos(m.sweep), y: c.y + r * sin(m.sweep))) }
                     .stroke(Color.green, lineWidth: 2)

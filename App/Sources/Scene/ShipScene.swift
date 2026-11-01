@@ -33,6 +33,7 @@ final class ShipScene: NSObject {
     private var palette = SkyPalette.make(part: .dusk, weather: .sunny, ocean: "coastal")
     private var lastSize: CGSize = .zero
     private let pitch: Float = -0.30
+    private var minigameFX: MinigameFX?
 
     override init() {
         let plane = SCNPlane(width: 600, height: 600)
@@ -63,6 +64,7 @@ final class ShipScene: NSObject {
             built.radar.runAction(.repeatForever(.rotateBy(x: 0, y: .pi * 2, z: 0, duration: 4)))
         }
         shipRoot.addChildNode(shipNode)
+        minigameFX = MinigameFX(root: scene.rootNode, ship: shipNode, camera: cameraNode)   // v7.2：小游戏 3D 声呐/收网
         // 小船长站在前甲板，面朝镜头偏右
         let captain = ModelAssets.captain() ?? CaptainModel.build()
         captain.position = usingModels ? SCNVector3(0.55, 0.59, -0.85) : SCNVector3(-0.3, ShipModel.deckY(-0.3), 1.45)   // v7：Meshy 船甲板高 0.59   // v5.5：驾驶室旁靠镜头一侧   // v5.4：船尾甲板，远离网兜   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
