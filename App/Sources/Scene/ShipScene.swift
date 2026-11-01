@@ -64,6 +64,7 @@ final class ShipScene: NSObject {
             built.radar.runAction(.repeatForever(.rotateBy(x: 0, y: .pi * 2, z: 0, duration: 4)))
         }
         shipRoot.addChildNode(shipNode)
+        if usingModels { cameraNode.position = SCNVector3(-0.9, 4.9, 10.8) }   // v7.1b：船头朝左后整体左移，避免船头出画
         minigameFX = MinigameFX(root: scene.rootNode, ship: shipNode, camera: cameraNode)   // v7.2：小游戏 3D 声呐/收网
         // 小船长站在前甲板，面朝镜头偏右
         let captain = ModelAssets.captain() ?? CaptainModel.build()
@@ -263,6 +264,9 @@ final class ShipScene: NSObject {
         }
     }
     private func buildGulls() {
+        if usingModels, let g = Gulls.make(ship: shipNode, perch: SCNVector3(0.5, 5.32, 0.4)) {   // v7.3：Meshy 海鸥
+            gulls.addChildNode(g); scene.rootNode.addChildNode(gulls); addFunnelSmoke(); return
+        }
         for k in 0..<3 {
             let g = SCNNode()
             let wingM = ShipModel.mat(.white, rough: 0.8)
@@ -280,6 +284,24 @@ final class ShipScene: NSObject {
             gulls.addChildNode(orbit)
         }
         scene.rootNode.addChildNode(gulls)
+    }
+    /// v7.3：Meshy 船的烟囱烟（柔和、随风拉长、逐渐变大变淡）
+    private func addFunnelSmoke() {
+        let smoke = SCNParticleSystem()
+        smoke.birthRate = 5; smoke.particleLifeSpan = 4.5; smoke.particleLifeSpanVariation = 1
+        smoke.particleSize = 0.22; smoke.particleSizeVariation = 0.08
+        smoke.particleImage = Tex.dot(UIColor(white: 1, alpha: 0.6), size: 64)
+        smoke.particleColor = UIColor(white: 0.9, alpha: 0.35); smoke.particleColorVariation = SCNVector4(0, 0, 0.05, 0.1)
+        smoke.emittingDirection = SCNVector3(0, 1, 0); smoke.spreadingAngle = 10
+        smoke.particleVelocity = 0.6; smoke.acceleration = SCNVector3(-0.35, 0.08, 0)
+        smoke.particleAngularVelocity = 20; smoke.particleAngularVelocityVariation = 40
+        smoke.propertyControllers = [.size: SCNParticlePropertyController(animation: {
+            let a = CAKeyframeAnimation(); a.values = [0.5, 1.8, 3.4]; a.keyTimes = [0, 0.4, 1]; return a }()),
+            .opacity: SCNParticlePropertyController(animation: {
+            let a = CAKeyframeAnimation(); a.values = [0, 0.8, 0.45, 0]; a.keyTimes = [0, 0.12, 0.5, 1]; return a }())]
+        smoke.isLocal = false
+        let n = SCNNode(); n.position = SCNVector3(-2.0, 4.15, -0.8); n.addParticleSystem(smoke)
+        shipNode.addChildNode(n)
     }
     private func buildRain() {
         let r = SCNParticleSystem()
