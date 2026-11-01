@@ -9,6 +9,10 @@ struct OfflineReport {
     let released: Int
     let newSpecies: Int
     let arrived: String?
+    var events: [String] = []
+    var bestFishID: String? = nil
+    var trophies = 0
+    var fuelEmpty = false
 }
 
 /// 面板
@@ -83,7 +87,11 @@ final class GameViewModel: ObservableObject {
         if args.contains("-settings") { showSettings = true }
         if args.contains("-tour") { runTour() }
         if args.contains("-offline") {
-            offlineReport = OfflineReport(seconds: 3 * 3600 + 25 * 60, fish: 142, released: 96, newSpecies: 2, arrived: nil)
+            offlineReport = OfflineReport(seconds: 3 * 3600 + 25 * 60, fish: 142, released: 96, newSpecies: 2, arrived: nil,
+                                          events: [tr("🍾 捞到一个漂流瓶，里面有张旧海图", "🍾 Fished up a message in a bottle with an old chart"),
+                                                   tr("🐋 远处有一群座头鲸喷水", "🐋 A pod of humpbacks spouted in the distance"),
+                                                   tr("✨ 声呐发现🦈的踪迹！", "✨ Sonar picked up signs of 🦈!")],
+                                          bestFishID: "mahimahi", trophies: 1, fuelEmpty: true)
         }
     }
 
@@ -134,10 +142,13 @@ final class GameViewModel: ObservableObject {
     func resume() {
         AudioManager.shared.startMusic()
         _ = storeManager
+        pullCloud()
         let r = state.advance(to: Date())
         if r.seconds > 120, !r.catches.isEmpty {
             offlineReport = OfflineReport(seconds: r.seconds, fish: r.catches.count, released: r.released,
-                                          newSpecies: r.newSpecies.count, arrived: r.arrived)
+                                          newSpecies: r.newSpecies.count, arrived: r.arrived,
+                                          events: r.events, bestFishID: r.bestCatch?.fishID, trophies: r.trophies,
+                                          fuelEmpty: state.fuel <= 0)
         }
         seenEventCounter = state.eventCounter
         lastCatchCount = state.totalFishCaught
@@ -169,7 +180,40 @@ final class GameViewModel: ObservableObject {
         if ticksSinceSave >= 20 { ticksSinceSave = 0; save() }
     }
 
-    func save() { try? store.save(state) }
+    func save() {
+        try? store.save(state)
+        if AppSettings.shared.iCloudSync { CloudSave.shared.push(state) }
+    }
+
+    // MARK: v8 存档同步 / 导出导入
+    /// 启动或回到前台时：与 iCloud 存档比较，取进度更多者
+    func pullCloud() {
+        guard AppSettings.shared.iCloudSync, let remote = CloudSave.shared.pull() else { return }
+        let merged = SaveTransfer.resolve(local: state, remote: remote)
+        if merged.lastUpdate != state.lastUpdate || merged.totalFishCaught != state.totalFishCaught {
+            state = merged; state.utcOffset = TimeZone.current.secondsFromGMT()
+            toast = tr("已从 iCloud 同步存档", "Save synced from iCloud")
+        }
+    }
+    func exportSaveFile() -> URL? {
+        guard let d = try? SaveTransfer.export(state) else { return nil }
+        let f = DateFormatter(); f.dateFormat = "yyyyMMdd-HHmm"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("captain-save-\(f.string(from: Date())).json")
+        do { try d.write(to: url, options: .atomic); return url } catch { return nil }
+    }
+    func importSave(from url: URL) {
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        do {
+            var s = try SaveTransfer.importSave(try Data(contentsOf: url))
+            s.isFullVersion = s.isFullVersion || state.isFullVersion
+            s.utcOffset = TimeZone.current.secondsFromGMT()
+            state = s; save()
+            toast = tr("存档已导入", "Save imported")
+        } catch {
+            toast = tr("这不是有效的存档文件", "That isn't a valid save file")
+        }
+    }
 
     private func perform(_ action: (inout VoyageState) throws -> Void) {
         do {

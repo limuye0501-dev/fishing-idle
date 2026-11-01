@@ -1411,6 +1411,186 @@
           }
         }
       }
+    },
+    "画面与性能": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display & performance"
+          }
+        }
+      }
+    },
+    "🔋 帧率": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🔋 Frame rate"
+          }
+        }
+      }
+    },
+    "30 fps（省电）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 fps (battery saver)"
+          }
+        }
+      }
+    },
+    "60 fps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "60 fps"
+          }
+        }
+      }
+    },
+    "120 fps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "120 fps"
+          }
+        }
+      }
+    },
+    "🎥 减少镜头晃动": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🎥 Reduce camera motion"
+          }
+        }
+      }
+    },
+    "默认 30 帧省电、不发烫。容易晕的话打开“减少镜头晃动”。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 fps by default to save battery and stay cool. Prone to motion sickness? Turn on Reduce camera motion."
+          }
+        }
+      }
+    },
+    "小游戏": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minigame"
+          }
+        }
+      }
+    },
+    "🎣 收线辅助模式": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🎣 Reeling assist mode"
+          }
+        }
+      }
+    },
+    "绿色拉力区间更宽、鱼挣扎更轻。断线也不会丢鱼，只是个头小一点。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wider green tension zone and calmer fish. A snapped line never loses the fish — it's just smaller."
+          }
+        }
+      }
+    },
+    "存档": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save data"
+          }
+        }
+      }
+    },
+    "☁️ iCloud 同步存档": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "☁️ Sync save with iCloud"
+          }
+        }
+      }
+    },
+    "分享导出的存档文件": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share exported save file"
+          }
+        }
+      }
+    },
+    "导出存档": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export save"
+          }
+        }
+      }
+    },
+    "导入存档": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import save"
+          }
+        }
+      }
+    },
+    "换手机或重装前可以导出存档文件（保存到“文件”或发给自己），之后在这里导入。导入会覆盖当前进度。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before switching phones or reinstalling, export your save (to Files or send it to yourself) and import it here later. Importing replaces current progress."
+          }
+        }
+      }
+    },
+    "前两片海免费。一次购买，永久解锁全部海域、全部渔具与鱼缸扩容。无广告、无体力，宝石不出售。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First two seas are free. One purchase unlocks every ocean, all gear and aquarium upgrades forever. No ads, no stamina, gems are never sold."
+          }
+        }
+      }
+    },
+    "• 游戏进度保存在你的设备上；若开启 iCloud 同步，会存入你自己的 iCloud 账户（我们无法访问）。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• Progress is saved on your device; with iCloud sync on, it is also stored in your own iCloud account (we can't access it)."
+          }
+        }
+      }
     }
   }
 }

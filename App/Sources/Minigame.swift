@@ -18,6 +18,7 @@ final class MinigameModel: ObservableObject {
     @Published var timeLeft = 0.0
     @Published var result: HoldFish?
     @Published var escaped = false
+    @Published var lineSnapped = false
     var sonarScore = 0.3
     var castScore = 0.0
     var reelScore = 0.0
@@ -26,10 +27,12 @@ final class MinigameModel: ObservableObject {
     private var t = 0.0
     private var timer: AnyCancellable?
     var autoplay = false
+    var assist = AppSettings.shared.assistMode
+    var band: ClosedRange<Double> { ReelConfig.safeBand(assist: assist) }
     var onFinish: ((Double) -> HoldFish?)?
 
     func start(sonarLevel: Int) {
-        stage = .sonar; result = nil; escaped = false
+        stage = .sonar; result = nil; escaped = false; lineSnapped = false
         t = 0; timeLeft = 8
         let n = 3 + sonarLevel
         blips = (0..<n).map { _ in
@@ -61,9 +64,9 @@ final class MinigameModel: ObservableObject {
             if autoplay { reeling = tension < 0.55 }
             // 鱼的挣扎：拉力随时间起伏
             let pull = 0.18 * sin(t * 2.3) + 0.12 * sin(t * 5.1)
-            tension += ((reeling ? 0.55 : -0.45) + pull) * dt
+            tension += ((reeling ? ReelConfig.reelForce(assist: assist) : -0.45) + pull * (assist ? 0.7 : 1)) * dt
             tension = max(0, min(1, tension))
-            if tension > 0.35 && tension < 0.75 { reelProgress += dt * (reeling ? 0.24 : 0.08) }
+            if band.contains(tension) { reelProgress += dt * (reeling ? 0.24 : 0.08) }
             if tension >= 1 { finish(snapped: true); return }
             if reelProgress >= 1 || timeLeft <= 0 { finish(snapped: false) }
         case .result: break
@@ -83,10 +86,12 @@ final class MinigameModel: ObservableObject {
         stage = .reel; tension = 0.3; reelProgress = 0; timeLeft = 9; t = 0
     }
     private func finish(snapped: Bool) {
+        // v8：断线不再丢鱼，只是品质（体型）变低
         reelScore = snapped ? 0 : min(1, reelProgress)
-        let q = snapped ? 0 : 0.2 * sonarScore + 0.3 * castScore + 0.5 * reelScore
+        let q = 0.2 * sonarScore + 0.3 * castScore + 0.5 * reelScore
         result = onFinish?(q)
         escaped = result == nil
+        lineSnapped = snapped
         stage = .result
         reeling = false
         if autoplay { stop() }
@@ -147,7 +152,7 @@ struct FishingMinigameView: View {
         case .sonar: tr("越大的光点越可能是稀有的大鱼。点一个！", "Bigger blips are likelier to be rare, big fish. Tap one!")
         case .cast: tr("指针走到金色区域时点击抛网", "Tap when the needle is in the gold zone")
         case .reel: tr("按住收线，松开放线。拉力保持在绿色区间，别把网绳拉断！", "Hold to reel, release to give slack. Keep tension in the green — don't snap the line!")
-        case .result: m.escaped ? tr("下次稳一点～", "Steady hands next time~") : tr("亲手钓的鱼更稀有、更大", "Fish caught by hand are rarer and bigger")
+        case .result: m.escaped ? tr("下次稳一点～", "Steady hands next time~") : m.lineSnapped ? tr("拉力太大，鱼还是捞上来了，只是个头小了点", "Too much tension — you still landed it, just a smaller one") : tr("亲手钓的鱼更稀有、更大", "Fish caught by hand are rarer and bigger")
         }
     }
 
@@ -200,7 +205,7 @@ struct FishingMinigameView: View {
             GeometryReader { g in
                 ZStack(alignment: .bottom) {
                     RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.12))
-                    Rectangle().fill(Color.green.opacity(0.35)).frame(height: g.size.height * 0.4).offset(y: -g.size.height * 0.35)
+                    Rectangle().fill(Color.green.opacity(0.35)).frame(height: g.size.height * (m.band.upperBound - m.band.lowerBound)).offset(y: -g.size.height * m.band.lowerBound)
                     RoundedRectangle(cornerRadius: 4).fill(m.tension > 0.85 ? Color.red : Theme.cream)
                         .frame(height: 8).offset(y: -g.size.height * m.tension + 4)
                 }
