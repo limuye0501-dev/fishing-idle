@@ -28,6 +28,8 @@ final class ShipScene: NSObject {
     private var lastCaught = -1
     private let rim = SCNNode()
     private let cloudRoot = SCNNode()
+    private let glitterNode = SCNNode()
+    private let sprayNode = SCNNode()
     private var palette = SkyPalette.make(part: .dusk, weather: .sunny, ocean: "coastal")
     private var lastSize: CGSize = .zero
     private let pitch: Float = -0.30
@@ -59,8 +61,8 @@ final class ShipScene: NSObject {
         shipRoot.addChildNode(shipNode)
         // 小船长站在前甲板，面朝镜头偏右
         let captain = ModelAssets.captain() ?? CaptainModel.build()
-        captain.position = SCNVector3(-0.35, ShipModel.deckY(-0.35), 0.55)   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
-        captain.eulerAngles.y = 0.6
+        captain.position = SCNVector3(-0.75, ShipModel.deckY(-0.75), 0.75)   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
+        captain.eulerAngles.y = 0.85
         captain.scale = SCNVector3(1.5, 1.5, 1.5)
         shipNode.addChildNode(captain)
         // 夜间灯光
@@ -153,6 +155,81 @@ final class ShipScene: NSObject {
         wakeNode.geometry?.materials = [m]
         wakeNode.isHidden = true   // v4：尾浪与船体泡沫由海面着色器绘制
         buildClouds()
+        buildGlitter()
+        buildSpray()
+    }
+
+    /// v5.3：柔和圆点贴图
+    private static func softDot(_ n: Int = 64) -> UIImage {
+        UIGraphicsImageRenderer(size: CGSize(width: n, height: n)).image { ctx in
+            let g = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: [UIColor(white: 1, alpha: 1).cgColor, UIColor(white: 1, alpha: 0).cgColor] as CFArray, locations: [0, 1])!
+            let c = CGPoint(x: n / 2, y: n / 2)
+            ctx.cgContext.drawRadialGradient(g, startCenter: c, startRadius: 0, endCenter: c, endRadius: CGFloat(n) / 2, options: [])
+        }
+    }
+
+    /// v5.3：太阳金色波光带（加法混合的条带，贴在海面上，从镜头前方延伸到地平线）
+    private func buildGlitter() {
+        let W: CGFloat = 512, H: CGFloat = 2048
+        var rng = SeededRNG(seed: 7)
+        let img = UIGraphicsImageRenderer(size: CGSize(width: W, height: H)).image { ctx in
+            let cg = ctx.cgContext
+            for _ in 0..<1400 {
+                let v = CGFloat.random(in: 0...1, using: &rng)          // 0 远 … 1 近
+                let spread = 0.12 + 0.38 * v
+                let u = 0.5 + CGFloat.random(in: -1...1, using: &rng) * CGFloat.random(in: 0...1, using: &rng) * spread
+                let w = CGFloat.random(in: 6...26, using: &rng) * (0.4 + v), h = w * CGFloat.random(in: 0.18...0.32, using: &rng)
+                let a = CGFloat.random(in: 0.35...1, using: &rng) * (1 - abs(u - 0.5) / max(spread, 0.01) * 0.8) * (0.55 + 0.45 * (1 - v))
+                let c = CGPoint(x: u * W, y: v * H)
+                let g = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: [UIColor(red: 1, green: 0.88, blue: 0.6, alpha: max(a, 0)).cgColor, UIColor(red: 1, green: 0.7, blue: 0.4, alpha: 0).cgColor] as CFArray, locations: [0, 1])!
+                cg.saveGState(); cg.translateBy(x: c.x, y: c.y); cg.scaleBy(x: 1, y: h / w)
+                cg.drawRadialGradient(g, startCenter: .zero, startRadius: 0, endCenter: .zero, endRadius: w, options: [])
+                cg.restoreGState()
+            }
+        }
+        let pl = SCNPlane(width: 26, height: 150)
+        let m = SCNMaterial(); m.lightingModel = .constant
+        m.diffuse.contents = img; m.blendMode = .add; m.writesToDepthBuffer = false; m.isDoubleSided = true
+        pl.materials = [m]
+        glitterNode.geometry = pl
+        glitterNode.renderingOrder = 5
+        scene.rootNode.addChildNode(glitterNode)
+        let shimmer = SCNAction.repeatForever(.sequence([.fadeOpacity(to: 0.75, duration: 0.9), .fadeOpacity(to: 1.0, duration: 0.9)]))
+        glitterNode.runAction(shimmer)
+    }
+
+    private func placeGlitter(sunDir: SCNVector3, visible: Bool) {
+        glitterNode.isHidden = !visible
+        let cx = cameraNode.position.x, cz = cameraNode.position.z
+        let l = max(sqrtf(sunDir.x * sunDir.x + sunDir.z * sunDir.z), 1e-4)
+        let dx = sunDir.x / l, dz = sunDir.z / l
+        let d: Float = 6 + 75   // 近端距镜头约 6
+        glitterNode.position = SCNVector3(cx + dx * d, 0.04, cz + dz * d)
+        // 平面先躺平（-x 90°），再绕 y 旋转使长边指向太阳
+        glitterNode.eulerAngles = SCNVector3(-Float.pi / 2, atan2f(-dx, -dz), 0)
+    }
+
+    /// v5.3：船首白色水花（柔和圆形粒子）
+    private func buildSpray() {
+        let ps = SCNParticleSystem()
+        ps.particleImage = ShipScene.softDot()
+        ps.birthRate = 140
+        ps.particleLifeSpan = 0.9; ps.particleLifeSpanVariation = 0.3
+        ps.particleSize = 0.16; ps.particleSizeVariation = 0.1
+        ps.particleVelocity = 1.8; ps.particleVelocityVariation = 0.8
+        ps.emittingDirection = SCNVector3(0, 1, 0); ps.spreadingAngle = 55
+        ps.acceleration = SCNVector3(0, -4.5, 0)
+        ps.particleColor = UIColor(white: 1, alpha: 0.9)
+        ps.blendMode = .alpha
+        ps.emitterShape = SCNBox(width: 0.6, height: 0.05, length: 2.4, chamferRadius: 0)
+        ps.birthLocation = .surface
+        ps.isAffectedByGravity = false
+        let fade = SCNParticlePropertyController(animation: {
+            let a = CAKeyframeAnimation(); a.values = [0.0, 0.9, 0.0]; a.keyTimes = [0, 0.2, 1]; return a }())
+        ps.propertyControllers = [.opacity: fade]
+        sprayNode.addParticleSystem(ps)
+        sprayNode.position = SCNVector3(4.1, 0.15, 0)
+        shipRoot.addChildNode(sprayNode)
     }
 
     /// 缓慢漂移的柔软云朵（手绘风贴图，带视差）
@@ -312,6 +389,8 @@ final class ShipScene: NSObject {
         seaMat.setValue(NSNumber(value: weather == .storm || weather == .rain || weather == .fog ? 0.3 : 1.0), forKey: "causticAmt")
         seaMat.setValue(NSNumber(value: night0 ? 0.6 : (weather == .storm || weather == .fog ? 0.2 : 1.0)), forKey: "sparkleAmt")
         for n in cloudRoot.childNodes { n.geometry?.firstMaterial?.multiply.contents = p.cloud.mix(.white, 0.35) }
+        placeGlitter(sunDir: sunDir, visible: p.sunVisible && !night0 && weather != .storm && weather != .fog && weather != .rain)
+        sprayNode.isHidden = state.phase != .sailing && state.phase != .fishing
         cloudRoot.isHidden = true   // v5：手绘天空贴图自带云层
         scene.fogColor = p.horizon
         scene.fogStartDistance = p.fogStart; scene.fogEndDistance = p.fogEnd; scene.fogDensityExponent = 1.3

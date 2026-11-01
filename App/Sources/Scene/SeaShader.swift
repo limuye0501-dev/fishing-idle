@@ -46,7 +46,7 @@ float3 col = mix(shallowColor, deepColor, depthT);
 col *= 1.0 + hgt * 0.16 * nearF;
 // v5.1：近景更深更饱和（屏幕下方渐暗）
 float fg = 1.0 - smoothstep(8.0, 30.0, camDist);
-col = mix(col, col * float3(0.45, 0.78, 0.92), fg * 0.75);
+col = mix(col, deepColor * float3(0.55, 0.85, 1.0), fg * 0.7);
 float lum = dot(col, float3(0.3, 0.59, 0.11)); col = mix(float3(lum), col, 1.0 + 0.35 * fg);
 col = mix(col, col * float3(0.80, 0.95, 1.0), smoothstep(0.2, 0.9, -hgt) * 0.35 * nearF);
 
@@ -59,7 +59,7 @@ col += float3(0.85, 1.0, 0.95) * caus * causticAmt * (1.0 - smoothstep(4.0, 30.0
 // —— 柔和菲涅尔：掠射角处映出天空色 ——
 float3 V = normalize(-_surface.position);
 float fres = pow(1.0 - clamp(dot(V, _surface.normal), 0.0, 1.0), 4.0);
-col = mix(col, skyColor, clamp(fres * 0.45 * (1.0 - fg * 0.7) + smoothstep(40.0, 200.0, camDist) * 0.55, 0.0, 0.75));
+col = mix(col, skyColor, clamp(fres * 0.45 * (1.0 - fg * 0.95) + smoothstep(40.0, 200.0, camDist) * 0.55, 0.0, 0.75));
 
 // —— 太阳金色波光带（宽高光 + 圆形闪点）——
 float3 Vw = normalize((scn_frame.inverseViewTransform * float4(V, 0.0)).xyz);
@@ -101,8 +101,6 @@ float bx = 4.6 - lp.x;
 float bowSpread = 1.0 + bx * 0.36;
 float bowLine = (1.0 - smoothstep(0.0, 0.30 + bx * 0.03, abs(abs(lp.y) - bowSpread))) * smoothstep(-0.3, 0.6, bx) * (1.0 - smoothstep(5.0, 16.0, bx));
 float bowFoam = (1.0 - smoothstep(0.0, 2.0, length(float2(lp.x - 4.4, lp.y * 1.3)))) * 1.0;
-float spr = fract(sin(dot(floor(lp * 9.0), float2(127.1, 311.7))) * 43758.5);
-bowFoam = max(bowFoam, step(0.55, spr) * (1.0 - smoothstep(0.0, 3.2, length(float2(lp.x - 4.2, (abs(lp.y) - 1.4) * 1.5)))));
 // —— 尾浪：船尾之后呈 V 形扩散，逐渐淡出 ——
 float back = -lp.x - 4.2;
 float spread = 0.9 + back * 0.30;
