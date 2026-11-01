@@ -42,11 +42,11 @@ public enum Weather: String, Codable, CaseIterable, Sendable {
     }
     /// 捕获速度倍率
     public var catchRate: Double {
-        switch self { case .sunny: 1.0; case .breeze: 1.15; case .rain: 0.9; case .fog: 0.8; case .storm: 0.4; case .ice: 0.7 }
+        switch self { case .sunny: 1.0; case .breeze: 1.15; case .rain: 0.95; case .fog: 0.9; case .storm: 0.4; case .ice: 0.7 }
     }
     /// 稀有度加成
     public var rareBoost: Double {
-        switch self { case .sunny: 1.0; case .breeze: 1.0; case .rain: 1.2; case .fog: 1.5; case .storm: 1.3; case .ice: 1.3 }
+        switch self { case .sunny: 1.0; case .breeze: 1.0; case .rain: 1.3; case .fog: 1.5; case .storm: 1.3; case .ice: 1.3 }
     }
     public var fuelRate: Double { self == .storm ? 2.0 : 1.0 }
 }
@@ -125,8 +125,11 @@ public struct HoldFish: Codable, Hashable, Identifiable, Sendable {
     public let kg: Double
     public let caughtAt: Date
     public let active: Bool
-    public init(id: UUID = UUID(), fishID: String, kg: Double, caughtAt: Date, active: Bool = false) {
-        self.id = id; self.fishID = fishID; self.kg = kg; self.caughtAt = caughtAt; self.active = active
+    /// v9：闪光色变（稀有变种），价值 ×5
+    public var shiny: Bool?
+    public var isShiny: Bool { shiny ?? false }
+    public init(id: UUID = UUID(), fishID: String, kg: Double, caughtAt: Date, active: Bool = false, shiny: Bool = false) {
+        self.id = id; self.fishID = fishID; self.kg = kg; self.caughtAt = caughtAt; self.active = active; self.shiny = shiny ? true : nil
     }
 }
 
@@ -275,6 +278,10 @@ public struct VoyageReport: Sendable {
     /// 期间发生的稀有/重要事件（日志文本，新→旧），用于“航海日志明信片”
     public var events: [String] = []
     public var trophies = 0
+    /// v9：离线稀有事件
+    public var rareEvents: [RareEvent] = []
+    public var shinies = 0
+    public var records: [String] = []
     public init() {}
     /// 本次最值钱的一条
     public var bestCatch: HoldFish? { catches.max { (VoyageConfig.fish($0.fishID)?.value ?? 0) < (VoyageConfig.fish($1.fishID)?.value ?? 0) } }
@@ -326,6 +333,9 @@ public struct VoyageState: Codable, Sendable {
     public var utcOffset: Int
     /// 调试/演示：固定天气
     public var weatherOverride: Weather?
+    /// v9 扩展存档（可选字段，旧存档自动兼容）
+    public var v9: VoyageExtras?
+    public var ext: VoyageExtras { get { v9 ?? VoyageExtras() } set { v9 = newValue } }
 
     public init(now: Date = Date(), shipName: String = "云栖号") {
         coins = VoyageConfig.startingCoins; gems = 0
@@ -388,7 +398,7 @@ public struct VoyageState: Codable, Sendable {
         let size = max(0.6, min(2.0, f.kg / max(t.baseKg, 0.0001)))
         let season = Season.at(now, seasonSeconds: 86_400)
         let autumn = season == .autumn ? 1.1 : 1.0
-        return max(1, Int((Double(t.value) * size * freshness(f, now: now) * autumn).rounded()))
+        return max(1, Int((Double(t.value) * size * freshness(f, now: now) * autumn * (f.isShiny ? VoyageConfig.shinyValueFactor : 1) * decorSellBonus).rounded()))
     }
     public func holdValue(now: Date) -> Int { hold.reduce(0) { $0 + value($1, now: now) } }
     public var averageFreshnessText: String { "" }
@@ -405,20 +415,21 @@ public struct VoyageState: Codable, Sendable {
         rate *= (1 + 0.15 * Double((gearLevels[equipped.rawValue] ?? 1) - 1))
         rate *= w.catchRate * dayPart(date).catchRate
         if fuel <= 0 { rate *= VoyageConfig.driftCatchFactor }
+        rate *= catSpeedFactor(at: date)
         return VoyageConfig.baseCatchSeconds / rate
     }
     public func rareMultiplier(at date: Date, active: Double = 0) -> Double {
         weather(at: date).rareBoost * dayPart(date).rareBoost * (1 + 0.10 * Double(part(.sonar) - 1))
-            * (1 + 0.12 * Double(skill(.keenEye))) * (1 + 2.0 * active)
+            * (1 + 0.12 * Double(skill(.keenEye))) * (1 + 2.0 * active) * moodRareFactor(at: date)
     }
 
     // MARK: 随机
-    private mutating func rand() -> Double {
+    mutating func rand() -> Double {
         rngState = rngState &* 6364136223846793005 &+ 1442695040888963407
         return Double((rngState >> 11) & ((1 << 53) - 1)) / Double(1 << 53)
     }
 
-    private mutating func log(_ text: String, _ date: Date) {
+    mutating func log(_ text: String, _ date: Date) {
         eventLog.insert(EventRecord(date: date, text: text), at: 0)
         if eventLog.count > 60 { eventLog.removeLast(eventLog.count - 60) }
         eventCounter += 1
@@ -446,8 +457,10 @@ public struct VoyageState: Codable, Sendable {
     @discardableResult
     private mutating func stow(_ t: FishType, kgFactor: Double, active: Bool, now: Date, report: inout VoyageReport) -> HoldFish {
         let kg = t.baseKg * (0.6 + rand() * 1.2) * kgFactor
-        let f = HoldFish(fishID: t.id, kg: kg, caughtAt: now, active: active)
+        let shiny = rand() < VoyageConfig.shinyChance * (active ? 3 : 1) * weather(at: now).rareBoost
+        let f = HoldFish(fishID: t.id, kg: kg, caughtAt: now, active: active, shiny: shiny)
         totalFishCaught += 1
+        noteCatch(f, type: t, now: now, report: &report)
         if kg >= t.baseKg * VoyageConfig.trophyFactor { trophies += 1 }
         var e = codex[t.id] ?? CodexEntry(count: 0, bestKg: 0, firstCaught: now)
         let isNew = e.count == 0
@@ -516,7 +529,7 @@ public struct VoyageState: Codable, Sendable {
         case .docked:
             break
         case .fishing:
-            rollSighting(now)
+            rollSighting(now, report: &report)
             if fuel > 0 {
                 fuel = max(0, fuel - VoyageConfig.fuelPerHour * weather(at: now).fuelRate * (1 - 0.08 * Double(skill(.seamanship))) * step / 3600)
             }
@@ -532,15 +545,17 @@ public struct VoyageState: Codable, Sendable {
         }
     }
 
-    private mutating func rollSighting(_ now: Date) {
+    private mutating func rollSighting(_ now: Date, report: inout VoyageReport) {
         let hour = Int(floor(now.timeIntervalSince1970 / 3600))
         guard hour != lastSightingHour else { return }
         lastSightingHour = hour
+        rollRareEvents(now, report: &report)
         if rand() < VoyageConfig.rareSightingChance {
             let rare = ocean.fish.sorted { $0.weight < $1.weight }.first!
             sightingFishID = rare.id
             sightingUntil = now.addingTimeInterval(VoyageConfig.rareSightingSeconds)
             log(tr("✨ 声呐发现\(rare.emoji)\(rare.name)的踪迹！20 分钟内更容易遇到", "✨ Sonar picked up signs of \(rare.emoji) \(rare.name)! More likely for 20 min"), now)
+            report.rareEvents.append(RareEvent(kind: .legendaryTrace, text: eventLog.first?.text ?? "", date: now))
         }
     }
 
