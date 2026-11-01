@@ -61,7 +61,7 @@ final class ShipScene: NSObject {
         shipRoot.addChildNode(shipNode)
         // 小船长站在前甲板，面朝镜头偏右
         let captain = ModelAssets.captain() ?? CaptainModel.build()
-        captain.position = SCNVector3(-0.9, ShipModel.deckY(-0.9), 1.0)   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
+        captain.position = SCNVector3(-3.0, ShipModel.deckY(-3.0), 0.8)   // v5.4：船尾甲板，远离网兜   // v5.2：移到桅杆后方近镜头侧，避免被网兜遮挡
         captain.eulerAngles.y = 0.85 + .pi   // v5.3b：模型正面朝 -Z，翻转使其面向镜头
         captain.scale = SCNVector3(1.5, 1.5, 1.5)
         shipNode.addChildNode(captain)
@@ -200,35 +200,34 @@ final class ShipScene: NSObject {
         let top = (0.5 - 0.345) * 2 * halfH, bot = (0.5 - 0.78) * 2 * halfH
         pl.width = CGFloat(halfW * 0.75); pl.height = CGFloat(top - bot)
         glitterNode.position = SCNVector3(-0.36 * halfW, (top + bot) / 2, -D)
-        cameraNode.addChildNode(glitterNode)
         let shimmer = SCNAction.repeatForever(.sequence([.fadeOpacity(to: 0.75, duration: 0.9), .fadeOpacity(to: 1.0, duration: 0.9)]))
         glitterNode.runAction(shimmer)
     }
 
     private func placeGlitter(sunDir: SCNVector3, visible: Bool) {
-        glitterNode.isHidden = !visible
+        glitterNode.isHidden = true   // v5.4：改为海面着色器绘制
     }
 
     /// v5.3：船首白色水花（柔和圆形粒子）
     private func buildSpray() {
         let ps = SCNParticleSystem()
         ps.particleImage = ShipScene.softDot()
-        ps.birthRate = 320
-        ps.particleLifeSpan = 0.9; ps.particleLifeSpanVariation = 0.3
-        ps.particleSize = 0.26; ps.particleSizeVariation = 0.1
-        ps.particleVelocity = 1.8; ps.particleVelocityVariation = 0.8
+        ps.birthRate = 900
+        ps.particleLifeSpan = 0.6; ps.particleLifeSpanVariation = 0.25
+        ps.particleSize = 0.11; ps.particleSizeVariation = 0.06
+        ps.particleVelocity = 1.1; ps.particleVelocityVariation = 0.5
         ps.emittingDirection = SCNVector3(0, 1, 0); ps.spreadingAngle = 55
         ps.acceleration = SCNVector3(0, -4.5, 0)
         ps.particleColor = UIColor(white: 1, alpha: 0.9)
         ps.blendMode = .alpha
-        ps.emitterShape = SCNBox(width: 0.6, height: 0.05, length: 2.4, chamferRadius: 0)
+        ps.emitterShape = SCNBox(width: 3.2, height: 0.02, length: 2.6, chamferRadius: 0)   // v5.4：沿船首两舷连续水花
         ps.birthLocation = .surface
         ps.isAffectedByGravity = false
         let fade = SCNParticlePropertyController(animation: {
             let a = CAKeyframeAnimation(); a.values = [0.0, 0.9, 0.0]; a.keyTimes = [0, 0.2, 1]; return a }())
         ps.propertyControllers = [.opacity: fade]
         sprayNode.addParticleSystem(ps)
-        sprayNode.position = SCNVector3(4.1, 0.15, 0)
+        sprayNode.position = SCNVector3(3.0, 0.08, 0)
         shipRoot.addChildNode(sprayNode)
     }
 
