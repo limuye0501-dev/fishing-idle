@@ -1,25 +1,16 @@
 import AVFoundation
 import FishingCore
 
-/// v9：每片海独立环境声 + 雨声层 + 水下低通“闷声”（AVAudioEngine）
+/// v9：每片海独立环境声 + 雨声层 + 水下“闷声”。
+/// 用 AVAudioPlayer 循环播放：它不会抛 Obj-C 异常。AVAudioEngine 的 play() 在模拟器/音频路由变化时会直接崩溃。
+/// 水下效果：环境声压低并换成 amb_underwater 低频床。
 @MainActor
 final class AmbientAudio {
     static let shared = AmbientAudio()
-    private let engine = AVAudioEngine()
-    private let eq = AVAudioUnitEQ(numberOfBands: 1)
-    private let bed = AVAudioPlayerNode(), rain = AVAudioPlayerNode()
-    private var bedName = "", rainOn = false, started = false
+    private var bed: AVAudioPlayer?, rain: AVAudioPlayer?
+    private var bedName = "", rainOn = false
     private(set) var underwater = false
-    private static let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
-
-    private init() {
-        engine.attach(bed); engine.attach(rain); engine.attach(eq)
-        let b = eq.bands[0]; b.filterType = .lowPass; b.frequency = 20_000; b.bandwidth = 1; b.bypass = false
-        // 素材统一为 44.1kHz 单声道；固定连接格式，运行中不再改图（改图会让引擎停下导致 play() 抛异常）
-        engine.connect(bed, to: eq, format: Self.format)
-        engine.connect(rain, to: eq, format: Self.format)
-        engine.connect(eq, to: engine.mainMixerNode, format: Self.format)
-    }
+    private var lastVol: Float = 0.6
 
     static func bedFor(ocean: Ocean) -> String {
         switch ocean.id {
@@ -30,45 +21,38 @@ final class AmbientAudio {
         }
     }
 
-    private func buffer(_ name: String) -> AVAudioPCMBuffer? {
+    private func player(_ name: String) -> AVAudioPlayer? {
         guard let u = Bundle.main.url(forResource: name, withExtension: "m4a") ?? Bundle.main.url(forResource: name, withExtension: "m4a", subdirectory: "Audio"),
-              let f = try? AVAudioFile(forReading: u),
-              let buf = AVAudioPCMBuffer(pcmFormat: f.processingFormat, frameCapacity: AVAudioFrameCount(f.length)) else { return nil }
-        try? f.read(into: buf); return buf
-    }
-
-    private func loop(_ node: AVAudioPlayerNode, _ name: String) {
-        guard engine.isRunning, node.engine === engine, !engine.outputConnectionPoints(for: node, outputBus: 0).isEmpty,   // 未连接时 play() 会抛 NSException（CI 启动崩溃）
-              let b = buffer(name), b.format == Self.format else { return }
-        node.stop()
-        node.scheduleBuffer(b, at: nil, options: .loops)
-        node.play()
+              let p = try? AVAudioPlayer(contentsOf: u) else { return nil }
+        p.numberOfLoops = -1; p.prepareToPlay(); return p
     }
 
     /// 每次状态刷新时调用；只有变化时才切换
     func update(state: VoyageState, now: Date) {
         let vol = Float(AppSettings.shared.ambienceVolume)
         guard vol > 0.001, AudioManager.shared.sfxOn else { stop(); return }
-        if !started {
-            do { try engine.start(); started = true } catch { return }
-        }
-        let name = state.phase == .docked ? "amb_coastal" : Self.bedFor(ocean: state.ocean)
-        if name != bedName { bedName = name; loop(bed, name) }
+        lastVol = vol
+        let name = underwater ? "amb_underwater" : (state.phase == .docked ? "amb_coastal" : Self.bedFor(ocean: state.ocean))
+        if name != bedName { bedName = name; bed?.stop(); bed = player(name); bed?.play() }
         let w = state.weather(at: now)
-        let wantRain = w == .rain || w == .storm
-        if wantRain != rainOn { rainOn = wantRain; if wantRain { loop(rain, "amb_rain") } else { rain.stop() } }
-        bed.volume = vol * (underwater ? 0.8 : 0.6)
-        rain.volume = vol * (w == .storm ? 0.7 : 0.45)
+        let wantRain = (w == .rain || w == .storm) && !underwater
+        if wantRain != rainOn {
+            rainOn = wantRain
+            if wantRain { rain = player("amb_rain"); rain?.play() } else { rain?.stop(); rain = nil }
+        }
+        bed?.volume = vol * (underwater ? 0.8 : 0.6)
+        rain?.volume = vol * (w == .storm ? 0.7 : 0.45)
     }
 
-    /// 水下镜头/小游戏收线：低通到 600Hz
+    /// 小游戏收线：切到水下低频床、压掉雨声
     func setUnderwater(_ on: Bool) {
+        guard on != underwater else { return }
         underwater = on
-        eq.bands[0].frequency = on ? 600 : 20_000
+        bedName = ""          // 下次 update 时切换
+        if on { rain?.stop(); rain = nil; rainOn = false; bed?.stop(); bed = player("amb_underwater"); bed?.volume = lastVol * 0.8; bed?.play(); bedName = "amb_underwater" }
     }
 
     func stop() {
-        guard started else { return }
-        bed.stop(); rain.stop(); engine.pause(); started = false; bedName = ""; rainOn = false
+        bed?.stop(); rain?.stop(); bed = nil; rain = nil; bedName = ""; rainOn = false
     }
 }
